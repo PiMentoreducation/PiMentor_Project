@@ -9,7 +9,7 @@
     "dev": "nodemon server.js"
   },
   "keywords": [],
-  "author": "Agrona",
+  "author": "Mentor",
   "license": "ISC",
   "dependencies": {
     "@getbrevo/brevo": "^4.0.1",

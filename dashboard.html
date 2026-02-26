@@ -220,8 +220,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 </div>
                 <div class="student-q">Q: ${d.question}</div>
                 ${d.status === "Resolved" 
-                    ? `<div class="mentor-a"><strong>Agrona's Solution:</strong><br>${d.answer}</div>` 
-                    : `<span class="badge-pending">⏳ Agrona is reviewing this question...</span>`}
+                    ? `<div class="mentor-a"><strong>Mentor's Solution:</strong><br>${d.answer}</div>` 
+                    : `<span class="badge-pending">⏳ Mentor is reviewing this question...</span>`}
             </div>
         `).join('');
     } catch (err) {
