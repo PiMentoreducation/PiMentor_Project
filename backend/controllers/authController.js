@@ -137,7 +137,7 @@ const forgotPassword = async (req, res) => {
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
     await user.save();
 
-    const resetUrl = `http://localhost:5000/api/auth/reset-password/${resetToken}`;
+    const resetUrl = `https://pimentor-backend.onrender.com/api/auth/reset-password/${resetToken}`;
     const html = `<p>You requested a password reset. Click <a href="${resetUrl}">here</a> to reset your password. This link expires in 1 hour.</p>`;
     
     await sendEmail(email, "PiMentor | Password Reset Request", html);
