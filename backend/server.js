@@ -48,16 +48,6 @@ app.use("/api/purchase", purchaseRoutes);
 app.use("/api/payment", require("./routes/paymentRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 
-// Route for Admin Course Dropdown
-app.get("/api/all-courses", async (req, res) => {
-    try {
-        const courses = await Course.find({}, "courseId title");
-        res.json(courses);
-    } catch (err) {
-        console.error("Error fetching courses for admin:", err);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
-});
 
 // --- RENDER KEEP-ALIVE LOGIC ---
 
