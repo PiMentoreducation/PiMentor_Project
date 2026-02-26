@@ -19,8 +19,7 @@ const app = express();
 // --- SIMPLIFIED CORS CONFIGURATION ---
 // This version is more reliable for cloud handshakes
 const allowedOrigins = [
-    'https://pimentor.netlify.app',
-    'https://www.pimentor.netlify.app',
+    'https://pimentor.github.io',
     'http://localhost:3000',
     'http://localhost:5000'
 ];
