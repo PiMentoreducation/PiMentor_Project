@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login | PiMentor</title>
+    <style>
+        /* 1. THEME VARIABLES */
+        :root {
+            --primary: #1a73e8;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --input-bg: #ffffff;
+            --border: #e0e0e0;
+            --shadow: rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg: #121212;
+            --card-bg: #2d2d2d; /* Lighter boxes for Dark Mode */
+            --text: #ffffff;
+            --input-bg: #1e1e1e;
+            --border: #444444;
+            --shadow: rgba(0,0,0,0.4);
+        }
+
+        * { box-sizing: border-box; transition: 0.3s ease; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; margin: 0; 
+            background: var(--bg); color: var(--text); 
+            display: flex; flex-direction: column; min-height: 100vh;
+        }
+
+        /* 2. HEADER & THEME TOGGLE */
+        .login-nav {
+            padding: 15px 5%; display: flex; justify-content: flex-end;
+        }
+        .theme-toggle {
+            background: none; border: 1.5px solid var(--primary); color: var(--primary);
+            padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 1.1rem;
+        }
+
+        /* 3. LOGIN CONTAINER */
+        .login-container {
+            flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .login-box {
+            display: flex; width: 100%; max-width: 900px; 
+            background: var(--card-bg); border-radius: 25px; 
+            overflow: hidden; box-shadow: 0 10px 30px var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .login-left {
+            flex: 1; background: var(--primary); color: white;
+            padding: 50px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+        }
+        .login-left img { width: 100px; height: 100px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.3); margin-bottom: 20px; }
+        .login-left h1 { margin: 0; font-size: 2.2rem; }
+
+        .login-right {
+            flex: 1.2; padding: 50px; display: flex; flex-direction: column; justify-content: center;
+        }
+        .login-right h2 { margin-top: 0; color: var(--primary); font-size: 1.8rem; }
+
+        /* 4. FORM STYLING */
+        form { display: flex; flex-direction: column; gap: 15px; }
+        label { font-weight: 600; font-size: 0.9rem; }
+        input {
+            padding: 12px; border-radius: 10px; border: 1px solid var(--border);
+            background: var(--input-bg); color: var(--text); font-size: 1rem;
+        }
+        input:focus { outline: 2px solid var(--primary); }
+
+        button[type="submit"] {
+            padding: 14px; background: var(--primary); color: white;
+            border: none; border-radius: 10px; font-weight: bold; cursor: pointer;
+            font-size: 1.1rem; margin-top: 10px;
+        }
+        button:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        .form-links { display: flex; justify-content: space-between; margin-top: 20px; font-size: 0.85rem; }
+        .form-links a { color: var(--primary); text-decoration: none; font-weight: bold; }
+
+        /* 5. ROBUST HOME BUTTON */
+        .home-footer { padding: 30px; display: flex; justify-content: center; }
+        .btn-home {
+            text-decoration: none; color: var(--text); font-weight: bold;
+            padding: 10px 30px; border: 2px solid var(--border); border-radius: 25px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-home:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .login-box { flex-direction: column; }
+            .login-left { padding: 30px; }
+            .login-right { padding: 30px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-nav">
+    <button class="theme-toggle" id="themeBtn">🌙</button>
+</div>
+
+<div class="login-container">
+    <div class="login-box">
+        <div class="login-left">
+            <img src="images/OUR_LOGO.jpg" alt="PiMentor">
+            <h1>PiMentor</h1>
+            <p>Your journey to the top starts here.</p>
+        </div>
+
+        <div class="login-right">
+            <h2>Student Login</h2>
+            <form id="loginForm">
+                <label>Email Address</label>
+                <input type="email" id="email" placeholder="name@example.com" required>
+
+                <label>Password</label>
+                <input type="password" id="password" placeholder="••••••••" required>
+
+                <button type="submit">Login to Dashboard</button>
+
+                <div class="form-links">
+                    <a href="forgot-password.html">Forgot Password?</a>
+                    <a href="register.html">New student? Register</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="home-footer">
+    <a href="index.html" class="btn-home">🏠 Back to Home</a>
+</div>
+
+<script>
+    /* --- THEME LOGIC (Synced) --- */
+    const themeBtn = document.getElementById('themeBtn');
+    const applyTheme = (theme) => {
+        document.documentElement.setAttribute('data-theme', theme);
+        themeBtn.innerText = theme === 'dark' ? '☀️' : '🌙';
+        localStorage.setItem('pimentor-theme', theme);
+    };
+
+    const savedTheme = localStorage.getItem('pimentor-theme') || 'light';
+    applyTheme(savedTheme);
+
+    themeBtn.onclick = () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        applyTheme(current === 'dark' ? 'light' : 'dark');
+    };
+
+    /* --- LOGIN LOGIC --- */
+    document.getElementById("loginForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        try {
+            const res = await fetch("https://pimentor-project.onrender.com/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("user", JSON.stringify(data.user));
+                // We use a custom alert style or a simple one
+                window.location.href = "dashboard.html";
+            } else {
+                alert(data.message || "Invalid credentials. Please try again.");
+            }
+        } catch (err) {
+            alert("Connection error. Check if your server is running.");
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Registration | PiMentor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="auth.css">
+    <style>
+        /* Logic for better spatial distribution */
+        .auth-card form input, .auth-card form select {
+            margin-bottom: 15px; /* Consistent spacing between all rows */
+            width: 100%;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px; /* Space between input and button */
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .input-group input {
+            flex: 2;
+            margin-bottom: 0 !important; /* Remove bottom margin to align with button */
+        }
+
+        .btn-small {
+            flex: 1;
+            height: 45px; /* Matches standard input height */
+            padding: 0 10px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background-color: #cccccc !important;
+            cursor: not-allowed;
+        }
+
+        #otp-container, #registration-fields {
+            padding-top: 10px;
+            border-top: 1px dashed #ddd;
+            margin-top: 10px;
+        }
+
+        .verify-btn {
+            background-color: #2196F3; /* Different color for verification */
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h1>Join PiMentor</h1>
+        <p>Create your student account</p>
+
+        <form id="registerForm">
+            <input type="text" id="name" placeholder="Full Name" required>
+
+            <div class="input-group">
+                <input type="email" id="email" placeholder="Email Address" required>
+                <button type="button" id="sendOtpBtn" class="btn-small" onclick="handleSendOTP()">Send OTP</button>
+            </div>
+
+            <div id="otp-container" style="display: none;">
+                <p style="font-size: 0.75rem; color: #777; margin-bottom: 8px;">Check your Gmail inbox for the code.</p>
+                <div class="input-group">
+                    <input type="text" id="otp-input" placeholder="6-Digit OTP" maxlength="6">
+                    <button type="button" class="btn-small verify-btn" onclick="handleVerifyOTP()">Verify Code</button>
+                </div>
+            </div>
+
+            <div id="registration-fields" style="display: none;">
+                <input type="password" id="password" placeholder="Create Password" required>
+
+                <select id="class" required>
+                    <option value="">Select Your Class</option>
+                    <option value="Class 9">Class 9</option>
+                    <option value="Class 10">Class 10</option>
+                    <option value="Class 11">Class 11</option>
+                    <option value="Class 12">Class 12</option>
+                    <option value="Higher Math">Higher Math</option>
+                </select>
+
+                <button type="submit" id="regBtn">Create Account</button>
+            </div>
+        </form>
+
+        <p class="switch">
+            Already have an account? <a href="login.html">Login</a>
+        </p>
+    </div>
+</div>
+
+<script>
+let timerOn = false;
+const BASE_URL = "https://pimentor-project.onrender.com"; 
+
+function startTimer(remaining) {
+    const sendBtn = document.getElementById('sendOtpBtn');
+    timerOn = true;
+    const interval = setInterval(() => {
+        remaining -= 1;
+        sendBtn.innerText = `${remaining}s`;
+        if (remaining <= 0) {
+            clearInterval(interval);
+            sendBtn.innerText = "Resend";
+            sendBtn.disabled = false;
+            timerOn = false;
+        }
+    }, 1000);
+}
+
+async function handleSendOTP() {
+    const email = document.getElementById('email').value;
+    const sendBtn = document.getElementById('sendOtpBtn');
+    
+    if (!email || !email.includes('@')) return alert("Please enter a valid email.");
+
+    sendBtn.disabled = true;
+    sendBtn.innerText = "...";
+
+    try {
+        const response = await fetch(`${BASE_URL}/api/auth/send-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                email, 
+                type: 'register' // <-- Crucial: Tells backend this is a new registration
+            })
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert("OTP Sent!");
+            document.getElementById('otp-container').style.display = 'block';
+            startTimer(60); 
+        } else {
+            alert(data.message);
+            sendBtn.disabled = false;
+            sendBtn.innerText = "Send OTP";
+        }
+    } catch (err) {
+        alert("Server not responding. Is the backend running?");
+        sendBtn.disabled = false;
+    }
+}
+
+async function handleVerifyOTP() {
+    const email = document.getElementById('email').value;
+    const otp = document.getElementById('otp-input').value;
+
+    try {
+        const response = await fetch(`${BASE_URL}/api/auth/verify-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, otp })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            alert("Verified!");
+            document.getElementById('otp-container').style.display = 'none';
+            document.getElementById('sendOtpBtn').style.display = 'none';
+            document.getElementById('email').readOnly = true; 
+            document.getElementById('registration-fields').style.display = 'block';
+        } else {
+            alert(data.message);
+        }
+    } catch (err) {
+        alert("Verification failed.");
+    }
+}
+
+document.getElementById("registerForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const btn = document.getElementById("regBtn");
+  btn.disabled = true;
+  btn.innerText = "Registering...";
+
+  const payload = {
+    name: document.getElementById("name").value,
+    email: document.getElementById("email").value,
+    password: document.getElementById("password").value,
+    studentClass: document.getElementById("class").value
+  };
+
+  try {
+    const res = await fetch(`${BASE_URL}/api/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      alert("Success! Welcome to PiMentor.");
+      window.location.href = "login.html";
+    } else {
+      const data = await res.json();
+      alert(data.message || "Failed");
+      btn.disabled = false;
+      btn.innerText = "Create Account";
+    }
+  } catch (err) {
+    alert("Connection error.");
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

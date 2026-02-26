@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile | PiMentor</title>
+    <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+    <div class="logo">PiMentor</div>
+    <div class="user-area">
+        <img src="images/user.png">
+        <span>Harsh</span>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <a href="dashboard.html">Dashboard</a>
+        <a class="active">Profile</a>
+        <a href="#">Logout</a>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+
+        <!-- PROFILE CARD -->
+        <section class="profile-card">
+            <img src="images/user.png">
+            <div>
+                <h2>Harsh Vardhan</h2>
+                <p>Email: harsh@email.com</p>
+                <p>Class: 11 (Biology)</p>
+            </div>
+        </section>
+
+        <!-- PROGRESS REPORT -->
+        <section class="progress-report">
+            <h2>My Progress Report</h2>
+
+            <!-- COURSE 1 -->
+            <div class="report-card">
+                <img src="images/course1.jpg">
+                <div class="report-info">
+                    <h3>Class 10 Mathematics</h3>
+                    <p>Lectures Completed: 28 / 40</p>
+                    <p>Tests Attempted: 6</p>
+
+                    <div class="progress">
+                        <div class="progress-bar" style="width:70%"></div>
+                    </div>
+                    <span>Overall Progress: 70%</span>
+                </div>
+            </div>
+
+            <!-- COURSE 2 -->
+            <div class="report-card">
+                <img src="images/course2.jpg">
+                <div class="report-info">
+                    <h3>Class 11 Biology</h3>
+                    <p>Lectures Completed: 18 / 40</p>
+                    <p>Tests Attempted: 4</p>
+
+                    <div class="progress">
+                        <div class="progress-bar" style="width:45%"></div>
+                    </div>
+                    <span>Overall Progress: 45%</span>
+                </div>
+            </div>
+
+            <!-- COURSE 3 -->
+            <div class="report-card">
+                <img src="images/course3.jpg">
+                <div class="report-info">
+                    <h3>Foundation Course</h3>
+                    <p>Lectures Completed: 8 / 30</p>
+                    <p>Tests Attempted: 2</p>
+
+                    <div class="progress">
+                        <div class="progress-bar" style="width:20%"></div>
+                    </div>
+                    <span>Overall Progress: 20%</span>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+</div>
+
+</body>
+</html>

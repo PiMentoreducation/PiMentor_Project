@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Player | PiMentor</title>
+    <style>
+        /* 1. THEME VARIABLES (Matches Dashboard) */
+        :root {
+            --primary: #1a73e8;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --header-bg: #ffffff;
+            --border: #eeeeee;
+            --shadow: rgba(0,0,0,0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text: #e0e0e0;
+            --header-bg: #1e1e1e;
+            --border: #333333;
+            --shadow: rgba(0,0,0,0.3);
+        }
+
+        body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: 40px; transition: 0.3s; }
+        
+        .header { 
+            background: var(--header-bg); padding: 10px 5%; display: flex; 
+            align-items: center; justify-content: space-between; 
+            box-shadow: 0 2px 5px var(--shadow); position: sticky; top: 0; z-index: 1000;
+        }
+        .logo-section { display: flex; align-items: center; }
+        .logo-section img { height: 50px; width: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px; border: 2px solid var(--primary); }
+        
+        .header-actions { display: flex; gap: 15px; align-items: center; }
+        .theme-toggle { background: none; border: 1.5px solid var(--primary); color: var(--primary); padding: 8px 12px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
+        .dash-btn { padding: 10px 22px; background: var(--primary); color: white; border: none; border-radius: 25px; text-decoration: none; font-size: 0.9rem; font-weight: bold; }
+
+        .video-wrapper { width: 100%; max-width: 800px; margin: 20px auto; background: #000; box-shadow: 0 4px 15px var(--shadow); }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        .course-list { max-width: 800px; margin: 20px auto; padding: 0 10px; }
+        
+        .item { 
+            background: var(--card-bg); margin-bottom: 15px; padding: 20px 25px; 
+            display: flex; flex-direction: column; cursor: pointer;
+            border-radius: 25px; box-shadow: 0 2px 8px var(--shadow);
+            transition: 0.2s; border: 1px solid var(--border);
+        }
+        .active { border-color: var(--primary); background: var(--bg); }
+
+        .lecture-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .lecture-title { font-weight: 600; font-size: 1.05rem; }
+        
+        .status-container { display: flex; align-items: center; gap: 10px; }
+        .playing-label { color: var(--primary); font-weight: bold; font-size: 0.8rem; }
+        .watched-marker { color: #28a745; font-weight: bold; font-size: 0.8rem; display: none; }
+        .item.watched .watched-marker { display: inline; }
+        .item.active .watched-marker { display: none !important; } 
+
+        .resource-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+        .res-btn { padding: 6px 14px; font-size: 0.8rem; border-radius: 15px; text-decoration: none; font-weight: bold; border: 1px solid; background: transparent; }
+        .btn-notes { color: var(--primary); border-color: var(--primary); }
+        .btn-practice { color: #d93025; border-color: #d93025; }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="logo-section">
+        <img src="images/OUR_LOGO.jpg" alt="PiMentor Logo">
+        <div class="logo-text" style="font-weight: 800; font-size: 1.4rem;">PiMentor</div>
+    </div>
+    <div class="header-actions">
+        <button class="theme-toggle" id="themeBtn">🌙</button>
+        <a href="dashboard.html" class="dash-btn">Dashboard →</a>
+    </div>
+</header>
+
+<div class="video-wrapper">
+    <div class="video-container">
+        <iframe id="vidPlayer" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>
+</div>
+
+<div class="course-list" id="lectureList"></div>
+
+<script>
+// --- SHARED THEME LOGIC ---
+const themeBtn = document.getElementById("themeBtn");
+function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    themeBtn.innerText = theme === "dark" ? "☀️" : "🌙";
+}
+
+// Load current theme from localStorage
+const currentTheme = localStorage.getItem("pimentor-theme") || "light";
+applyTheme(currentTheme);
+
+themeBtn.addEventListener("click", () => {
+    const theme = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    localStorage.setItem("pimentor-theme", theme);
+    applyTheme(theme);
+});
+
+function getEmbedUrl(url) {
+    if (!url) return "";
+    let videoId = "";
+    if (url.includes("youtu.be/")) videoId = url.split("youtu.be/")[1].split("?")[0];
+    else if (url.includes("watch?v=")) videoId = url.split("watch?v=")[1].split("&")[0];
+    else if (url.includes("embed/")) videoId = url.split("embed/")[1].split("?")[0];
+    return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1`;
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const params = new URLSearchParams(window.location.search);
+    const courseId = params.get("id");
+    const token = localStorage.getItem("token");
+    let watchedLectures = JSON.parse(localStorage.getItem(`watched_${courseId}`)) || [];
+
+    try {
+        const res = await fetch(`https://pimentor-project.onrender.com/api/purchase/course-content/${courseId}`, {
+            headers: { Authorization: "Bearer " + token }
+        });
+        const data = await res.json();
+        const list = document.getElementById("lectureList");
+        const player = document.getElementById("vidPlayer");
+
+        data.lectures.forEach((lec, i) => {
+            const div = document.createElement("div");
+            const isWatched = watchedLectures.includes(lec._id);
+            div.className = `item ${i === 0 ? "active" : ""} ${isWatched ? "watched" : ""}`;
+            div.dataset.id = lec._id;
+
+            let resourceButtons = '';
+            if (lec.pdfNotes) resourceButtons += `<a href="${lec.pdfNotes}" class="res-btn btn-notes" target="_blank">📄 Notes PDF</a>`;
+            if (lec.practiseMcq || lec.practiceMcq) {
+                const mcq = lec.practiseMcq || lec.practiceMcq;
+                resourceButtons += `<a href="${mcq}" class="res-btn btn-practice" target="_blank">📝 Practice MCQ</a>`;
+            }
+
+            div.innerHTML = `
+                <div class="lecture-top">
+                    <span class="lecture-title">${(i + 1).toString().padStart(2, '0')}. ${lec.lectureTitle}</span>
+                    <div class="status-container">
+                        <span class="watched-marker">✅ WATCHED</span>
+                        <span class="playing-label">${i === 0 ? 'PLAYING' : ''}</span>
+                    </div>
+                </div>
+                <div class="resource-row">${resourceButtons}</div>
+            `;
+
+            div.onclick = (e) => {
+                if (e.target.tagName !== 'A') {
+                    player.src = getEmbedUrl(lec.videoUrl) + "&autoplay=1";
+                    
+                    const currentActive = document.querySelector(".item.active");
+                    if (currentActive) {
+                        const prevId = currentActive.dataset.id;
+                        if (!watchedLectures.includes(prevId)) {
+                            watchedLectures.push(prevId);
+                            localStorage.setItem(`watched_${courseId}`, JSON.stringify(watchedLectures));
+                            currentActive.classList.add("watched");
+                        }
+                    }
+
+                    document.querySelectorAll(".item").forEach(el => {
+                        el.classList.remove("active");
+                        el.querySelector(".playing-label").innerText = "";
+                    });
+                    div.classList.add("active");
+                    div.querySelector(".playing-label").innerText = "PLAYING";
+                }
+            };
+            list.appendChild(div);
+        });
+        if (data.lectures.length > 0) player.src = getEmbedUrl(data.lectures[0].videoUrl);
+    } catch (err) { console.error(err); }
+});
+</script>
+</body>
+</html>

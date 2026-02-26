@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecture Management | PiMentor Admin</title>
+    <link rel="stylesheet" href="admin-lectures.css">
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+    <div class="logo">PiMentor Admin</div>
+    <div class="admin-user">
+        <span>Admin</span>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <a href="admin.html">Dashboard</a>
+        <a class="active">Lectures</a>
+        <a>Courses</a>
+        <a>Students</a>
+        <a>Payments</a>
+        <a>Logout</a>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+
+        <!-- ADD LECTURE -->
+        <section class="panel">
+            <h2>Add New Lecture</h2>
+
+            <form class="lecture-form">
+                <select>
+                    <option>Select Course</option>
+                    <option>Class 10 Mathematics</option>
+                    <option>Class 11 Biology</option>
+                </select>
+
+                <input type="text" placeholder="Lecture Title">
+                <input type="text" placeholder="Duration (e.g. 45 min)">
+                <input type="file">
+
+                <button>Add Lecture</button>
+            </form>
+        </section>
+
+        <!-- LECTURE LIST -->
+        <section class="panel">
+            <h2>Manage Lectures</h2>
+
+            <div class="lecture-table">
+                <div class="lecture-row head">
+                    <span>Lecture</span>
+                    <span>Course</span>
+                    <span>Status</span>
+                    <span>Action</span>
+                </div>
+
+                <div class="lecture-row">
+                    <span>Lecture 1: Introduction</span>
+                    <span>Class 10 Mathematics</span>
+                    <span class="unlocked">Unlocked</span>
+                    <span>
+                        <button class="lock">Lock</button>
+                    </span>
+                </div>
+
+                <div class="lecture-row">
+                    <span>Lecture 2: Polynomials</span>
+                    <span>Class 10 Mathematics</span>
+                    <span class="unlocked">Unlocked</span>
+                    <span>
+                        <button class="lock">Lock</button>
+                    </span>
+                </div>
+
+                <div class="lecture-row">
+                    <span>Lecture 3: Factorisation</span>
+                    <span>Class 10 Mathematics</span>
+                    <span class="locked">Locked</span>
+                    <span>
+                        <button class="unlock">Unlock</button>
+                    </span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+</body>
+</html>

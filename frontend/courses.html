@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Buy Courses | PiMentor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="courses.css">
+</head>
+<body>
+
+<header class="top-bar">
+  <h1>PiMentor Mathematics & Science</h1>
+  <button onclick="window.location.href='dashboard.html'">Dashboard</button>
+</header>
+
+<div class="course-container" id="courseContainer">
+    <p id="statusMessage">Loading courses...</p>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  // Auth Guard
+  if (!token || !user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  const container = document.getElementById("courseContainer");
+
+  try {
+    /* STEP 1: FETCH DATA
+       We fetch the full catalog from the admin route and the user's specific 
+       purchases from the purchase route simultaneously.
+    */
+    const [courseRes, purchaseRes] = await Promise.all([
+      fetch("https://pimentor-project.onrender.com/api/purchase/all-courses", {
+        headers: { "Authorization": "Bearer " + token }
+      }),
+      fetch("https://pimentor-project.onrender.com/api/purchase/my-courses", {
+        headers: { "Authorization": "Bearer " + token }
+      })
+    ]);
+
+    if (!courseRes.ok || !purchaseRes.ok) throw new Error("Server responded with an error");
+
+    const allCourses = await courseRes.json();
+    const purchasedCourses = await purchaseRes.json();
+
+    /* STEP 2: RENDER DYNAMICALLY
+       Mapping the database objects to your UI grid.
+    */
+    container.innerHTML = ""; // Clear the loading message
+
+    if (allCourses.length === 0) {
+      container.innerHTML = "<p>No courses are currently available.</p>";
+      return;
+    }
+
+    allCourses.forEach(course => {
+      // Check if courseId exists in the array of purchased objects from MongoDB
+      const alreadyBought = purchasedCourses.some(p => p.courseId === course.courseId);
+
+      const div = document.createElement("div");
+      div.className = "course-card";
+      div.innerHTML = `
+        <h3>${course.title}</h3>
+        <p><strong>${course.className || 'General'}</strong></p>
+        <p class="description">${course.description || ''}</p>
+        <p class="price">₹${course.price}</p>
+        <button ${alreadyBought ? "disabled" : ""}>
+          ${alreadyBought ? "Purchased" : "Buy Now"}
+        </button>
+      `;
+
+      if (!alreadyBought) {
+        div.querySelector("button").onclick = () => buyCourse(course);
+      }
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    console.error("Failed to load data from PiMentor server:", err);
+    document.getElementById("statusMessage").innerText = "Error: Could not connect to the PiMentor database.";
+  }
+});
+
+/* STEP 3: PAYMENT & DATABASE SYNC
+   Initiates Razorpay and saves the record to the Purchase collection on success.
+*/
+async function buyCourse(course) {
+  const token = localStorage.getItem("token");
+
+  try {
+    // 1. Create Order on Backend (Razorpay Logic)
+    const res = await fetch("https://pimentor-project.onrender.com/api/payment/create-order", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify({
+        courseId: course.courseId,
+        title: course.title,
+        price: course.price,
+        className: course.className
+      })
+    });
+
+    const data = await res.json();
+    const order = data.order || data; 
+
+    // 2. Open Razorpay Modal
+    const options = {
+      key: "rzp_test_SIWx62DBo83S8C", // Your Test Key
+      amount: order.amount,
+      currency: "INR",
+      name: "PiMentor",
+      description: course.title,
+      order_id: order.id,
+      handler: async function (response) {
+        
+        // 3. ON SUCCESS: Call the verification and purchase route
+        const saveRes = await fetch("https://pimentor-project.onrender.com/api/payment/verify", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+          },
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            course: {
+              courseId: course.courseId,
+              title: course.title,
+              className: course.className,
+              price: course.price
+            }
+          })
+        });
+
+        if (saveRes.ok) {
+          alert("Payment Successful! Welcome to the course.");
+          window.location.href = "dashboard.html";
+        } else {
+          alert("Payment verified but failed to update your dashboard. Please contact PiMentor support.");
+        }
+      },
+      theme: { color: "#3399cc" },
+      modal: {
+        ondismiss: function() {
+          console.log("Payment cancelled by user.");
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+
+  } catch (error) {
+    console.error("Payment Process Error:", error);
+    alert("An error occurred during the purchase process. Please try again.");
+  }
+}
+</script>
+
+</body>
+</html>

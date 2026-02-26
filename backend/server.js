@@ -70,7 +70,7 @@ app.get("/", (req, res) => {
 
 // 3. The Self-Ping Interval (Executes every 14 minutes)
 // IMPORTANT: Replace the URL below with your actual Render URL after you deploy.
-const RENDER_URL = "http://localhost:10000/api/health-check"; 
+const RENDER_URL = "https://pimentor-project.onrender.com/api/health-checkPrime";
 
 setInterval(async () => {
     try {
@@ -82,7 +82,7 @@ setInterval(async () => {
 }, 14 * 60 * 1000); 
 
 // --- START SERVER ---
-const PORT = process.env.PORT || 5000; // Render usually prefers port 10000
+const PORT = process.env.PORT || 10000; // Render usually prefers port 10000
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
 });

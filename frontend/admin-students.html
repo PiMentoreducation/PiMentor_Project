@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management | PiMentor Admin</title>
+    <link rel="stylesheet" href="admin-students.css">
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+    <div class="logo">PiMentor Admin</div>
+    <div class="admin-user">
+        <span>Admin</span>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <a href="admin.html">Dashboard</a>
+        <a href="admin-lectures.html">Lectures</a>
+        <a class="active">Students</a>
+        <a>Payments</a>
+        <a>Logout</a>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+
+        <!-- STUDENT LIST -->
+        <section class="panel">
+            <h2>Student Management</h2>
+
+            <div class="student-table">
+                <div class="student-row head">
+                    <span>Name</span>
+                    <span>Email</span>
+                    <span>Courses Enrolled</span>
+                    <span>Progress</span>
+                    <span>Status</span>
+                    <span>Action</span>
+                </div>
+
+                <div class="student-row">
+                    <span>Harsh Vardhan</span>
+                    <span>harsh@email.com</span>
+                    <span>3</span>
+                    <span>42%</span>
+                    <span class="active">Active</span>
+                    <span><button class="deactivate">Deactivate</button></span>
+                </div>
+
+                <div class="student-row">
+                    <span>Aman Kumar</span>
+                    <span>aman@email.com</span>
+                    <span>1</span>
+                    <span>18%</span>
+                    <span class="inactive">Inactive</span>
+                    <span><button class="activate">Activate</button></span>
+                </div>
+
+                <div class="student-row">
+                    <span>Neha Sharma</span>
+                    <span>neha@email.com</span>
+                    <span>2</span>
+                    <span>76%</span>
+                    <span class="active">Active</span>
+                    <span><button class="deactivate">Deactivate</button></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- STUDENT DETAILS -->
+        <section class="panel">
+            <h2>Selected Student Details</h2>
+
+            <div class="student-details">
+                <p><strong>Name:</strong> Harsh Vardhan</p>
+                <p><strong>Email:</strong> harsh@email.com</p>
+                <p><strong>Class:</strong> 11 (Biology)</p>
+                <p><strong>Purchased Courses:</strong></p>
+
+                <ul>
+                    <li>Class 10 Mathematics — 70%</li>
+                    <li>Class 11 Biology — 45%</li>
+                    <li>Foundation Course — 20%</li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+</body>
+</html>

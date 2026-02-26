@@ -1,0 +1,68 @@
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  background: #f4f6f9;
+  margin: 0;
+}
+
+.top-bar {
+  background: #1e2a38;
+  color: white;
+  padding: 18px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.top-bar button {
+  background: #4fd1c5;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.course-container {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.course-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+.course-card h3 {
+  font-size: 17px;
+  margin-bottom: 6px;
+}
+
+.course-card .price {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.course-card button {
+  width: 100%;
+  padding: 10px;
+  background: #4fd1c5;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.course-card button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}

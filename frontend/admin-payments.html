@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments & Orders | PiMentor Admin</title>
+    <link rel="stylesheet" href="admin-payments.css">
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+    <div class="logo">PiMentor Admin</div>
+    <div class="admin-user">
+        <span>Admin</span>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <a href="admin.html">Dashboard</a>
+        <a href="admin-students.html">Students</a>
+        <a href="admin-lectures.html">Lectures</a>
+        <a class="active">Payments</a>
+        <a>Logout</a>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+
+        <!-- REVENUE STATS -->
+        <section class="stats">
+            <div class="stat-card">
+                <h3>₹2,40,000</h3>
+                <p>Total Revenue</p>
+            </div>
+            <div class="stat-card">
+                <h3>₹18,500</h3>
+                <p>This Month</p>
+            </div>
+            <div class="stat-card">
+                <h3>12</h3>
+                <p>Refund Requests</p>
+            </div>
+        </section>
+
+        <!-- ORDERS TABLE -->
+        <section class="panel">
+            <h2>Orders & Payments</h2>
+
+            <div class="order-table">
+                <div class="order-row head">
+                    <span>Order ID</span>
+                    <span>Student</span>
+                    <span>Course</span>
+                    <span>Amount</span>
+                    <span>Status</span>
+                    <span>Action</span>
+                </div>
+
+                <div class="order-row">
+                    <span>#PM1023</span>
+                    <span>Harsh Vardhan</span>
+                    <span>Class 10 Mathematics</span>
+                    <span>₹1999</span>
+                    <span class="paid">Paid</span>
+                    <span>
+                        <button class="verify">Verify</button>
+                    </span>
+                </div>
+
+                <div class="order-row">
+                    <span>#PM1024</span>
+                    <span>Aman Kumar</span>
+                    <span>Class 11 Biology</span>
+                    <span>₹2499</span>
+                    <span class="pending">Pending</span>
+                    <span>
+                        <button class="verify">Verify</button>
+                    </span>
+                </div>
+
+                <div class="order-row">
+                    <span>#PM1025</span>
+                    <span>Neha Sharma</span>
+                    <span>Foundation Course</span>
+                    <span>₹1499</span>
+                    <span class="refund">Refunded</span>
+                    <span>
+                        <button class="refund-btn">Details</button>
+                    </span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+</body>
+</html>

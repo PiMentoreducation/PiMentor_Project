@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Learning | PiMentor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* 1. THEME VARIABLES (Consistent with Dashboard) */
+        :root {
+            --primary: #1a73e8;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --header-bg: #ffffff;
+            --border: #eeeeee;
+        }
+
+        [data-theme="dark"] {
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text: #e0e0e0;
+            --header-bg: #1e1e1e;
+            --border: #333333;
+        }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0; 
+            background: var(--bg); 
+            color: var(--text); 
+            transition: 0.3s; 
+        }
+
+        /* 2. BRANDED HEADER */
+        .dashboard-header { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            background: var(--header-bg); 
+            padding: 15px 25px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            margin-bottom: 25px;
+        }
+
+        .logo-box { display: flex; align-items: center; text-decoration: none; color: inherit; }
+        .logo-box img { 
+            height: 45px; width: 45px; border-radius: 50%; 
+            object-fit: cover; margin-right: 12px; border: 2px solid var(--primary);
+        }
+        .logo-text { font-size: 1.2rem; font-weight: 800; }
+
+        .header-actions { display: flex; gap: 15px; align-items: center; }
+        
+        .theme-toggle {
+            background: none; border: 1.5px solid var(--primary); color: var(--primary);
+            padding: 8px 12px; border-radius: 50%; cursor: pointer; font-size: 1.1rem;
+        }
+
+        .nav-link {
+            text-decoration: none; color: var(--primary); font-weight: bold; font-size: 0.9rem;
+        }
+
+        /* 3. COURSES GRID */
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+        
+        .section-title { margin-bottom: 20px; }
+        .section-title h1 { margin: 0; font-size: 1.5rem; }
+
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            padding-bottom: 40px;
+        }
+
+        .course-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        .course-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+
+        .course-info { padding: 20px; }
+        .course-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; color: var(--text); }
+        .course-meta { font-size: 0.85rem; color: #777; margin-bottom: 15px; }
+
+        .progress-bar { height: 6px; background: var(--border); border-radius: 10px; margin-top: 10px; }
+        .progress-fill { height: 100%; background: var(--primary); border-radius: 10px; width: 0%; }
+        
+        .course-card small { color: var(--primary); font-weight: bold; display: block; margin-top: 15px; }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: #777; }
+        .btn-browse {
+            display: inline-block; margin-top: 15px; padding: 10px 25px;
+            background: var(--primary); color: white; border-radius: 25px;
+            text-decoration: none; font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            .logo-text { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="dashboard-header">
+        <a href="dashboard.html" class="logo-box">
+            <img src="images/OUR_LOGO.jpg" alt="PiMentor Logo">
+            <div class="logo-text">PiMentor</div>
+        </a>
+        
+        <div class="header-actions">
+            <a href="dashboard.html" class="nav-link">Dashboard</a>
+            <button class="theme-toggle" id="themeBtn">🌙</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="section-title">
+            <h1>My Courses</h1>
+            <p style="opacity: 0.8;">Pick up where you left off, Agrona.</p>
+        </div>
+
+        <div id="courses-container" class="courses-grid">
+            </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem("token");
+        const themeBtn = document.getElementById("themeBtn");
+
+        // 1. THEME RETAINING LOGIC
+        const applyTheme = (theme) => {
+            document.documentElement.setAttribute("data-theme", theme);
+            themeBtn.innerText = theme === "dark" ? "☀️" : "🌙";
+            localStorage.setItem("pimentor-theme", theme);
+        };
+
+        // Initialize theme from storage
+        applyTheme(localStorage.getItem("pimentor-theme") || "light");
+
+        themeBtn.addEventListener("click", () => {
+            const currentTheme = document.documentElement.getAttribute("data-theme");
+            applyTheme(currentTheme === "dark" ? "light" : "dark");
+        });
+
+        // 2. FETCH COURSES
+        async function fetchMyCourses() {
+            if (!token) { window.location.href = "login.html"; return; }
+
+            try {
+                const res = await fetch("https://pimentor-project.onrender.com/api/purchase/my-courses", {
+                    headers: { "Authorization": "Bearer " + token }
+                });
+                const courses = await res.json();
+                
+                const container = document.getElementById("courses-container");
+                
+                if (!courses || courses.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <h3>No courses found</h3>
+                            <p>You haven't enrolled in any courses yet.</p>
+                            <a href="courses.html" class="btn-browse">Browse Catalog</a>
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = courses.map(course => `
+                    <div class="course-card" onclick="viewCourseStructure('${course.courseId}')">
+                        <div class="course-info">
+                            <div class="course-title">${course.title}</div>
+                            <div class="course-meta">Class: ${course.className}</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <small>Continue Learning →</small>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Error fetching courses:", err);
+                document.getElementById("courses-container").innerHTML = "<p>Error loading your courses.</p>";
+            }
+        }
+
+        function viewCourseStructure(courseId) {
+            window.location.href = `course-structure.html?id=${courseId}`;
+        }
+
+        // Initialize page
+        document.addEventListener("DOMContentLoaded", fetchMyCourses);
+    </script>
+</body>
+</html>

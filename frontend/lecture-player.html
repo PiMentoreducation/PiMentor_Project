@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Learning Player | PiMentor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --primary: #1a73e8; --bg: #f8f9fa; --card-bg: #ffffff;
+            --text: #333333; --header-bg: #ffffff; --border: #eeeeee;
+            --danger: #dc3545;
+        }
+        [data-theme="dark"] {
+            --bg: #121212; --card-bg: #1e1e1e; --text: #e0e0e0;
+            --header-bg: #1e1e1e; --border: #333333;
+        }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); transition: 0.3s; }
+
+        /* HEADER */
+        .player-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 25px; background: var(--header-bg); border-bottom: 1px solid var(--border);
+        }
+        .logo-box { display: flex; align-items: center; text-decoration: none; color: inherit; }
+        .logo-box img { height: 35px; width: 35px; border-radius: 50%; margin-right: 12px; border: 2px solid var(--primary); }
+
+        /* CIRCULAR THEME TOGGLE */
+        .theme-toggle {
+            background: none; border: 1.5px solid var(--primary); color: var(--primary);
+            width: 40px; height: 40px; border-radius: 50%; cursor: pointer; 
+            font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.3s;
+        }
+        .theme-toggle:hover { background: var(--primary); color: white; }
+
+        /* LAYOUT */
+        .player-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
+        
+        .video-main { width: 100%; }
+        .video-box { 
+            position: relative; padding-bottom: 56.25%; height: 0; 
+            background: #000; border-radius: 15px; overflow: hidden; 
+        }
+        .video-box iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+        /* SIDEBAR */
+        .sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .sidebar-card { background: var(--card-bg); border-radius: 15px; border: 1px solid var(--border); padding: 15px; }
+        
+        .lecture-list-container { max-height: 350px; overflow-y: auto; margin-top: 10px; }
+        .lecture-item { 
+            padding: 12px; border-radius: 8px; cursor: pointer; border-bottom: 1px solid var(--border);
+            font-size: 0.85rem; transition: 0.2s; display: flex; justify-content: space-between;
+        }
+        .lecture-item:hover { background: var(--primary); color: white; }
+        .active-lecture { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* RESOURCES */
+        .btn-res { 
+            display: block; width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; 
+            text-align: center; font-weight: bold; cursor: pointer; border: none; font-size: 0.85rem; transition: 0.3s;
+        }
+        .btn-pdf { background: #fdf2f2; color: #d32f2f; border: 1px solid #ffcdd2; }
+        .btn-mcq { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .btn-res:hover { transform: scale(1.02); filter: brightness(0.95); }
+
+        /* MODAL OVERLAY (Fixed Back/Close visibility) */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center;
+            flex-direction: column;
+        }
+        .modal-content { width: 95%; height: 85%; background: white; border-radius: 15px; overflow: hidden; position: relative; z-index: 1001; }
+        
+        .close-modal { 
+            position: absolute; top: 20px; right: 30px; font-size: 35px; color: white; 
+            cursor: pointer; z-index: 1002; background: rgba(0,0,0,0.5); 
+            width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; 
+            border-radius: 50%; transition: 0.3s;
+        }
+        .close-modal:hover { background: var(--danger); transform: rotate(90deg); }
+
+        @media (max-width: 900px) { .player-layout { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<header class="player-header">
+    <a href="dashboard.html" class="logo-box">
+        <img src="images/OUR_LOGO.jpg" alt="PiMentor Logo">
+        <div style="font-weight: 800;">PiMentor</div>
+    </a>
+    <div style="display: flex; gap: 15px; align-items: center;">
+        <button onclick="toggleTheme()" id="themeBtn" class="theme-toggle">🌙</button>
+        <a href="#" id="backBtn" style="text-decoration: none; color: var(--primary); font-weight: bold;">Back</a>
+    </div>
+</header>
+
+<div class="player-layout">
+    <div class="video-main">
+        <div class="video-box">
+            <iframe id="mainIframe" src="" allowfullscreen></iframe>
+        </div>
+        <div style="background: var(--card-bg); padding: 20px; border-radius: 15px; margin-top: 15px; border: 1px solid var(--border);">
+            <h1 id="lectureTitle" style="margin: 0 0 5px;">Loading...</h1>
+            <p id="topicDisplay" style="color: var(--primary); font-weight: bold; font-size: 0.8rem;"></p>
+            <p id="chapterNameDisplay" style="color: #888; font-size: 0.75rem; margin-top: 5px;"></p>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="sidebar-card">
+            <h3 style="margin: 0;">Resources</h3>
+            <button id="pdfBtn" class="btn-res btn-pdf" style="display:none;" onclick="openResourceModal(this.dataset.url)">📄 View PDF Notes</button>
+            <button id="mcqBtn" class="btn-res btn-mcq" style="display:none;" onclick="openResourceModal(this.dataset.url)">📝 Take Quiz</button>
+        </div>
+
+        <div class="sidebar-card">
+            <h3 style="margin: 0;">Chapter Curriculum</h3>
+            <div id="lectureList" class="lecture-list-container"></div>
+        </div>
+
+        <div class="sidebar-card">
+            <h3 style="margin: 0;">Ask Your Doubts</h3>
+            <textarea id="doubtText" style="width:100%; height:60px; margin-top:10px; border-radius:8px; border:1px solid var(--border); padding:10px; box-sizing: border-box;" placeholder="Write your doubt here."></textarea>
+            <button onclick="submitDoubt()" style="width: 100%; margin-top: 10px; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Send Doubt</button>
+            <p id="doubtStatus" style="font-size: 0.75rem; margin-top: 5px; color: green; text-align: center;"></p>
+        </div>
+    </div>
+</div>
+
+<div id="resourceModal" class="modal-overlay">
+    <span class="close-modal" onclick="closeModal()" title="Back to Video">&times;</span>
+    <div class="modal-content">
+        <iframe id="resourceIframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+    </div>
+    <p style="color: white; margin-top: 15px; font-size: 0.9rem;">Click the &times; button to return to the lecture.</p>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseId = urlParams.get('courseId');
+    const chapter = urlParams.get('chapter');
+    const token = localStorage.getItem("token");
+    const BASE_URL = "https://pimentor-project.onrender.com";
+    let activeLectureId = null;
+
+    function applyTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        document.getElementById("themeBtn").innerText = theme === "dark" ? "☀️" : "🌙";
+        localStorage.setItem("pimentor-theme", theme);
+    }
+    applyTheme(localStorage.getItem("pimentor-theme") || "light");
+    function toggleTheme() { applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"); }
+
+    async function initPlayer() {
+        if (!courseId || !chapter) {
+            window.location.href = "dashboard.html";
+            return;
+        }
+
+        // Set Dynamic Back Link
+        document.getElementById("backBtn").href = `course-structure.html?id=${courseId}`;
+        document.getElementById("chapterNameDisplay").innerText = "Chapter: " + chapter;
+
+        try {
+            const res = await fetch(`${BASE_URL}/api/purchase/course-content/${courseId}/${encodeURIComponent(chapter)}`, {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            const lectures = await res.json();
+            const list = document.getElementById("lectureList");
+
+            if (lectures.length > 0) {
+                list.innerHTML = lectures.map((l, index) => `
+                    <div class="lecture-item" id="lec-${l._id}" onclick="playLecture(${JSON.stringify(l).replace(/"/g, '&quot;')})">
+                        <span>${index + 1}. ${l.title}</span>
+                    </div>
+                `).join('');
+                playLecture(lectures[0]);
+            } else {
+                list.innerHTML = "<p style='text-align:center; color:#888;'>No lectures found.</p>";
+            }
+        } catch (err) { console.error(err); }
+    }
+
+    function playLecture(lec) {
+        activeLectureId = lec._id;
+        document.querySelectorAll('.lecture-item').forEach(el => el.classList.remove('active-lecture'));
+        if(document.getElementById(`lec-${lec._id}`)) {
+            document.getElementById(`lec-${lec._id}`).classList.add('active-lecture');
+        }
+
+        document.getElementById("lectureTitle").innerText = lec.title;
+        document.getElementById("topicDisplay").innerText = "Topic: " + (lec.topicName || "General");
+
+        let embed = lec.videoUrl;
+        if (embed.includes("watch?v=")) embed = embed.replace("watch?v=", "embed/");
+        document.getElementById("mainIframe").src = embed;
+
+        // Resource Display Logic
+        const pBtn = document.getElementById("pdfBtn");
+        const mBtn = document.getElementById("mcqBtn");
+
+        if(lec.pdfNotes) { pBtn.style.display = "block"; pBtn.dataset.url = lec.pdfNotes; } 
+        else { pBtn.style.display = "none"; }
+
+        if(lec.practiceMcq) { mBtn.style.display = "block"; mBtn.dataset.url = lec.practiceMcq; } 
+        else { mBtn.style.display = "none"; }
+    }
+
+    function openResourceModal(url) {
+        document.getElementById("resourceIframe").src = url;
+        document.getElementById("resourceModal").style.display = "flex";
+    }
+
+    function closeModal() {
+        document.getElementById("resourceModal").style.display = "none";
+        document.getElementById("resourceIframe").src = "";
+    }
+
+    async function submitDoubt() {
+        const question = document.getElementById("doubtText").value;
+        const status = document.getElementById("doubtStatus");
+        if(!question.trim()) return alert("Please type your question.");
+
+        try {
+            const res = await fetch(`${BASE_URL}/api/purchase/ask-doubt`, {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({ lectureId: activeLectureId, question: question })
+            });
+
+            if(res.ok) {
+                document.getElementById("doubtText").value = "";
+                status.innerText = "Doubt sent successfully!";
+                setTimeout(() => status.innerText = "", 3000);
+            }
+        } catch (err) { console.error(err); }
+    }
+
+    document.addEventListener("DOMContentLoaded", initPlayer);
+</script>
+</body>
+</html>

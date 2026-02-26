@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PiMentor | Learn Smarter</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="images/OUR_LOGO.jpg">
+</head>
+<body>
+
+<header class="navbar">
+    <div class="brand">
+        <img src="images/OUR_LOGO.jpg" class="OUR_LOGO" alt="pimentor">
+        <div class="logo">PiMentor</div>
+    </div>
+
+    <nav class="nav-links" id="mainNav">
+        <a href="index.html">Home</a>
+        <a href="courses.html">Courses</a>
+        <a href="LOGIN.HTML" id="loginLink">Login</a>
+        <a href="register.html" class="btn-get-started" id="startBtn">Get Started</a>
+    </nav>
+
+    <div class="nav-right">
+        <button class="theme-toggle" id="themeBtn" title="Toggle Mode">🌙</button>
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</header>
+
+<div class="sidebar-overlay" id="overlay"></div>
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <img src="images/OUR_LOGO.jpg" alt="logo" class="OUR_LOGO">
+        <button class="close-sidebar" id="closeSidebar">&times;</button>
+    </div>
+    <nav class="sidebar-links">
+        <a href="index.html">Home</a>
+        <a href="courses.html">Courses</a>
+        <div id="mobileAuthLinks">
+            <a href="LOGIN.HTML">Login</a>
+            <a href="register.html" class="sidebar-btn">Get Started</a>
+        </div>
+    </nav>
+</aside>
+
+<section class="hero">
+    <div class="hero-content">
+        <h1>Learn Smarter with <span class="highlight">PiMentor</span></h1>
+        <p>Structured courses • Expert mentors • Track your progress</p>
+        <div class="hero-btns">
+            <a href="courses.html" class="btn-primary">Explore Courses</a>
+            <a href="#why" class="btn-secondary">Learn More</a>
+        </div>
+    </div>
+</section>
+
+<section class="courses-section">
+    <h2>Our Popular Courses</h2>
+    <div class="course-grid">
+        <div class="course-card">
+            <img src="images/course.png" alt="Class 10">
+            <h3>Class 10 Mathematics</h3>
+            <p>CBSE Complete Course</p>
+            <a href="courses.html" class="view-btn-link">View Course</a>
+        </div>
+        <div class="course-card">
+            <img src="images/course.png" alt="Class 11">
+            <h3>Class 11 Biology</h3>
+            <p>Concept + NCERT Focus</p>
+            <a href="courses.html" class="view-btn-link">View Course</a>
+        </div>
+        <div class="course-card">
+            <img src="images/course.png" alt="Class 12">
+            <h3>Class 12 Physics</h3>
+            <p>Boards + Competitive</p>
+            <a href="courses.html" class="view-btn-link">View Course</a>
+        </div>
+        <div class="course-card">
+            <img src="images/course.png" alt="Foundation">
+            <h3>Foundation Course</h3>
+            <p>Early Exam Preparation</p>
+            <a href="courses.html" class="view-btn-link">View Course</a>
+        </div>
+    </div>
+</section>
+
+<section class="why" id="why">
+    <h2>Why Choose PiMentor?</h2>
+    <div class="features-grid">
+        <div class="feature-card">📘 Expert Mentors</div>
+        <div class="feature-card">📊 Progress Tracking</div>
+        <div class="feature-card">🎯 Exam-Focused Learning</div>
+        <div class="feature-card">💻 Anytime Access</div>
+    </div>
+</section>
+
+<footer>
+    <p>© 2026 PiMentor. All rights reserved. Designed for Gorakhpur's Toppers.</p>
+</footer>
+
+<script>
+    /* --- AUTH CHECK (Logic for Dynamic Buttons) --- */
+    document.addEventListener("DOMContentLoaded", () => {
+        const token = localStorage.getItem("token");
+        
+        // Desktop elements
+        const loginLink = document.getElementById("loginLink");
+        const startBtn = document.getElementById("startBtn");
+        
+        // Mobile container
+        const mobileAuthArea = document.getElementById("mobileAuthLinks");
+
+        if (token) {
+            // Update Desktop View
+            if(loginLink) loginLink.style.display = "none";
+            if(startBtn) {
+                startBtn.innerText = "My Dashboard";
+                startBtn.href = "dashboard.html";
+                startBtn.style.background = "#34a853"; // Green for active session
+            }
+            
+            // Update Mobile Sidebar View
+            if(mobileAuthArea) {
+                mobileAuthArea.innerHTML = `
+                    <a href="dashboard.html" class="sidebar-btn" style="background:#34a853;">My Dashboard</a>
+                `;
+            }
+        }
+    });
+
+    /* --- GLOBAL THEME SYNC --- */
+    const themeBtn = document.getElementById('themeBtn');
+    const applyTheme = (theme) => {
+        document.documentElement.setAttribute('data-theme', theme);
+        themeBtn.innerText = theme === 'dark' ? '☀️' : '🌙';
+        localStorage.setItem('pimentor-theme', theme);
+    };
+
+    const savedTheme = localStorage.getItem('pimentor-theme') || 'light';
+    applyTheme(savedTheme);
+
+    themeBtn.onclick = () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        applyTheme(current === 'dark' ? 'light' : 'dark');
+    };
+
+    /* --- SIDEBAR DRAWER LOGIC --- */
+    const hamburger = document.getElementById('hamburger');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const closeSidebar = document.getElementById('closeSidebar');
+
+    const toggleSidebar = () => {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('active');
+        document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : 'auto';
+    };
+
+    hamburger.onclick = toggleSidebar;
+    closeSidebar.onclick = toggleSidebar;
+    overlay.onclick = toggleSidebar;
+
+    // Close sidebar on link click
+    document.querySelectorAll('.sidebar-links a').forEach(link => {
+        link.onclick = () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        };
+    });
+</script>
+
+</body>
+</html>
