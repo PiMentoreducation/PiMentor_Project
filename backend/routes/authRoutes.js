@@ -76,17 +76,26 @@ router.post("/register", async (req, res) => {
     try {
         const { name, email, password, studentClass } = req.body;
         
-        // Double check even at registration
-        let user = await User.findOne({ email });
+        // 1. Double check user existence
+        let user = await User.findOne({ email: email.toLowerCase() });
         if (user) return res.status(400).json({ success: false, message: "User already exists." });
 
-        const salt = await bcrypt.getSalt(10);
+        // 2. Corrected function name: genSalt
+        const salt = await bcrypt.genSalt(10); 
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        user = new User({ name, email, password: hashedPassword, studentClass });
+        // 3. Create and save user
+        user = new User({ 
+            name, 
+            email: email.toLowerCase(), 
+            password: hashedPassword, 
+            studentClass 
+        });
+
         await user.save();
         res.status(201).json({ success: true, message: "Registration successful!" });
     } catch (err) {
+        console.error("REGISTRATION ERROR:", err.message); // This will now show the actual error in Render logs
         res.status(500).json({ success: false, message: "Server error during registration." });
     }
 });
