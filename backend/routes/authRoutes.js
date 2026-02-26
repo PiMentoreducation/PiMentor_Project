@@ -12,15 +12,10 @@ const { register, login } = require("../controllers/authController");
 // ---------------------------------------------------------
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,            // Secure port for Render/Cloud environments
-    secure: true,          // Use SSL for port 465
     auth: {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_PASS,
     },
-    // Add these specifically for Cloud/Render environments
-    debug: true,
-    logger: true 
 });
 
 // Helper function for sending emails
