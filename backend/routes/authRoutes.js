@@ -11,7 +11,6 @@ const { register, login } = require("../controllers/authController");
 // 1. Nodemailer Transporter Configuration (Optimized for Render)
 // ---------------------------------------------------------
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
     host: 'smtp.gmail.com',
     port: 465,            // Secure port for Render/Cloud environments
     secure: true,          // Use SSL for port 465
@@ -19,10 +18,9 @@ const transporter = nodemailer.createTransport({
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_PASS,
     },
-    tls: {
-        // This ensures the connection doesn't fail on certain cloud certificate issues
-        rejectUnauthorized: false 
-    }
+    // Add these specifically for Cloud/Render environments
+    debug: true,
+    logger: true 
 });
 
 // Helper function for sending emails
