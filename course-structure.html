@@ -111,13 +111,13 @@
 <body>
 
 <header class="dashboard-header">
-    <a href="dashboard.html" class="logo-box">
-        <img src="images/OUR_LOGO.jpg" alt="PiMentor Logo">
+    <a href="/dashboard.html" class="logo-box">
+        <img src="/images/OUR_LOGO.png" alt="PiMentor Logo">
         <div class="logo-text">PiMentor</div>
     </a>
     
     <div class="header-actions">
-        <a href="dashboard.html" style="text-decoration: none; color: var(--primary); font-weight: bold; font-size: 0.85rem;">Dashboard</a>
+        <a href="/dashboard.html" style="text-decoration: none; color: var(--primary); font-weight: bold; font-size: 0.85rem;">Dashboard</a>
         <button class="theme-toggle" id="themeBtn">🌙</button>
     </div>
 </header>
@@ -180,7 +180,7 @@
 
             // CORRECTED REDIRECT: Points to lecture-player.html instead of topic-list
             container.innerHTML = chapters.map((chapter, index) => `
-                <a href="lecture-player.html?courseId=${courseId}&chapter=${encodeURIComponent(chapter)}" class="chapter-card">
+                <a href="/lecture-player.html?courseId=${courseId}&chapter=${encodeURIComponent(chapter)}" class="chapter-card">
                     <div class="chapter-info">
                         <div class="folder-icon">${index + 1}</div>
                         <div class="chapter-name">${chapter}</div>
