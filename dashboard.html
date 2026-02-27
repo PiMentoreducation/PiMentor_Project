@@ -194,7 +194,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("profileEmail").innerText = user.email;
 
   document.getElementById("logoutBtn").addEventListener("click", () => {
-    localStorage.clear();
+    // Remove only authentication data
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     window.location.href = "login.html";
   });
 
