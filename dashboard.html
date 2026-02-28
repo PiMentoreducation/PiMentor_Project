@@ -171,31 +171,40 @@
         });
     }
 
-    async function fetchNotifications() {
+async function fetchNotifications() {
     const wrapper = document.getElementById("notif-wrapper");
     const container = document.getElementById("notif-container");
     let dismissed = JSON.parse(localStorage.getItem("dismissedNotifs") || "[]");
 
     try {
+        // 1. First, get the student's actual purchased course IDs
+        const courseRes = await fetch(`${BASE_URL}/api/purchase/my-courses`, {
+            headers: { "Authorization": "Bearer " + token }
+        });
+        const purchasedCourses = await courseRes.json();
+        const purchasedIds = purchasedCourses.map(c => c.courseId);
+
+        // 2. Fetch all active notifications
         const res = await fetch(`${BASE_URL}/api/admin/active-notifications`, {
             headers: { "Authorization": "Bearer " + token }
         });
         const all = await res.json();
         
-        // --- NORMALIZED LOGIC ---
-        const studentClass = (user.studentClass || "").trim().toLowerCase();
-
+        // 3. FILTER LOGIC:
         const myNotifs = all.filter(n => {
-            const isNotDismissed = !dismissed.includes(n._id);
+            // A. Check if any targeted course ID is in the student's purchased list
+            const hasPurchased = n.targetCourses.some(id => purchasedIds.includes(id));
             
-            // Check targets by converting everything to lowercase and trimming
-            const matchesClass = n.targetCourses.some(target => 
-                target.trim().toLowerCase() === studentClass
-            );
-
+            // B. Check if it matches the student's profile class (for general school updates)
+            const matchesProfileClass = n.targetCourses.includes(user.studentClass);
+            
+            // C. Global broadcast
             const isGlobal = n.targetCourses.includes("all") || n.targetCourses.length === 0;
             
-            return (matchesClass || isGlobal) && isNotDismissed;
+            // D. Not already dismissed
+            const isNotDismissed = !dismissed.includes(n._id);
+
+            return (hasPurchased || matchesProfileClass || isGlobal) && isNotDismissed;
         });
 
         if (myNotifs.length > 0) {
@@ -205,11 +214,15 @@
                     <span class="close-notif" onclick="dismissNotif('${n._id}')">×</span>
                     <h3>📢 ${n.heading}</h3>
                     <p>${n.description}</p>
-                    ${n.link ? `<a href="${n.link}" target="_blank" class="notif-link">View Details →</a>` : ''}
+                    ${n.link ? `<a href="${n.link}" target="_blank" class="notif-link">Join / View Now →</a>` : ''}
                 </div>
             `).join('');
+        } else {
+            wrapper.style.display = "none";
         }
-    } catch (err) { console.error("Notif fetch failed", err); }
+    } catch (err) { 
+        console.error("Dashboard Notif Error:", err); 
+    }
 }
     async function loadStudentCourses() {
         const container = document.getElementById("courseList");
