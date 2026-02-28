@@ -241,6 +241,16 @@
     }
 
     document.addEventListener("DOMContentLoaded", initPlayer);
+    // Detect fullscreen changes for YouTube/Video elements
+document.addEventListener('fullscreenchange', (event) => {
+  if (document.fullscreenElement) {
+    // Tell Flutter to go Landscape
+    FullscreenChannel.postMessage('enter_fullscreen');
+  } else {
+    // Tell Flutter to return to Portrait
+    FullscreenChannel.postMessage('exit_fullscreen');
+  }
+});
 </script>
 </body>
 </html>
