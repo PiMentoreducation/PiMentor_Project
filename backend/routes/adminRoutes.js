@@ -26,17 +26,14 @@ router.get("/all-courses", auth, admin, async (req, res) => {
 
 router.post("/course", auth, admin, async (req, res) => {
   try {
-    const { courseId, title, className, price, description, notesLink } = req.body;
-    if (!courseId || !title || !className || !price) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-    const exists = await Course.findOne({ courseId });
-    if (exists) return res.status(400).json({ message: "Course ID already exists." });
-
-    const course = await Course.create({ courseId, title, className, price, description, notesLink });
-    res.status(201).json({ message: "Course created successfully!", course });
+    const { courseId, title, className, price, description, validityDays } = req.body;
+    const course = await Course.create({ 
+      courseId, title, className, price, description, 
+      validityDays: parseInt(validityDays) || 365 
+    });
+    res.status(201).json({ message: "Course created!", course });
   } catch (error) {
-    res.status(500).json({ message: "Server error while creating course" });
+    res.status(500).json({ message: "Error creating course" });
   }
 });
 

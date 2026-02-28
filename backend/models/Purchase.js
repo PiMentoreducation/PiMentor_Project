@@ -6,7 +6,9 @@ const purchaseSchema = new mongoose.Schema({
   title: String,
   className: String,
   price: Number,
-  paymentId: String
+  paymentId: String,
+  createdAt: { type: Date, default: Date.now }, // NEW: Stores purchase date
+  expiryDate: { type: Date } // NEW: Calculated based on course validity
 });
 
 module.exports = mongoose.model("Purchase", purchaseSchema);
