@@ -233,12 +233,17 @@
 </div>
 
 <script>
+/// 1. Move BASE_URL and token to the top (Global Scope)
+const BASE_URL = "https://pimentor-project.onrender.com";
+const token = localStorage.getItem("token");
+
 document.addEventListener("DOMContentLoaded", async () => {
-  const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
-  const BASE_URL = "https://pimentor-project.onrender.com";
 
   if (!token || !user) { window.location.href = "login.html"; return; }
+
+  /* --- TRIGGER NOTIFICATIONS --- */
+  fetchNotifications(); // 👈 YOU WERE MISSING THIS CALL
 
   /* THEME LOGIC */
   const themeBtn = document.getElementById("themeBtn");
@@ -258,91 +263,29 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("studentName").innerText = user.name;
   document.getElementById("profileName").innerText = user.name;
   document.getElementById("profileEmail").innerText = user.email;
+  // Ensure the studentClass span exists in your HTML
+  if(document.getElementById("studentClass")) {
+    document.getElementById("studentClass").innerText = user.studentClass || "N/A";
+  }
 
   document.getElementById("logoutBtn").addEventListener("click", () => {
-    // Remove only authentication data
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     window.location.href = "login.html";
   });
 
   /* LOAD DOUBTS & REPLIES */
-  async function loadDashboardDoubts() {
-    const container = document.getElementById("dashboardDoubtsContainer");
-    try {
-        const res = await fetch(`${BASE_URL}/api/purchase/my-dashboard-doubts`, {
-            headers: { "Authorization": "Bearer " + token }
-        });
-        const doubts = await res.json();
-
-        if (!doubts || doubts.length === 0) {
-            container.innerHTML = "<p style='color:#888; font-size:0.9rem;'>No doubts asked yet. Solutions will appear here once you ask.</p>";
-            return;
-        }
-
-        container.innerHTML = doubts.map(d => `
-            <div class="reply-card">
-                <div class="reply-header">
-                    <span>${d.lectureTitle || 'General'}</span>
-                    <span>${new Date(d.createdAt).toLocaleDateString()}</span>
-                </div>
-                <div class="student-q">Q: ${d.question}</div>
-                ${d.status === "Resolved" 
-                    ? `<div class="mentor-a"><strong>Mentor's Solution:</strong><br>${d.answer}</div>` 
-                    : `<span class="badge-pending">⏳ Mentor is reviewing this question...</span>`}
-            </div>
-        `).join('');
-    } catch (err) {
-        container.innerHTML = "<p>Unable to load support history.</p>";
-    }
-  }
+  loadDashboardDoubts();
 
   /* LOAD COURSES */
-  const courseContainer = document.getElementById("courseList");
-  const visitedHistory = JSON.parse(localStorage.getItem("visited_courses")) || [];
-
-  try {
-    const response = await fetch(`${BASE_URL}/api/purchase/my-courses`, {
-      headers: { "Authorization": "Bearer " + token }
-    });
-    const courses = await response.json();
-
-    if (!courses || courses.length === 0) {
-      courseContainer.innerHTML = "<p>No courses purchased yet. Click 'Add New Course' to start!</p>";
-    } else {
-      courses.forEach(course => {
-        const div = document.createElement("div");
-        div.className = "course-card";
-        const buttonText = visitedHistory.includes(course.courseId) ? "Continue Learning" : "Start Learning";
-        div.innerHTML = `
-          <div>
-            <h3>${course.title}</h3>
-            <p style="font-size: 0.85rem; opacity: 0.8;">Class: ${course.className}</p>
-          </div>
-          <button onclick="goToCourse('${course.courseId}')">${buttonText} →</button>
-        `;
-        courseContainer.appendChild(div);
-      });
-    }
-  } catch (error) { courseContainer.innerHTML = "<p>Error loading courses.</p>"; }
-
-  // Initial load of doubt inbox
-  loadDashboardDoubts();
+  loadStudentCourses();
 });
 
-function goToCourse(courseId) {
-    let visitedHistory = JSON.parse(localStorage.getItem("visited_courses")) || [];
-    if (!visitedHistory.includes(courseId)) {
-        visitedHistory.push(courseId);
-        localStorage.setItem("visited_courses", JSON.stringify(visitedHistory));
-    }
-    window.location.href = `course-structure.html?id=${courseId}`;
-}
+// 2. Keep these functions globally accessible
 async function fetchNotifications() {
     const user = JSON.parse(localStorage.getItem("user"));
-    const token = localStorage.getItem("token");
-    
-    // Get the list of IDs this student already closed
+    if(!user || !user.studentClass) return;
+
     let dismissed = JSON.parse(localStorage.getItem("dismissedNotifs") || "[]");
 
     try {
@@ -351,7 +294,7 @@ async function fetchNotifications() {
         });
         const allNotifs = await res.json();
 
-        // FILTER: 1. Match student class AND 2. Not in dismissed list
+        // FILTER: Match targetCourses AND not dismissed
         const myNotifs = allNotifs.filter(n => 
             n.targetCourses.includes(user.studentClass) && 
             !dismissed.includes(n._id)
@@ -368,7 +311,7 @@ async function fetchNotifications() {
                 </div>
             `).join('');
         } else {
-            container.innerHTML = ""; // Clear if nothing new
+            container.innerHTML = ""; 
         }
     } catch (err) {
         console.error("Notif Error:", err);
@@ -376,15 +319,66 @@ async function fetchNotifications() {
 }
 
 function dismissNotif(id) {
-    // 1. Add to local storage so it stays hidden
     let dismissed = JSON.parse(localStorage.getItem("dismissedNotifs") || "[]");
     dismissed.push(id);
     localStorage.setItem("dismissedNotifs", JSON.stringify(dismissed));
 
-    // 2. Remove from current UI with a fade effect
     const element = document.getElementById(`notif-${id}`);
-    element.style.opacity = "0";
-    setTimeout(() => element.remove(), 300);
+    if(element) {
+        element.style.opacity = "0";
+        setTimeout(() => element.remove(), 300);
+    }
+}
+
+async function loadStudentCourses() {
+    const courseContainer = document.getElementById("courseList");
+    const visitedHistory = JSON.parse(localStorage.getItem("visited_courses")) || [];
+    try {
+        const response = await fetch(`${BASE_URL}/api/purchase/my-courses`, {
+            headers: { "Authorization": "Bearer " + token }
+        });
+        const courses = await response.json();
+        if (!courses || courses.length === 0) {
+            courseContainer.innerHTML = "<p>No courses purchased yet.</p>";
+        } else {
+            courseContainer.innerHTML = ""; // Clear loader
+            courses.forEach(course => {
+                const div = document.createElement("div");
+                div.className = "course-card";
+                const btnText = visitedHistory.includes(course.courseId) ? "Continue" : "Start";
+                div.innerHTML = `<h3>${course.title}</h3><button onclick="goToCourse('${course.courseId}')">${btnText} →</button>`;
+                courseContainer.appendChild(div);
+            });
+        }
+    } catch (e) { courseContainer.innerHTML = "<p>Error loading courses.</p>"; }
+}
+
+async function loadDashboardDoubts() {
+    const container = document.getElementById("dashboardDoubtsContainer");
+    try {
+        const res = await fetch(`${BASE_URL}/api/purchase/my-dashboard-doubts`, {
+            headers: { "Authorization": "Bearer " + token }
+        });
+        const doubts = await res.json();
+        if (!doubts || doubts.length === 0) {
+            container.innerHTML = "<p>No doubts asked yet.</p>";
+            return;
+        }
+        container.innerHTML = doubts.map(d => `
+            <div class="reply-card">
+                <div class="student-q">Q: ${d.question}</div>
+                ${d.status === "Resolved" ? `<div class="mentor-a">${d.answer}</div>` : `<span class="badge-pending">⏳ Reviewing...</span>`}
+            </div>`).join('');
+    } catch (err) { container.innerHTML = "<p>Error loading history.</p>"; }
+}
+
+function goToCourse(courseId) {
+    let visitedHistory = JSON.parse(localStorage.getItem("visited_courses")) || [];
+    if (!visitedHistory.includes(courseId)) {
+        visitedHistory.push(courseId);
+        localStorage.setItem("visited_courses", JSON.stringify(visitedHistory));
+    }
+    window.location.href = `course-structure.html?id=${courseId}`;
 }
 </script>
 </body>
