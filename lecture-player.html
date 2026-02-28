@@ -241,16 +241,30 @@
     }
 
     document.addEventListener("DOMContentLoaded", initPlayer);
-    // Detect fullscreen changes for YouTube/Video elements
-document.addEventListener('fullscreenchange', (event) => {
-  if (document.fullscreenElement) {
-    // Tell Flutter to go Landscape
-    FullscreenChannel.postMessage('enter_fullscreen');
-  } else {
-    // Tell Flutter to return to Portrait
-    FullscreenChannel.postMessage('exit_fullscreen');
-  }
-});
+// PASTE THIS NEW PART INSTEAD:
+function handleFullscreenChange() {
+    // Check all possible vendor prefixes for mobile compatibility
+    const isFullscreen = document.fullscreenElement || 
+                         document.webkitFullscreenElement || 
+                         document.mozFullScreenElement ||
+                         document.msFullscreenElement;
+
+    if (isFullscreen) {
+        if (typeof FullscreenChannel !== 'undefined') {
+            FullscreenChannel.postMessage('enter_fullscreen');
+        }
+    } else {
+        if (typeof FullscreenChannel !== 'undefined') {
+            FullscreenChannel.postMessage('exit_fullscreen');
+        }
+    }
+}
+
+// Add listeners for all browser types (Chrome, Safari, Firefox)
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+document.addEventListener('MSFullscreenChange', handleFullscreenChange);
 </script>
 </body>
 </html>
