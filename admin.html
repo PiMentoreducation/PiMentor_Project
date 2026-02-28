@@ -51,13 +51,15 @@
         .hint { font-size: 0.8rem; color: #666; margin-bottom: 5px; display: block;}
         .toggle-chapter { font-size: 0.8rem; color: var(--primary); cursor: pointer; text-decoration: underline; margin-bottom: 10px; display: inline-block; }
 
-        /* Doubt Section Styles */
         .doubt-card { border: 1px solid #eee; padding: 15px; border-radius: 10px; margin-bottom: 15px; background: #fafafa; }
         .doubt-meta { font-size: 0.85rem; color: #777; margin-bottom: 8px; }
         .doubt-question { font-weight: bold; color: #333; margin-bottom: 10px; }
         .doubt-reply { background: #fff; border: 1px solid #ddd; height: 60px; margin-bottom: 10px; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
         .badge-pending { background: #fff3cd; color: #856404; }
+
+        /* Notification Styling */
+        .notif-item { border: 1px solid #ddd; padding: 10px; margin-top: 10px; border-radius: 8px; background: #fff9f0; }
     </style>
 </head>
 <body onload="initAdmin()">
@@ -69,37 +71,45 @@
     </div>
     <a href="/dashboard.html" class="dash-btn">Dashboard →</a>
 </header>
+
 <section style="border-left: 5px solid #f39c12;">
     <h2 style="color: #f39c12;">📢 Broadcast to Students</h2>
-    <input id="notifHeading" placeholder="Heading (e.g., Sunday Test Schedule)">
+    <input id="notifHeading" placeholder="Heading (e.g., Live Class Today)">
     <textarea id="notifDesc" placeholder="Full message details..."></textarea>
-    <input id="notifLink" placeholder="Link (Optional: YouTube/PDF/Form)">
+    <input id="notifLink" placeholder="Link (Optional: YouTube/PDF)">
     
     <span class="hint">Select Target Classes (Hold Ctrl to select multiple)</span>
-    <select id="notifCourseSelect" multiple style="height: 120px;">
-        </select>
+    <select id="notifCourseSelect" multiple style="height: 120px;"></select>
     
     <button onclick="broadcastNotification()" style="background:#f39c12; color:white;">Push Notification</button>
 
     <div id="adminNotifList" style="margin-top:20px;"></div>
 </section>
+
 <section>
     <h2>Global Selection</h2>
     <select id="courseDropdown" onchange="syncCourseSelection()">
         <option value="">-- Loading Courses... --</option>
     </select>
 </section>
+
 <section style="border-top: 4px solid var(--primary);">
-    <h2>Enrolled Students</h2>
-    <p class="hint">Total Students in this course: <span id="enrollmentCount">0</span></p>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2>Enrolled Students</h2>
+        <div style="width: 300px;">
+            <input type="text" id="studentSearch" placeholder="🔍 Search Name or Email..." onkeyup="filterStudentTable()" style="margin-bottom: 0;">
+        </div>
+    </div>
     
-    <div style="overflow-x: auto;">
-        <table id="enrollmentTable" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+    <p class="hint">Total Students: <span id="enrollmentCount">0</span></p>
+    
+    <div style="overflow-x: auto; max-height: 400px;">
+        <table id="enrollmentTable" style="width: 100%; border-collapse: collapse;">
             <thead>
-                <tr style="background: #f8f9fa; text-align: left;">
+                <tr style="background: #f8f9fa; position: sticky; top: 0; text-align: left;">
                     <th style="padding: 12px; border-bottom: 2px solid #ddd;">Name</th>
                     <th style="padding: 12px; border-bottom: 2px solid #ddd;">Email</th>
-                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Original Class</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Class</th>
                     <th style="padding: 12px; border-bottom: 2px solid #ddd;">Joined Date</th>
                 </tr>
             </thead>
@@ -109,33 +119,7 @@
         </table>
     </div>
 </section>
-<section style="border-top: 4px solid var(--primary);">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h2>Enrolled Students</h2>
-        <div style="position: relative; width: 300px;">
-            <input type="text" id="studentSearch" placeholder="🔍 Search Name or Email..." 
-                   onkeyup="filterStudentTable()" 
-                   style="margin-bottom: 0; padding-left: 35px;">
-        </div>
-    </div>
-    
-    <p class="hint">Total Students: <span id="enrollmentCount">0</span></p>
-    
-    <div style="overflow-x: auto; max-height: 400px;">
-        <table id="enrollmentTable" style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background: #f8f9fa; position: sticky; top: 0;">
-                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Name</th>
-                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Email</th>
-                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Class</th>
-                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Joined Date</th>
-                </tr>
-            </thead>
-            <tbody id="enrollmentBody">
-                </tbody>
-        </table>
-    </div>
-</section>
+
 <section>
     <h2>Step 1: Create New Course</h2>
     <input id="courseId" placeholder="Unique Course ID (e.g. m_calc_01)">
@@ -210,8 +194,6 @@
     <button class="btn-delete" onclick="deleteCourse()">Wipe Entire Course</button>
 </section>
 
-
-
 <script>
     const token = localStorage.getItem("token");
     const BASE_URL = "https://pimentor-project.onrender.com";
@@ -220,29 +202,29 @@
     function initAdmin() {
         if(!token) { alert("Please login as Admin"); window.location.href="login.html"; }
         loadOngoingCourses();
+        loadActiveNotifs();
     }
 
-    function toggleChapterInput() {
-        const selectCont = document.getElementById('chapter-select-container');
-        const inputCont = document.getElementById('chapter-input-container');
-        const toggleText = document.getElementById('toggleText');
-        isNewChapter = !isNewChapter;
-        selectCont.style.display = isNewChapter ? 'none' : 'block';
-        inputCont.style.display = isNewChapter ? 'block' : 'none';
-        toggleText.innerText = isNewChapter ? "← Use Existing" : "+ New Chapter";
-    }
-
+    /* --- DROPDOWN & SYNC --- */
     async function loadOngoingCourses() {
         try {
             const res = await fetch(`${BASE_URL}/api/admin/all-courses`, { headers: { "Authorization": "Bearer " + token } });
             const courses = await res.json();
+            
             const dropdown = document.getElementById("courseDropdown");
+            const notifDropdown = document.getElementById("notifCourseSelect");
+            
             dropdown.innerHTML = '<option value="">-- Select a Course --</option>';
+            notifDropdown.innerHTML = ''; 
+
             courses.forEach(c => {
                 const opt = document.createElement("option");
                 opt.value = c.courseId;
                 opt.textContent = `${c.title} (${c.courseId})`;
                 dropdown.appendChild(opt);
+
+                const optNotif = opt.cloneNode(true);
+                notifDropdown.appendChild(optNotif);
             });
         } catch (err) { console.error(err); }
     }
@@ -276,83 +258,93 @@
                 delDrop.appendChild(opt);
             });
 
-            // Load Doubts
             loadDoubts(cid);
-
+            loadEnrollments(cid);
         } catch (err) { console.error(err); }
-        loadEnrollments(cid);
     }
+
+    /* --- ENROLLMENTS & SEARCH --- */
     async function loadEnrollments(courseId) {
-    const body = document.getElementById("enrollmentBody");
-    const countSpan = document.getElementById("enrollmentCount");
-    
-    try {
-        const res = await fetch(`${BASE_URL}/api/admin/course-enrollments/${courseId}`, {
-            headers: { "Authorization": "Bearer " + token }
-        });
-        const students = await res.json();
-
-        countSpan.innerText = students.length;
-
-        if (students.length === 0) {
-            body.innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center;">No students enrolled yet.</td></tr>';
-            return;
-        }
-
-        body.innerHTML = students.map(s => `
-            <tr>
-                <td style="padding: 10px; border-bottom: 1px solid #eee;">${s.name}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #eee;">${s.email}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #eee;">${s.studentClass}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #eee;">${new Date(s.enrolledAt).toLocaleDateString()}</td>
-            </tr>
-        `).join('');
-    } catch (err) {
-        body.innerHTML = '<tr><td colspan="4" style="color: red;">Error loading students.</td></tr>';
-    }
-}
-    async function loadDoubts(courseId) {
-        const container = document.getElementById("doubtsContainer");
+        const body = document.getElementById("enrollmentBody");
+        const countSpan = document.getElementById("enrollmentCount");
         try {
-            const res = await fetch(`${BASE_URL}/api/admin/doubts/${courseId}`, { headers: { "Authorization": "Bearer " + token } });
-            const doubts = await res.json();
-            
-            if(doubts.length === 0) {
-                container.innerHTML = "<p>No pending doubts for this course. Excellent!</p>";
+            const res = await fetch(`${BASE_URL}/api/admin/course-enrollments/${courseId}`, { headers: { "Authorization": "Bearer " + token } });
+            const students = await res.json();
+            countSpan.innerText = students.length;
+            if (students.length === 0) {
+                body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">No students found.</td></tr>';
                 return;
             }
-
-            container.innerHTML = doubts.map(d => `
-                <div class="doubt-card">
-                    <div class="doubt-meta">
-                        <span class="badge badge-pending">Pending</span> | 
-                        <b>${d.studentName}</b> on <i>${d.lectureTitle}</i>
-                    </div>
-                    <div class="doubt-question">Q: ${d.question}</div>
-                    <textarea class="doubt-reply" id="reply-${d._id}" placeholder="Write your mathematical solution..."></textarea>
-                    <button onclick="resolveDoubt('${d._id}')" style="width:auto; padding:5px 15px; font-size:0.8rem; background:var(--primary); color:white;">Submit Answer</button>
-                </div>
+            body.innerHTML = students.map(s => `
+                <tr>
+                    <td style="padding:10px; border-bottom:1px solid #eee;">${s.name}</td>
+                    <td style="padding:10px; border-bottom:1px solid #eee;">${s.email}</td>
+                    <td style="padding:10px; border-bottom:1px solid #eee;">${s.studentClass}</td>
+                    <td style="padding:10px; border-bottom:1px solid #eee;">${new Date(s.enrolledAt).toLocaleDateString()}</td>
+                </tr>
             `).join('');
-        } catch (err) { container.innerHTML = "Error loading doubts."; }
+        } catch (err) { body.innerHTML = '<tr><td colspan="4">Error loading data.</td></tr>'; }
     }
 
-    async function resolveDoubt(doubtId) {
-        const answer = document.getElementById(`reply-${doubtId}`).value;
-        if(!answer) return alert("Please type an answer!");
-
-        const res = await fetch(`${BASE_URL}/api/admin/resolve-doubt`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-            body: JSON.stringify({ doubtId, answer })
-        });
-        
-        if(res.ok) {
-            alert("Doubt resolved!");
-            syncCourseSelection(); // Refresh list
+    function filterStudentTable() {
+        const input = document.getElementById("studentSearch").value.toUpperCase();
+        const tr = document.getElementById("enrollmentBody").getElementsByTagName("tr");
+        for (let i = 0; i < tr.length; i++) {
+            const tdName = tr[i].getElementsByTagName("td");
+            const tdEmail = tr[i].getElementsByTagName("td");
+            if (tdName || tdEmail) {
+                const txt = (tdName.textContent || tdName.innerText) + (tdEmail.textContent || tdEmail.innerText);
+                tr[i].style.display = txt.toUpperCase().indexOf(input) > -1 ? "" : "none";
+            }
         }
     }
 
-    // Standard CRUD functions (addCourse, addLecture, deleteLecture, deleteCourse) follow the same fetch logic used previously...
+    /* --- NOTIFICATIONS --- */
+    async function broadcastNotification() {
+        const selected = Array.from(document.getElementById("notifCourseSelect").selectedOptions).map(o => o.value);
+        const payload = {
+            heading: document.getElementById("notifHeading").value,
+            description: document.getElementById("notifDesc").value,
+            link: document.getElementById("notifLink").value,
+            targetCourses: selected
+        };
+        const res = await fetch(`${BASE_URL}/api/admin/send-notification`, {
+            method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+            body: JSON.stringify(payload)
+        });
+        if(res.ok) { alert("Sent!"); loadActiveNotifs(); }
+    }
+
+    async function loadActiveNotifs() {
+        try {
+            const res = await fetch(`${BASE_URL}/api/admin/active-notifications`, { headers: { "Authorization": "Bearer " + token } });
+            const data = await res.json();
+            document.getElementById("adminNotifList").innerHTML = data.map(n => `
+                <div class="notif-item">
+                    <b>${n.heading}</b> <br> <small>To: ${n.targetCourses.join(', ')}</small>
+                    <button onclick="deleteNotif('${n._id}')" style="width:auto; float:right; background:red; color:white; padding:2px 8px; font-size:0.7rem;">Delete</button>
+                </div>
+            `).join('');
+        } catch (e) {}
+    }
+
+    async function deleteNotif(id) {
+        if(!confirm("Delete?")) return;
+        const res = await fetch(`${BASE_URL}/api/admin/notification/${id}`, { method: "DELETE", headers: { "Authorization": "Bearer " + token } });
+        if(res.ok) loadActiveNotifs();
+    }
+
+    /* --- OTHER CORE FUNCTIONS --- */
+    function toggleChapterInput() {
+        const selectCont = document.getElementById('chapter-select-container');
+        const inputCont = document.getElementById('chapter-input-container');
+        const toggleText = document.getElementById('toggleText');
+        isNewChapter = !isNewChapter;
+        selectCont.style.display = isNewChapter ? 'none' : 'block';
+        inputCont.style.display = isNewChapter ? 'block' : 'none';
+        toggleText.innerText = isNewChapter ? "← Use Existing" : "+ New Chapter";
+    }
+
     async function addCourse() {
         const payload = {
             courseId: document.getElementById("courseId").value,
@@ -362,8 +354,7 @@
             description: document.getElementById("description").value
         };
         const res = await fetch(`${BASE_URL}/api/admin/course`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+            method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
             body: JSON.stringify(payload)
         });
         const data = await res.json();
@@ -373,23 +364,16 @@
 
     async function addLecture() {
         const cid = document.getElementById("targetCourseId").value;
-        if(!cid) return alert("Select course!");
         const chapter = isNewChapter ? document.getElementById("chapterNameInput").value : document.getElementById("chapterDropdown").value;
-        
         const payload = {
             lectureTitle: document.getElementById("lectureTitle").value,
-            chapterName: chapter,
-            topicName: document.getElementById("topicName").value,
-            order: document.getElementById("order").value,
-            videoUrl: document.getElementById("videoUrl").value,
-            duration: document.getElementById("duration").value,
-            pdfNotes: document.getElementById("pdfNotes").value,
+            chapterName: chapter, topicName: document.getElementById("topicName").value,
+            order: document.getElementById("order").value, videoUrl: document.getElementById("videoUrl").value,
+            duration: document.getElementById("duration").value, pdfNotes: document.getElementById("pdfNotes").value,
             practiceMcq: document.getElementById("practiceMcq").value
         };
-
         const res = await fetch(`${BASE_URL}/api/admin/course/${cid}/lecture`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+            method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
             body: JSON.stringify(payload)
         });
         const data = await res.json();
@@ -397,78 +381,48 @@
         syncCourseSelection();
     }
 
+    async function loadDoubts(courseId) {
+        const container = document.getElementById("doubtsContainer");
+        try {
+            const res = await fetch(`${BASE_URL}/api/admin/doubts/${courseId}`, { headers: { "Authorization": "Bearer " + token } });
+            const doubts = await res.json();
+            if(doubts.length === 0) { container.innerHTML = "<p>No pending doubts.</p>"; return; }
+            container.innerHTML = doubts.map(d => `
+                <div class="doubt-card">
+                    <div class="doubt-meta"><b>${d.studentName}</b> on <i>${d.lectureTitle}</i></div>
+                    <div class="doubt-question">Q: ${d.question}</div>
+                    <textarea class="doubt-reply" id="reply-${d._id}" placeholder="Your answer..."></textarea>
+                    <button onclick="resolveDoubt('${d._id}')" style="width:auto; background:var(--primary); color:white;">Submit</button>
+                </div>
+            `).join('');
+        } catch (err) { console.error(err); }
+    }
+
+    async function resolveDoubt(doubtId) {
+        const answer = document.getElementById(`reply-${doubtId}`).value;
+        const res = await fetch(`${BASE_URL}/api/admin/resolve-doubt`, {
+            method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+            body: JSON.stringify({ doubtId, answer })
+        });
+        if(res.ok) { alert("Resolved!"); syncCourseSelection(); }
+    }
+
     async function deleteLecture() {
         const lid = document.getElementById("deleteLectureDropdown").value;
         const cid = document.getElementById("targetCourseId").value;
         if(!lid || !confirm("Delete?")) return;
-        const res = await fetch(`${BASE_URL}/api/admin/course/${cid}/lecture/${lid}`, {
-            method: "DELETE", headers: { "Authorization": "Bearer " + token }
-        });
+        const res = await fetch(`${BASE_URL}/api/admin/course/${cid}/lecture/${lid}`, { method: "DELETE", headers: { "Authorization": "Bearer " + token } });
         alert((await res.json()).message);
         syncCourseSelection();
     }
 
     async function deleteCourse() {
         const cid = document.getElementById("deleteCourseId").value;
-        if(!cid || !confirm("Delete course?")) return;
-        const res = await fetch(`${BASE_URL}/api/admin/course/${cid}`, {
-            method: "DELETE", headers: { "Authorization": "Bearer " + token }
-        });
+        if(!cid || !confirm("Wipe Course?")) return;
+        const res = await fetch(`${BASE_URL}/api/admin/course/${cid}`, { method: "DELETE", headers: { "Authorization": "Bearer " + token } });
         alert((await res.json()).message);
         loadOngoingCourses();
     }
-    async function broadcastNotification() {
-    const selected = Array.from(document.getElementById("notifCourseSelect").selectedOptions).map(o => o.value);
-    const payload = {
-        heading: document.getElementById("notifHeading").value,
-        description: document.getElementById("notifDesc").value,
-        link: document.getElementById("notifLink").value,
-        targetCourses: selected
-    };
-
-    const res = await fetch(`${BASE_URL}/api/admin/send-notification`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-        body: JSON.stringify(payload)
-    });
-    if(res.ok) { alert("Sent!"); loadActiveNotifs(); }
-}
-
-async function loadActiveNotifs() {
-    const res = await fetch(`${BASE_URL}/api/admin/active-notifications`, {
-        headers: { "Authorization": "Bearer " + token }
-    });
-    const data = await res.json();
-    document.getElementById("adminNotifList").innerHTML = data.map(n => `
-        <div style="border:1px solid #ddd; padding:10px; margin-top:5px; border-radius:8px;">
-            <b>${n.heading}</b> <br> <small>${n.targetCourses.join(', ')}</small>
-            <button onclick="deleteNotif('${n._id}')" style="float:right; background:red; color:white; padding:2px 5px;">Delete</button>
-        </div>
-    `).join('');
-}
-function filterStudentTable() {
-    const input = document.getElementById("studentSearch").value.toUpperCase();
-    const table = document.getElementById("enrollmentTable");
-    const tr = table.getElementsByTagName("tr");
-
-    // Loop through all table rows (starting from index 1 to skip header)
-    for (let i = 1; i < tr.length; i++) {
-        const nameCol = tr[i].getElementsByTagName("td");
-        const emailCol = tr[i].getElementsByTagName("td");
-        
-        if (nameCol || emailCol) {
-            const nameText = nameCol.textContent || nameCol.innerText;
-            const emailText = emailCol.textContent || emailCol.innerText;
-            
-            if (nameText.toUpperCase().indexOf(input) > -1 || 
-                emailText.toUpperCase().indexOf(input) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
-            }
-        }
-    }
-}
 </script>
 </body>
 </html>
