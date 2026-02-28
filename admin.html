@@ -475,8 +475,6 @@ async function loadEnrollments(courseId) {
         alert((await res.json()).message);
         loadOngoingCourses();
     }
-</script>
-</body>
 async function loadOngoingCourses() {
     try {
         const res = await fetch(`${BASE_URL}/api/admin/all-courses`, { headers: { "Authorization": "Bearer " + token } });
@@ -501,4 +499,6 @@ async function loadOngoingCourses() {
         });
     } catch (err) { console.error(err); }
 }
+</script>
+</body>
 </html>

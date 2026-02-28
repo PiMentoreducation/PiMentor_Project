@@ -1,239 +1,166 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Student Dashboard | PiMentor</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    :root {
-        --primary: #1a73e8; --danger: #dc3545; --warning: #f39c12; --bg: #f4f7f6;
-        --card-bg: #ffffff; --text: #333333; --header-bg: #ffffff; --border: #eeeeee; --reply-bg: #f0f7ff;
-    }
-    [data-theme="dark"] {
-        --bg: #121212; --card-bg: #1e1e1e; --text: #e0e0e0; --header-bg: #1e1e1e; --border: #333333; --reply-bg: #1a2733;
-    }
+/* ========== GLOBAL RESET ========== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
 
-    body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); transition: 0.3s; }
-    .dashboard-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+/* ========== PAGE BACKGROUND ========== */
+body {
+  background: #f4f6f9;
+  color: #333;
+}
 
-    /* HEADER */
-    .dashboard-header { 
-        display: flex; align-items: center; justify-content: space-between; 
-        background: var(--header-bg); padding: 15px 25px; border-radius: 15px; 
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 25px;
-    }
-    .logo-box { display: flex; align-items: center; }
-    .logo-box img { height: 50px; width: 50px; border-radius: 50%; object-fit: cover; margin-right: 12px; border: 2px solid var(--primary); }
-    .logo-text { font-size: 1.3rem; font-weight: 800; }
+/* ========== MAIN CONTAINER ========== */
+.dashboard-container {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 20px;
+}
 
-    .header-actions { display: flex; gap: 10px; align-items: center; }
-    .theme-toggle { background: none; border: 1.5px solid var(--primary); color: var(--primary); padding: 8px 12px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
-    .logout-btn { padding: 10px 18px; background: transparent; color: var(--danger); border: 1.5px solid var(--danger); border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
+/* ========== HEADER ========== */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1e2a38;
+  color: #fff;
+  padding: 20px 25px;
+  border-radius: 10px;
+}
+.dashboard-header h1 {
+  font-size: 22px;
+  font-weight: 600;
+}
 
-    /* SECTIONS */
-    section { background: var(--card-bg); border-radius: 15px; padding: 25px; margin-bottom: 25px; border: 1px solid var(--border); }
-    h2 { margin-top: 0; font-size: 1.1rem; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; color: var(--primary); }
+.dashboard-header span {
+  color: #4fd1c5;
+}
 
-    .profile-card { position: relative; }
-    .add-course-btn { margin-top: 15px; padding: 10px 22px; background: var(--primary); color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
+/* ========== LOGOUT BUTTON ========== */
+#logoutBtn {
+  background: #ff4d4d;
+  border: none;
+  color: white;
+  padding: 10px 18px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+#course_purchase_button{
+  align: center;
+  background: #ff4d4d;
+  border: none;
+  color: white;
+  padding: 10px 18px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+#course_purchase_button:hover{
+    background: #e60000;
+}
+#logoutBtn:hover {
+  background: #e60000;
+}
 
-    /* NOTIFICATIONS */
-    #notif-wrapper { margin-bottom: 25px; display: none; }
-    .notif-card {
-        position: relative; background: #fff3cd; border: 1px solid #ffeeba; border-left: 5px solid #f39c12;
-        padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); animation: slideDown 0.5s ease-out;
-    }
-    .close-notif { position: absolute; top: 10px; right: 15px; cursor: pointer; font-size: 1.2rem; color: #856404; font-weight: bold; }
-    .notif-card h3 { margin: 0 0 5px 0; color: #856404; font-size: 1rem; }
-    .notif-card p { margin: 0; color: #666; font-size: 0.9rem; }
-    .notif-link { display: inline-block; margin-top: 10px; color: #1a73e8; font-weight: bold; text-decoration: none; font-size: 0.85rem; }
+/* ========== PROFILE CARD ========== */
+.profile-card {
+  background: #fff;
+  margin-top: 25px;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
 
-    /* COURSES */
-    .course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-    .course-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; border-radius: 15px; transition: 0.3s; }
-    .course-card h3 { margin: 0 0 10px 0; font-size: 1rem; }
-    .course-card button { width: 100%; padding: 10px; border: none; border-radius: 10px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+.profile-card h2 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #1e2a38;
+}
 
-    /* DOUBTS */
-    .doubt-inbox { max-height: 300px; overflow-y: auto; }
-    .reply-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-    .mentor-a { background: var(--reply-bg); padding: 10px; border-radius: 8px; border-left: 4px solid var(--primary); margin-top: 10px; font-size: 0.9rem; }
+.profile-card p {
+  margin-bottom: 8px;
+  font-size: 15px;
+}
 
-    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-  </style>
-</head>
-<body>
+/* ========== COURSES SECTION ========== */
+.courses {
+  background: #fff;
+  margin-top: 25px;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
 
-<div class="dashboard-container">
-  <header class="dashboard-header">
-    <div class="logo-box">
-        <img src="/images/OUR_LOGO.png" alt="PiMentor Logo">
-        <div class="logo-text">PiMentor</div>
-    </div>
-    <div class="header-actions">
-        <button class="theme-toggle" id="themeBtn">🌙</button>
-        <button id="logoutBtn" class="logout-btn">Logout</button>
-    </div>
-  </header>
+.courses h2 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: #1e2a38;
+}
 
-  <h1 style="margin-bottom: 20px;">Hello, <span id="welcomeName" style="color: var(--primary);">Student</span> 👋</h1>
+.courses p {
+  font-size: 15px;
+  color: #666;
+}
 
-  <section class="profile-card">
-    <h2>Student Profile</h2>
-    <div style="line-height: 1.6;">
-        <p><strong>Name:</strong> <span id="profileName"></span></p>
-        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-        <p><strong>Current Class:</strong> <span id="studentClass">Loading...</span></p>
-    </div>
-    <button class="add-course-btn" onclick="window.location.href='courses.html'">+ Explore More Courses</button>
-  </section>
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .dashboard-container {
+    margin: 20px;
+  }
 
-  <div id="notif-wrapper">
-      <div id="notif-container"></div>
-  </div>
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
 
-  <section>
-    <h2>Your Learning Path</h2>
-    <div id="courseList" class="course-grid">
-        <p style="color: #888;">Fetching your courses...</p>
-    </div>
-  </section>
+  #logoutBtn {
+    align-self: flex-end;
+  }
+}
+/* ========== COURSE LIST ========== */
+.course-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
 
-  <section>
-    <h2>📬 Mentor Support & Doubts</h2>
-    <div id="dashboardDoubtsContainer" class="doubt-inbox">
-        <p style="color: #888;">Checking for mentor replies...</p>
-    </div>
-  </section>
-</div>
+.course-card {
+  background: #f9fafc;
+  border-radius: 10px;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
 
-<script>
-    // Constants placed globally for better access
-    const BASE_URL = "https://pimentor-project.onrender.com";
-    const token = localStorage.getItem("token");
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
+.course-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
 
-    // Define functions in global scope so HTML onclick can see them
-    window.goToCourse = function(id) {
-        let v = JSON.parse(localStorage.getItem("visited_courses") || "[]");
-        if(!v.includes(id)) { v.push(id); localStorage.setItem("visited_courses", JSON.stringify(v)); }
-        window.location.href = `course-structure.html?id=${id}`;
-    };
+.course-card h3 {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #1e2a38;
+}
 
-    window.dismissNotif = function(id) {
-        let dismissed = JSON.parse(localStorage.getItem("dismissedNotifs") || "[]");
-        dismissed.push(id);
-        localStorage.setItem("dismissedNotifs", JSON.stringify(dismissed));
-        const el = document.getElementById(`notif-${id}`);
-        if(el) { 
-            el.style.opacity = "0"; 
-            setTimeout(() => {
-                el.remove();
-                if(document.querySelectorAll('.notif-card').length === 0) {
-                    document.getElementById('notif-wrapper').style.display = 'none';
-                }
-            }, 300); 
-        }
-    };
+.course-card p {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
 
-    document.addEventListener("DOMContentLoaded", () => {
-        if (!token || !user.email) { window.location.href = "login.html"; return; }
-
-        // UI Binding
-        document.getElementById("welcomeName").innerText = user.name || "Student";
-        document.getElementById("profileName").innerText = user.name || "N/A";
-        document.getElementById("profileEmail").innerText = user.email || "N/A";
-        document.getElementById("studentClass").innerText = user.studentClass || "Not Assigned";
-
-        // Initialize App Sections
-        initTheme();
-        fetchNotifications();
-        loadStudentCourses();
-        loadDashboardDoubts();
-
-        document.getElementById("logoutBtn").addEventListener("click", () => {
-            localStorage.clear();
-            window.location.href = "login.html";
-        });
-    });
-
-    function initTheme() {
-        const themeBtn = document.getElementById("themeBtn");
-        const applyTheme = (theme) => {
-            document.documentElement.setAttribute("data-theme", theme);
-            themeBtn.innerText = theme === "dark" ? "☀️" : "🌙";
-            localStorage.setItem("pimentor-theme", theme);
-        };
-        applyTheme(localStorage.getItem("pimentor-theme") || "light");
-        themeBtn.addEventListener("click", () => {
-            const current = document.documentElement.getAttribute("data-theme");
-            applyTheme(current === "dark" ? "light" : "dark");
-        });
-    }
-
-    async function fetchNotifications() {
-        const wrapper = document.getElementById("notif-wrapper");
-        const container = document.getElementById("notif-container");
-        let dismissed = JSON.parse(localStorage.getItem("dismissedNotifs") || "[]");
-
-        try {
-            const res = await fetch(`${BASE_URL}/api/admin/active-notifications`, {
-                headers: { "Authorization": "Bearer " + token }
-            });
-            const all = await res.json();
-            
-            const myNotifs = all.filter(n => {
-                const matchesClass = n.targetCourses.includes(user.studentClass);
-                const isGlobal = n.targetCourses.includes("all") || n.targetCourses.length === 0;
-                const notDismissed = !dismissed.includes(n._id);
-                return (matchesClass || isGlobal) && notDismissed;
-            });
-
-            if (myNotifs.length > 0) {
-                wrapper.style.display = "block";
-                container.innerHTML = myNotifs.map(n => `
-                    <div class="notif-card" id="notif-${n._id}">
-                        <span class="close-notif" onclick="dismissNotif('${n._id}')">×</span>
-                        <h3>📢 ${n.heading}</h3>
-                        <p>${n.description}</p>
-                        ${n.link ? `<a href="${n.link}" target="_blank" class="notif-link">View Details →</a>` : ''}
-                    </div>
-                `).join('');
-            }
-        } catch (err) { console.error("Notif fetch failed"); }
-    }
-
-    async function loadStudentCourses() {
-        const container = document.getElementById("courseList");
-        const visited = JSON.parse(localStorage.getItem("visited_courses") || "[]");
-        try {
-            const res = await fetch(`${BASE_URL}/api/purchase/my-courses`, { headers: { "Authorization": "Bearer " + token } });
-            const courses = await res.json();
-            if(!courses.length) { container.innerHTML = "<p>No courses active.</p>"; return; }
-            container.innerHTML = courses.map(c => `
-                <div class="course-card">
-                    <h3>${c.title}</h3>
-                    <button onclick="goToCourse('${c.courseId}')">${visited.includes(c.courseId) ? 'Continue' : 'Start'} →</button>
-                </div>
-            `).join('');
-        } catch (e) { container.innerHTML = "<p>Error loading path.</p>"; }
-    }
-
-    async function loadDashboardDoubts() {
-        const container = document.getElementById("dashboardDoubtsContainer");
-        try {
-            const res = await fetch(`${BASE_URL}/api/purchase/my-dashboard-doubts`, { headers: { "Authorization": "Bearer " + token } });
-            const doubts = await res.json();
-            if(!doubts.length) { container.innerHTML = "<p>No doubts raised yet.</p>"; return; }
-            container.innerHTML = doubts.map(d => `
-                <div class="reply-card">
-                    <div style="font-size:0.8rem; color:var(--primary); font-weight:bold;">${d.lectureTitle || 'General'}</div>
-                    <div style="margin: 5px 0;">Q: ${d.question}</div>
-                    ${d.status === "Resolved" ? `<div class="mentor-a">${d.answer}</div>` : `<div>⏳ Reviewing...</div>`}
-                </div>
-            `).join('');
-        } catch (e) { container.innerHTML = "<p>Doubt inbox unavailable.</p>"; }
-    }
-</script>
-</body>
-</html>
+.course-card button {
+  margin-top: 10px;
+  background: #4fd1c5;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #1e2a38;
+  font-weight: 600;
+}
