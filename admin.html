@@ -69,14 +69,73 @@
     </div>
     <a href="/dashboard.html" class="dash-btn">Dashboard →</a>
 </header>
+<section style="border-left: 5px solid #f39c12;">
+    <h2 style="color: #f39c12;">📢 Broadcast to Students</h2>
+    <input id="notifHeading" placeholder="Heading (e.g., Sunday Test Schedule)">
+    <textarea id="notifDesc" placeholder="Full message details..."></textarea>
+    <input id="notifLink" placeholder="Link (Optional: YouTube/PDF/Form)">
+    
+    <span class="hint">Select Target Classes (Hold Ctrl to select multiple)</span>
+    <select id="notifCourseSelect" multiple style="height: 120px;">
+        </select>
+    
+    <button onclick="broadcastNotification()" style="background:#f39c12; color:white;">Push Notification</button>
 
+    <div id="adminNotifList" style="margin-top:20px;"></div>
+</section>
 <section>
     <h2>Global Selection</h2>
     <select id="courseDropdown" onchange="syncCourseSelection()">
         <option value="">-- Loading Courses... --</option>
     </select>
 </section>
-
+<section style="border-top: 4px solid var(--primary);">
+    <h2>Enrolled Students</h2>
+    <p class="hint">Total Students in this course: <span id="enrollmentCount">0</span></p>
+    
+    <div style="overflow-x: auto;">
+        <table id="enrollmentTable" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr style="background: #f8f9fa; text-align: left;">
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Name</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Email</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Original Class</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Joined Date</th>
+                </tr>
+            </thead>
+            <tbody id="enrollmentBody">
+                <tr><td colspan="4" style="padding: 20px; text-align: center; color: #888;">Select a course to view students...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+<section style="border-top: 4px solid var(--primary);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2>Enrolled Students</h2>
+        <div style="position: relative; width: 300px;">
+            <input type="text" id="studentSearch" placeholder="🔍 Search Name or Email..." 
+                   onkeyup="filterStudentTable()" 
+                   style="margin-bottom: 0; padding-left: 35px;">
+        </div>
+    </div>
+    
+    <p class="hint">Total Students: <span id="enrollmentCount">0</span></p>
+    
+    <div style="overflow-x: auto; max-height: 400px;">
+        <table id="enrollmentTable" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8f9fa; position: sticky; top: 0;">
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Name</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Email</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Class</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Joined Date</th>
+                </tr>
+            </thead>
+            <tbody id="enrollmentBody">
+                </tbody>
+        </table>
+    </div>
+</section>
 <section>
     <h2>Step 1: Create New Course</h2>
     <input id="courseId" placeholder="Unique Course ID (e.g. m_calc_01)">
@@ -221,8 +280,37 @@
             loadDoubts(cid);
 
         } catch (err) { console.error(err); }
+        loadEnrollments(cid);
     }
+    async function loadEnrollments(courseId) {
+    const body = document.getElementById("enrollmentBody");
+    const countSpan = document.getElementById("enrollmentCount");
+    
+    try {
+        const res = await fetch(`${BASE_URL}/api/admin/course-enrollments/${courseId}`, {
+            headers: { "Authorization": "Bearer " + token }
+        });
+        const students = await res.json();
 
+        countSpan.innerText = students.length;
+
+        if (students.length === 0) {
+            body.innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center;">No students enrolled yet.</td></tr>';
+            return;
+        }
+
+        body.innerHTML = students.map(s => `
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">${s.name}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">${s.email}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">${s.studentClass}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">${new Date(s.enrolledAt).toLocaleDateString()}</td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        body.innerHTML = '<tr><td colspan="4" style="color: red;">Error loading students.</td></tr>';
+    }
+}
     async function loadDoubts(courseId) {
         const container = document.getElementById("doubtsContainer");
         try {
@@ -329,6 +417,58 @@
         alert((await res.json()).message);
         loadOngoingCourses();
     }
+    async function broadcastNotification() {
+    const selected = Array.from(document.getElementById("notifCourseSelect").selectedOptions).map(o => o.value);
+    const payload = {
+        heading: document.getElementById("notifHeading").value,
+        description: document.getElementById("notifDesc").value,
+        link: document.getElementById("notifLink").value,
+        targetCourses: selected
+    };
+
+    const res = await fetch(`${BASE_URL}/api/admin/send-notification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+        body: JSON.stringify(payload)
+    });
+    if(res.ok) { alert("Sent!"); loadActiveNotifs(); }
+}
+
+async function loadActiveNotifs() {
+    const res = await fetch(`${BASE_URL}/api/admin/active-notifications`, {
+        headers: { "Authorization": "Bearer " + token }
+    });
+    const data = await res.json();
+    document.getElementById("adminNotifList").innerHTML = data.map(n => `
+        <div style="border:1px solid #ddd; padding:10px; margin-top:5px; border-radius:8px;">
+            <b>${n.heading}</b> <br> <small>${n.targetCourses.join(', ')}</small>
+            <button onclick="deleteNotif('${n._id}')" style="float:right; background:red; color:white; padding:2px 5px;">Delete</button>
+        </div>
+    `).join('');
+}
+function filterStudentTable() {
+    const input = document.getElementById("studentSearch").value.toUpperCase();
+    const table = document.getElementById("enrollmentTable");
+    const tr = table.getElementsByTagName("tr");
+
+    // Loop through all table rows (starting from index 1 to skip header)
+    for (let i = 1; i < tr.length; i++) {
+        const nameCol = tr[i].getElementsByTagName("td");
+        const emailCol = tr[i].getElementsByTagName("td");
+        
+        if (nameCol || emailCol) {
+            const nameText = nameCol.textContent || nameCol.innerText;
+            const emailText = emailCol.textContent || emailCol.innerText;
+            
+            if (nameText.toUpperCase().indexOf(input) > -1 || 
+                emailText.toUpperCase().indexOf(input) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+}
 </script>
 </body>
 </html>

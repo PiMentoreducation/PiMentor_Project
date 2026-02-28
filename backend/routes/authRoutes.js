@@ -155,5 +155,26 @@ router.get("/courses/:courseId/lectures", async (req, res) => {
         res.status(500).json({ success: false, message: "Error fetching lectures" });
     }
 });
+const Notification = require("../models/Notification");
 
+// GET: Check for the latest notification for a specific student class
+router.get("/check-new-notif/:studentClass", async (req, res) => {
+    try {
+        const { studentClass } = req.params;
+        // Find the single most recent notification for this class
+        const latest = await Notification.findOne({ targetCourses: studentClass })
+                                        .sort({ createdAt: -1 });
+        
+        if (!latest) return res.json({ hasNew: false });
+
+        res.json({
+            hasNew: true,
+            id: latest._id,
+            title: latest.heading,
+            body: latest.description
+        });
+    } catch (err) {
+        res.status(500).json({ hasNew: false });
+    }
+});
 module.exports = router;

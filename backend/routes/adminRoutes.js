@@ -134,4 +134,69 @@ router.delete("/clear-resolved-doubts", auth, admin, async (req, res) => {
     }
 });
 
+const Notification = require("../models/Notification");
+// Create Notification
+router.post("/send-notification", auth, admin, async (req, res) => {
+    try {
+        const { heading, description, link, targetCourses } = req.body;
+        const newNotif = new Notification({ heading, description, link, targetCourses });
+        await newNotif.save();
+        res.status(201).json({ success: true, message: "Broadcast Sent!" });
+    } catch (err) {
+        res.status(500).json({ message: "Failed to broadcast." });
+    }
+});
+
+// Get all for Admin List
+router.get("/active-notifications", auth, admin, async (req, res) => {
+    try {
+        const list = await Notification.find().sort({ createdAt: -1 });
+        res.json(list);
+    } catch (err) {
+        res.status(500).json({ message: "Error fetching list" });
+    }
+});
+
+// Delete Notification
+router.delete("/notification/:id", auth, admin, async (req, res) => {
+    try {
+        await Notification.findByIdAndDelete(req.params.id);
+        res.json({ message: "Notification removed!" });
+    } catch (err) {
+        res.status(500).json({ message: "Delete failed" });
+    }
+});
+// GET: Enrolled students for a specific course
+router.get("/course-enrollments/:courseId", auth, admin, async (req, res) => {
+    try {
+        const { courseId } = req.params;
+
+        // 1. Find all purchases for this course
+        const purchases = await Purchase.find({ courseId }).select("userId createdAt");
+        
+        if (purchases.length === 0) return res.json([]);
+
+        // 2. Extract User IDs
+        const userIds = purchases.map(p => p.userId);
+
+        // 3. Fetch User details (Name, Email, Class) for these IDs
+        const students = await User.find({ _id: { $in: userIds } })
+                                   .select("name email studentClass");
+
+        // 4. Merge data to include purchase date
+        const enrolledList = students.map(student => {
+            const pData = purchases.find(p => p.userId.toString() === student._id.toString());
+            return {
+                name: student.name,
+                email: student.email,
+                studentClass: student.studentClass,
+                enrolledAt: pData ? pData.createdAt : null
+            };
+        });
+
+        res.json(enrolledList);
+    } catch (err) {
+        res.status(500).json({ message: "Error fetching enrollments" });
+    }
+});
 module.exports = router;

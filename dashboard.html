@@ -123,6 +123,62 @@
         .header-actions { flex-wrap: wrap; justify-content: center; }
         .add-course-btn { left: 50%; transform: translateX(-50%); }
     }
+    .notif-card {
+    background: #fff3cd; /* Soft Yellow Warning Color */
+    border: 1px solid #ffeeba;
+    border-left: 5px solid #f39c12; /* "Accent" bar to catch the eye */
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    animation: slideDown 0.5s ease-out; /* Smooth entrance */
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.notif-card h3 {
+    margin: 0 0 8px 0;
+    color: #856404;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notif-card p { margin: 0; color: #666; font-size: 0.95rem; line-height: 1.4; }
+
+.notif-link {
+    display: inline-block;
+    margin-top: 12px;
+    color: #1a73e8;
+    font-weight: bold;
+    text-decoration: none;
+}
+.notif-card {
+    position: relative; /* Needed for absolute positioning of X */
+    border-left: 5px solid #f39c12;
+    background: #fff3cd;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.close-notif {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #856404;
+    font-weight: bold;
+    opacity: 0.6;
+}
+
+.close-notif:hover {
+    opacity: 1;
+}
   </style>
 </head>
 <body>
@@ -149,6 +205,16 @@
     <p><strong>Email:</strong> <span id="profileEmail"></span></p>
     <button class="add-course-btn" onclick="window.location.href='courses.html'">+ Add New Course</button>
   </section>
+  <div class="header">
+    <h1>Welcome, <span id="studentName">Student</span>!</h1>
+    <p>Class: <span id="studentClass">Loading...</span></p>
+</div>
+
+<div id="notif-container" style="max-width: 1000px; margin: 20px auto; padding: 0 15px;">
+    </div>
+
+<div class="course-grid">
+    </div>
   <section class="courses">
     <h2>Your Courses</h2>
     <div id="courseList" class="course-grid"></div>
@@ -271,6 +337,54 @@ function goToCourse(courseId) {
         localStorage.setItem("visited_courses", JSON.stringify(visitedHistory));
     }
     window.location.href = `course-structure.html?id=${courseId}`;
+}
+async function fetchNotifications() {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = localStorage.getItem("token");
+    
+    // Get the list of IDs this student already closed
+    let dismissed = JSON.parse(localStorage.getItem("dismissedNotifs") || "[]");
+
+    try {
+        const res = await fetch(`${BASE_URL}/api/admin/active-notifications`, {
+            headers: { "Authorization": "Bearer " + token }
+        });
+        const allNotifs = await res.json();
+
+        // FILTER: 1. Match student class AND 2. Not in dismissed list
+        const myNotifs = allNotifs.filter(n => 
+            n.targetCourses.includes(user.studentClass) && 
+            !dismissed.includes(n._id)
+        );
+
+        const container = document.getElementById("notif-container");
+        if (myNotifs.length > 0) {
+            container.innerHTML = myNotifs.map(n => `
+                <div class="notif-card" id="notif-${n._id}">
+                    <span class="close-notif" onclick="dismissNotif('${n._id}')">×</span>
+                    <h3>📢 ${n.heading}</h3>
+                    <p>${n.description}</p>
+                    ${n.link ? `<a href="${n.link}" target="_blank" class="notif-link">View Details →</a>` : ''}
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = ""; // Clear if nothing new
+        }
+    } catch (err) {
+        console.error("Notif Error:", err);
+    }
+}
+
+function dismissNotif(id) {
+    // 1. Add to local storage so it stays hidden
+    let dismissed = JSON.parse(localStorage.getItem("dismissedNotifs") || "[]");
+    dismissed.push(id);
+    localStorage.setItem("dismissedNotifs", JSON.stringify(dismissed));
+
+    // 2. Remove from current UI with a fade effect
+    const element = document.getElementById(`notif-${id}`);
+    element.style.opacity = "0";
+    setTimeout(() => element.remove(), 300);
 }
 </script>
 </body>
