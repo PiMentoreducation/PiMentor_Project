@@ -199,4 +199,15 @@ router.get("/course-enrollments/:courseId", auth, admin, async (req, res) => {
         res.status(500).json({ message: "Error fetching enrollments" });
     }
 });
+// adminRoutes.js
+router.post("/send-notification", auth, admin, async (req, res) => {
+    console.log("Broadcast Route Hit!"); // ADD THIS LOG
+    try {
+        const { heading, description, link, targetCourses } = req.body;
+        // Logic...
+        res.status(201).json({ success: true, message: "Broadcast Sent!" });
+    } catch (err) {
+        res.status(500).json({ message: "Server Error" });
+    }
+});
 module.exports = router;

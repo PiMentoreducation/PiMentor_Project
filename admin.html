@@ -300,13 +300,10 @@
     }
 
     /* --- NOTIFICATIONS --- */
-   async function broadcastNotification() {
-    const token = localStorage.getItem("token"); // Double check token exists
+async function broadcastNotification() {
     const select = document.getElementById("notifCourseSelect");
     const selected = Array.from(select.selectedOptions).map(o => o.value);
     
-    if (selected.length === 0) return alert("Please select a target course!");
-
     const payload = {
         heading: document.getElementById("notifHeading").value,
         description: document.getElementById("notifDesc").value,
@@ -314,35 +311,32 @@
         targetCourses: selected
     };
 
-    console.log("Sending Payload:", payload);
-
     try {
+        // Use the exact same BASE_URL/api/admin pattern as your Delete function
         const res = await fetch(`${BASE_URL}/api/admin/send-notification`, {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json", 
-                "Authorization": "Bearer " + token 
+                "Authorization": "Bearer " + localStorage.getItem("token") 
             },
             body: JSON.stringify(payload)
         });
 
-        const contentType = res.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-            const data = await res.json();
-            if(res.ok) {
-                alert("Broadcast Sent Successfully!");
-                loadActiveNotifs();
-            } else {
-                alert("Server Error: " + data.message);
-            }
+        if (res.status === 404) {
+            alert("Error 404: The route /send-notification was not found on the server. Check adminRoutes.js");
+            return;
+        }
+
+        const data = await res.json(); 
+        if(res.ok) {
+            alert("Broadcast Success!");
+            loadActiveNotifs();
         } else {
-            // This is where your "!doctype" error is caught
-            const text = await res.text();
-            console.error("Received HTML instead of JSON:", text);
-            alert("Auth Error: You might not have Admin permissions. Check your MongoDB role.");
+            alert("Error: " + data.message);
         }
     } catch (err) {
-        alert("Network Error: Check console.");
+        console.error(err);
+        alert("Check Console: The server sent back HTML instead of JSON.");
     }
 }
 
