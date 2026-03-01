@@ -296,4 +296,45 @@ router.get("/repair-student-dates", auth, admin, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+router.get("/force-sync-expiries", auth, admin, async (req, res) => {
+    try {
+        // We fetch ALL purchases that are missing the expiryDate field
+        const purchases = await Purchase.find({ expiryDate: { $exists: false } });
+        let updatedCount = 0;
+
+        for (let p of purchases) {
+            const course = await Course.findOne({ courseId: p.courseId });
+            
+            if (course) {
+                const enrollDate = new Date(p.createdAt);
+                const liveLimit = course.liveValidityDate ? new Date(course.liveValidityDate) : null;
+                
+                let finalExpiry;
+
+                // Apply your piecewise logic
+                if (liveLimit && enrollDate <= liveLimit) {
+                    finalExpiry = liveLimit;
+                } else {
+                    finalExpiry = new Date(enrollDate);
+                    const duration = parseInt(course.recordedDurationDays) || 365;
+                    finalExpiry.setDate(finalExpiry.getDate() + duration);
+                }
+
+                // Update the document
+                p.expiryDate = finalExpiry;
+                p.purgeAt = new Date(finalExpiry.getTime() + 10 * 24 * 60 * 60 * 1000); // Expiry + 10 days
+                
+                await p.save();
+                updatedCount++;
+            }
+        }
+
+        res.json({ 
+            success: true, 
+            message: `Synchronized ${updatedCount} records. "Invalid Date" should now be gone.` 
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 module.exports = router;

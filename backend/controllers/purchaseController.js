@@ -50,25 +50,22 @@ exports.buyCourse = async (req, res) => {
         if (!course) return res.status(404).json({ message: "Course not found" });
 
         const now = new Date();
-        // The Fixed Validity Date set by Admin (T_live)
         const liveLimit = course.liveValidityDate ? new Date(course.liveValidityDate) : null;
         
         let finalExpiry;
 
-        // --- THE PRIORITY LOGIC ---
+        // --- THE PIECEWISE LOGIC ---
         if (liveLimit && now <= liveLimit) {
-            // RULE 1: Buying ON or BEFORE Validity Date -> Expiry = Fixed Validity Date
+            // Priority 1: On or before Course Validity Date
             finalExpiry = liveLimit;
-            console.log("Phase: LIVE. Setting fixed expiry:", finalExpiry);
         } else {
-            // RULE 2: Buying AFTER Validity Date -> Expiry = Purchase Date + Duration
+            // Priority 2: After Course Validity Date (Purchase + Duration)
             finalExpiry = new Date();
             const duration = parseInt(course.recordedDurationDays) || 365;
             finalExpiry.setDate(finalExpiry.getDate() + duration);
-            console.log("Phase: RECORDED. Setting duration-based expiry:", finalExpiry);
         }
 
-        // DATABASE PURGE DATE (Expiry + 10 Days for DB cleanup)
+        // Calculate Purge Date (Expiry + 10 Days)
         const purgeDate = new Date(finalExpiry);
         purgeDate.setDate(purgeDate.getDate() + 10);
 
@@ -76,20 +73,19 @@ exports.buyCourse = async (req, res) => {
             userId: req.user.id,
             courseId,
             title: course.title,
-            price: course.price, 
+            price: course.price,
             paymentId,
-            expiryDate: finalExpiry, // The calculated E
-            purgeAt: purgeDate       // The auto-delete trigger
+            // THESE TWO LINES ARE WHAT'S MISSING IN YOUR DB:
+            expiryDate: finalExpiry, 
+            purgeAt: purgeDate       
         });
 
         await newPurchase.save();
         res.status(201).json({ success: true, message: "Enrolled successfully!" });
     } catch (error) {
-        console.error("PURCHASE ERROR:", error);
         res.status(500).json({ message: "Server error during enrollment" });
     }
 };
-
 exports.getMyCourses = async (req, res) => {
     try {
         const courses = await Purchase.find({ userId: req.user.id });
