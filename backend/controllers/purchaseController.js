@@ -7,52 +7,70 @@ exports.buyCourse = async (req, res) => {
         const { courseId, paymentId } = req.body;
         const cleanId = courseId.trim();
         
-        const course = await Course.findOne({ courseId: cleanId });
+        // Use .lean() to get a plain JS object, bypassing Mongoose "magic"
+        const course = await Course.findOne({ courseId: cleanId }).lean();
+        
         if (!course) return res.status(404).json({ message: "Course not found" });
 
-        // 1. Piecewise Logic (Timestamps)
-        const nowMs = Date.now();
-        const liveLimitMs = course.liveValidityDate ? new Date(course.liveValidityDate).getTime() : 0;
-        
+        // --- THE MATH REPAIR ---
+        const now = new Date();
         let finalExpiry;
-        if (liveLimitMs > 0 && nowMs <= liveLimitMs) {
-            finalExpiry = new Date(liveLimitMs);
+
+        // Force parse the date from your screenshot format
+        const liveLimit = course.liveValidityDate ? new Date(course.liveValidityDate) : null;
+        
+        if (liveLimit && !isNaN(liveLimit.getTime()) && now.getTime() <= liveLimit.getTime()) {
+            // Case: Live Phase
+            finalExpiry = new Date(liveLimit.getTime());
         } else {
-            finalExpiry = new Date();
+            // Case: Recorded Phase
+            finalExpiry = new Date(now.getTime());
+            // Fallback to 90 (from your screenshot) or 365
             const days = parseInt(course.recordedDurationDays) || 365;
             finalExpiry.setDate(finalExpiry.getDate() + days);
         }
 
-        const purgeDate = new Date(finalExpiry);
+        // Final Safety Check: If math somehow produced an invalid date
+        if (isNaN(finalExpiry.getTime())) {
+            finalExpiry = new Date();
+            finalExpiry.setFullYear(finalExpiry.getFullYear() + 1);
+        }
+
+        const purgeDate = new Date(finalExpiry.getTime());
         purgeDate.setDate(purgeDate.getDate() + 10);
 
-        // 2. THE BYPASS: Use the raw collection to insert
-        // This avoids the 'new Purchase().save()' filtering entirely.
-        const purchaseData = {
+        // --- THE ATOMIC BYPASS ---
+        // We do NOT use 'new Purchase()'. we use a plain object.
+        const rawPurchaseData = {
             userId: req.user.id,
             courseId: cleanId,
-            title: course.title,
-            price: course.price,
+            title: course.title || "Untitled Course",
+            price: course.price || 0,
             paymentId: paymentId,
-            className: course.className,
-            expiryDate: finalExpiry,
+            className: course.className || "",
+            expiryDate: finalExpiry, // This is now a guaranteed Date object
             purgeAt: purgeDate,
             createdAt: new Date(),
-            updatedAt: new Date(),
-            __v: 0
+            updatedAt: new Date()
         };
 
-        // We use Purchase.collection.insertOne to talk directly to MongoDB
-        const result = await Purchase.collection.insertOne(purchaseData);
+        // This talks DIRECTLY to the database engine
+        const result = await Purchase.collection.insertOne(rawPurchaseData);
 
-        console.log(`✅ [ATOMIC BYPASS] Inserted ID: ${result.insertedId}`);
-        res.status(201).json({ success: true, message: "Enrolled!" });
+        console.log(`✅ [DB_DIRECT] Inserted ID: ${result.insertedId} | Expiry: ${finalExpiry.toISOString()}`);
+        
+        res.status(201).json({ 
+            success: true, 
+            message: "Enrolled!", 
+            debug_expiry: finalExpiry 
+        });
 
     } catch (error) {
-        console.error("❌ CRITICAL ERROR:", error);
-        res.status(500).json({ message: "Server error during enrollment" });
+        console.error("❌ CRITICAL SYSTEM ERROR:", error);
+        res.status(500).json({ message: "Server error" });
     }
 };
+
 exports.getMyCourses = async (req, res) => {
     try {
         const courses = await Purchase.find({ userId: req.user.id }).sort({ createdAt: -1 });
