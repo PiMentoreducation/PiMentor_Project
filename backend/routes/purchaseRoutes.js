@@ -12,14 +12,17 @@ const Lecture = require("../models/Lecture");
 const User = require("../models/User");
 const Doubt = require("../models/Doubt");
 
-/* ================= CORE PURCHASE ROUTES ================= */
+/* ================= CORE PURCHASE & DASHBOARD ================= */
 
+// The new "Direct-to-Disk" buy route
 router.post("/buy", authMiddleware, buyCourse);
+
+// Fetch student's purchased courses
 router.get("/my-courses", authMiddleware, getMyCourses);
 
-/* ================= ACCESS & CONTENT ROUTES ================= */
+/* ================= ACCESS & CONTENT DELIVERY (RETAINED) ================= */
 
-// Verify if a student has access
+// Verify if student has access to a specific course
 router.get("/verify-access/:courseId", authMiddleware, async (req, res) => {
     try {
         const hasAccess = await Purchase.findOne({ 
@@ -32,12 +35,12 @@ router.get("/verify-access/:courseId", authMiddleware, async (req, res) => {
     }
 });
 
-// Get Chapters (Filtered by Access)
+// A. Get Unique Chapters for a Course
 router.get("/course-chapters/:courseId", authMiddleware, async (req, res) => {
     try {
         const { courseId } = req.params;
         const hasAccess = await Purchase.findOne({ userId: req.user.id, courseId });
-        if (!hasAccess) return res.status(403).json({ message: "Access Denied" });
+        if (!hasAccess) return res.status(403).json({ message: "Access Denied: Please purchase this course." });
 
         const chapters = await Lecture.distinct("chapterName", { courseId });
         res.status(200).json(chapters);
@@ -46,7 +49,7 @@ router.get("/course-chapters/:courseId", authMiddleware, async (req, res) => {
     }
 });
 
-// Get Lectures (Filtered by Access)
+// B. Get Lectures for a Specific Chapter
 router.get("/course-content/:courseId/:chapterName", authMiddleware, async (req, res) => {
     try {
         const { courseId, chapterName } = req.params;
@@ -64,15 +67,56 @@ router.get("/course-content/:courseId/:chapterName", authMiddleware, async (req,
     }
 });
 
-/* ================= DOUBT SECTION ================= */
+// C. Get Single Lecture Details
+router.get("/lecture-details/:lectureId", authMiddleware, async (req, res) => {
+    try {
+        const lecture = await Lecture.findById(req.params.lectureId);
+        if (!lecture) return res.status(404).json({ message: "Lecture not found" });
+
+        const hasAccess = await Purchase.findOne({ userId: req.user.id, courseId: lecture.courseId });
+        if (!hasAccess) return res.status(403).json({ message: "Access Denied" });
+
+        res.json(lecture);
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+/* ================= ADMIN SPECIFIC ROUTES (RETAINED) ================= */
+
+router.get("/all-lectures-admin/:courseId", authMiddleware, async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        const lectures = await Lecture.find({ courseId }).sort({ order: 1 });
+        res.json(lectures);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching lectures for admin" });
+    }
+});
+
+/* ================= GENERAL DISCOVERY (RETAINED) ================= */
+
+router.get("/all-courses", authMiddleware, async (req, res) => {
+    try {
+        const courses = await Course.find().sort({ createdAt: -1 });
+        res.json(courses);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching courses" });
+    }
+});
+
+/* ================= DOUBT SECTION (RETAINED) ================= */
 
 router.post("/ask-doubt", authMiddleware, async (req, res) => {
     try {
         const { lectureId, question } = req.body;
-        if (!lectureId || !question) return res.status(400).json({ message: "Missing data" });
+        if (!lectureId || !question) return res.status(400).json({ message: "Missing lectureId or question" });
 
         const lecture = await Lecture.findById(lectureId);
+        if (!lecture) return res.status(404).json({ message: "Lecture not found" });
+
         const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
 
         const newDoubt = new Doubt({
             studentId: user._id,
@@ -84,19 +128,30 @@ router.post("/ask-doubt", authMiddleware, async (req, res) => {
         });
 
         await newDoubt.save();
-        res.status(201).json({ message: "Doubt submitted!" });
+        res.status(201).json({ message: "Doubt submitted successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error submitting doubt" });
     }
 });
 
-// GET doubts for dashboard
+router.get("/my-doubts/:lectureId", authMiddleware, async (req, res) => {
+    try {
+        const doubts = await Doubt.find({ 
+            lectureId: req.params.lectureId, 
+            studentId: req.user.id 
+        }).sort({ createdAt: -1 });
+        res.status(200).json(doubts);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching your doubts" });
+    }
+});
+
 router.get("/my-dashboard-doubts", authMiddleware, async (req, res) => {
     try {
         const doubts = await Doubt.find({ studentId: req.user.id }).sort({ createdAt: -1 });
         res.status(200).json(doubts);
     } catch (error) {
-        res.status(500).json({ message: "Error fetching doubts" });
+        res.status(500).json({ message: "Error fetching dashboard doubts" });
     }
 });
 
