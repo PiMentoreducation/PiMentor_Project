@@ -40,7 +40,6 @@ const buyCourse = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
-const Purchase = require("../models/Purchase");
 const Course = require("../models/Course");
 
 exports.buyCourse = async (req, res) => {
