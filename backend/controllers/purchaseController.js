@@ -10,32 +10,27 @@ exports.buyCourse = async (req, res) => {
         const course = await Course.findOne({ courseId: cleanId });
         if (!course) return res.status(404).json({ message: "Course not found" });
 
-        // 1. STRENGTHENED DATE PARSING
-        const now = new Date();
-        const liveLimit = course.liveValidityDate ? new Date(course.liveValidityDate) : null;
+        // 1. ABSOLUTE NUMERICAL COMPARISON
+        const nowMs = Date.now(); // Current time in milliseconds
+        const liveLimitMs = course.liveValidityDate ? new Date(course.liveValidityDate).getTime() : 0;
         
         let finalExpiry;
 
-        // Verify if liveLimit is a valid date before comparing
-        if (liveLimit && !isNaN(liveLimit.getTime()) && now.getTime() <= liveLimit.getTime()) {
-            finalExpiry = new Date(liveLimit);
+        // If today (March 1) <= March 3 Midnight
+        if (liveLimitMs > 0 && nowMs <= liveLimitMs) {
+            // CASE: LIVE PHASE
+            finalExpiry = new Date(liveLimitMs);
         } else {
+            // CASE: RECORDED PHASE
             finalExpiry = new Date();
-            // Fallback to 365 if recordedDurationDays is missing or 0
-            const duration = parseInt(course.recordedDurationDays) || 365;
-            finalExpiry.setDate(finalExpiry.getDate() + duration);
-        }
-
-        // 2. ENSURE VALUES ARE VALID
-        if (isNaN(finalExpiry.getTime())) {
-            finalExpiry = new Date();
-            finalExpiry.setFullYear(finalExpiry.getFullYear() + 1); // Safety fallback: 1 year from now
+            const days = parseInt(course.recordedDurationDays) || 365;
+            finalExpiry.setDate(finalExpiry.getDate() + days);
         }
 
         const purgeDate = new Date(finalExpiry);
         purgeDate.setDate(purgeDate.getDate() + 10);
 
-        // 3. THE ATOMIC SAVE
+        // 2. CREATE AND SAVE THE BASE RECORD
         const newPurchase = new Purchase({
             userId: req.user.id,
             courseId: cleanId,
@@ -47,8 +42,8 @@ exports.buyCourse = async (req, res) => {
 
         const savedDoc = await newPurchase.save();
 
-        // 4. BYPASS ENTIRE SCHEMATIC LAYER
-        // We use the raw MongoDB driver to ensure no Mongoose interference
+        // 3. BYPASS MONGOOSE SCHEMA (The "Nuclear" Option)
+        // This writes directly to the MongoDB driver to force the fields into Atlas
         await Purchase.collection.updateOne(
             { _id: savedDoc._id },
             { 
@@ -59,19 +54,20 @@ exports.buyCourse = async (req, res) => {
             }
         );
 
-        console.log(`✅ [CRITICAL SUCCESS] ID: ${savedDoc._id} | Expiry: ${finalExpiry}`);
+        console.log(`✅ [HARD-SYNC] Saved ${cleanId}. Expiry: ${finalExpiry.toISOString()}`);
         res.status(201).json({ success: true, message: "Enrolled!" });
 
     } catch (error) {
-        console.error("❌ CRITICAL PURCHASE ERROR:", error);
-        res.status(500).json({ message: "Server error" });
+        console.error("❌ CRITICAL ERROR:", error);
+        res.status(500).json({ message: "Server error during enrollment" });
     }
 };
+
 exports.getMyCourses = async (req, res) => {
     try {
         const courses = await Purchase.find({ userId: req.user.id }).sort({ createdAt: -1 });
         res.status(200).json(courses);
     } catch (error) {
-        res.status(500).json({ error: "Fetch failed" });
+        res.status(500).json({ error: "Failed to fetch" });
     }
 };

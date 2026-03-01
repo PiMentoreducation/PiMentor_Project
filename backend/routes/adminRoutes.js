@@ -207,37 +207,39 @@ router.get("/course-enrollments/:courseId", auth, admin, async (req, res) => {
  */
 // backend/routes/adminRoutes.js
 
+// backend/routes/adminRoutes.js
+
 router.get("/force-sync-expiries", auth, admin, async (req, res) => {
     try {
         const purchases = await Purchase.find({ expiryDate: { $exists: false } });
-        let count = 0;
+        let updatedCount = 0;
 
         for (let p of purchases) {
             const course = await Course.findOne({ courseId: p.courseId });
             if (course) {
-                const enrollTime = new Date(p.createdAt).getTime();
-                const liveLimitTime = course.liveValidityDate ? new Date(course.liveValidityDate).getTime() : null;
-
+                const enrollMs = new Date(p.createdAt).getTime();
+                const liveLimitMs = course.liveValidityDate ? new Date(course.liveValidityDate).getTime() : 0;
+                
                 let expiry;
-                if (liveLimitTime && enrollTime <= liveLimitTime) {
-                    expiry = new Date(liveLimitTime);
+                if (liveLimitMs > 0 && enrollMs <= liveLimitMs) {
+                    expiry = new Date(liveLimitMs);
                 } else {
-                    expiry = new Date(enrollTime);
+                    expiry = new Date(enrollMs);
                     expiry.setDate(expiry.getDate() + (course.recordedDurationDays || 365));
                 }
 
                 const purge = new Date(expiry);
                 purge.setDate(purge.getDate() + 10);
 
-                // DIRECT UPDATE BYPASS
+                // DIRECT WRITE BYPASS
                 await Purchase.collection.updateOne(
                     { _id: p._id },
                     { $set: { expiryDate: expiry, purgeAt: purge } }
                 );
-                count++;
+                updatedCount++;
             }
         }
-        res.json({ success: true, message: `Forced sync on ${count} records.` });
+        res.json({ success: true, message: `Forced data into ${updatedCount} records.` });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
