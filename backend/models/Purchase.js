@@ -5,15 +5,15 @@ const purchaseSchema = new mongoose.Schema({
   courseId: String,
   title: String,
   price: Number,
-  paymentId: String, // Critical for tracking
-  expiryDate: { type: Date }, // Actual access cutoff
-  purgeAt: { type: Date }    // Expiry + 10 days (Auto-delete trigger)
-},{ 
-  timestamps: true // This auto-generates createdAt for your joined date
+  paymentId: String,
+  expiryDate: { type: Date }, // Ensure this is exactly like this
+  purgeAt: { type: Date }
+}, { 
+  timestamps: true,
+  strict: false // This is the MAGIC FLAG - it tells Mongoose "Save anything I send you"
 });
 
-// TTL INDEX: This is the "Garbage Collector"
-// It deletes the record from MongoDB when current time matches 'purgeAt'
 purchaseSchema.index({ "purgeAt": 1 }, { expireAfterSeconds: 0 });
 
-module.exports = mongoose.model("Purchase", purchaseSchema);
+// This logic prevents "OverwriteModelError" and forces the new schema
+module.exports = mongoose.models.Purchase || mongoose.model("Purchase", purchaseSchema);

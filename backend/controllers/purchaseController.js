@@ -10,12 +10,11 @@ exports.buyCourse = async (req, res) => {
 
         const now = new Date();
         const liveLimit = course.liveValidityDate ? new Date(course.liveValidityDate) : null;
-        
         let finalExpiry;
 
         // Use Timestamps for absolute mathematical accuracy
-        if (liveLimit && now.getTime() <= liveLimit.getTime()) {
-            finalExpiry = new Date(liveLimit);
+        if (liveLimit.getTime() && now.getTime() <= liveLimit.getTime()) {
+           finalExpiry = new Date(liveLimit);
         } else {
             finalExpiry = new Date();
             const duration = parseInt(course.recordedDurationDays) || 365;
@@ -38,11 +37,6 @@ exports.buyCourse = async (req, res) => {
         // regardless of schema strictness
         newPurchase.set('expiryDate', finalExpiry);
         newPurchase.set('purgeAt', purgeDate);
-
-        // Force Mongoose to acknowledge these fields are "dirty" (modified)
-        newPurchase.markModified('expiryDate');
-        newPurchase.markModified('purgeAt');
-
         await newPurchase.save();
         
         console.log(`✅ [FORCE SAVE] Course: ${courseId} | Expiry: ${finalExpiry}`);
