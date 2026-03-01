@@ -7,70 +7,68 @@ exports.buyCourse = async (req, res) => {
         const { courseId, paymentId } = req.body;
         const cleanId = courseId.trim();
         
-        // Use .lean() to get a plain JS object, bypassing Mongoose "magic"
+        // Use .lean() to bypass all Mongoose internal logic
         const course = await Course.findOne({ courseId: cleanId }).lean();
-        
         if (!course) return res.status(404).json({ message: "Course not found" });
 
-        // --- THE MATH REPAIR ---
         const now = new Date();
         let finalExpiry;
 
-        // Force parse the date from your screenshot format
-        const liveLimit = course.liveValidityDate ? new Date(course.liveValidityDate) : null;
-        
-        if (liveLimit && !isNaN(liveLimit.getTime()) && now.getTime() <= liveLimit.getTime()) {
-            // Case: Live Phase
-            finalExpiry = new Date(liveLimit.getTime());
-        } else {
-            // Case: Recorded Phase
-            finalExpiry = new Date(now.getTime());
-            // Fallback to 90 (from your screenshot) or 365
-            const days = parseInt(course.recordedDurationDays) || 365;
-            finalExpiry.setDate(finalExpiry.getDate() + days);
-        }
-
-        // Final Safety Check: If math somehow produced an invalid date
-        if (isNaN(finalExpiry.getTime())) {
+        // --- THE "NO-FAIL" DATE LOGIC ---
+        try {
+            const liveLimit = course.liveValidityDate ? new Date(course.liveValidityDate) : null;
+            
+            if (liveLimit && !isNaN(liveLimit.getTime()) && now.getTime() <= liveLimit.getTime()) {
+                finalExpiry = new Date(liveLimit.getTime());
+            } else {
+                finalExpiry = new Date();
+                const days = parseInt(course.recordedDurationDays) || 365;
+                finalExpiry.setDate(finalExpiry.getDate() + days);
+            }
+        } catch (e) {
+            // Hard Fallback: 1 Year from today if anything above crashes
             finalExpiry = new Date();
             finalExpiry.setFullYear(finalExpiry.getFullYear() + 1);
         }
 
-        const purgeDate = new Date(finalExpiry.getTime());
-        purgeDate.setDate(purgeDate.getDate() + 10);
+        // Final validation: If it's still not a valid date, force it.
+        if (!finalExpiry || isNaN(finalExpiry.getTime())) {
+            finalExpiry = new Date();
+            finalExpiry.setFullYear(finalExpiry.getFullYear() + 1);
+        }
+
+        const purgeDate = new Date(finalExpiry.getTime() + 10 * 24 * 60 * 60 * 1000);
 
         // --- THE ATOMIC BYPASS ---
-        // We do NOT use 'new Purchase()'. we use a plain object.
-        const rawPurchaseData = {
+        const rawData = {
             userId: req.user.id,
             courseId: cleanId,
-            title: course.title || "Untitled Course",
+            title: course.title || "Untitled",
             price: course.price || 0,
             paymentId: paymentId,
             className: course.className || "",
-            expiryDate: finalExpiry, // This is now a guaranteed Date object
+            expiryDate: finalExpiry, // Guaranteed to be a Date object now
             purgeAt: purgeDate,
             createdAt: new Date(),
             updatedAt: new Date()
         };
 
-        // This talks DIRECTLY to the database engine
-        const result = await Purchase.collection.insertOne(rawPurchaseData);
+        // Bypass Mongoose entirely
+        const result = await Purchase.collection.insertOne(rawData);
 
-        console.log(`✅ [DB_DIRECT] Inserted ID: ${result.insertedId} | Expiry: ${finalExpiry.toISOString()}`);
+        console.log(`✅ [DB_DIRECT] Success! ID: ${result.insertedId} | Expiry: ${finalExpiry.toISOString()}`);
         
         res.status(201).json({ 
             success: true, 
-            message: "Enrolled!", 
-            debug_expiry: finalExpiry 
+            message: "Enrolled!",
+            expirySet: finalExpiry.toISOString() 
         });
 
     } catch (error) {
         console.error("❌ CRITICAL SYSTEM ERROR:", error);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Internal Server Error" });
     }
 };
-
 exports.getMyCourses = async (req, res) => {
     try {
         const courses = await Purchase.find({ userId: req.user.id }).sort({ createdAt: -1 });
