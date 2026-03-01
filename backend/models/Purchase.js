@@ -7,10 +7,10 @@ const purchaseSchema = new mongoose.Schema({
   className: String,
   price: Number,
   paymentId: String,
-  // Add this field explicitly
+  // EXPLICITLY ADD THIS FIELD
   expiryDate: { type: Date } 
 }, { 
-  // This automatically creates 'createdAt' (Enrolled Date) and 'updatedAt'
+  // THIS AUTO-GENERATES 'createdAt' (Enrolled Date)
   timestamps: true 
 });
 

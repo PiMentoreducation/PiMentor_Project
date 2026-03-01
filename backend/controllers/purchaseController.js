@@ -7,17 +7,14 @@ const buyCourse = async (req, res) => {
         const { courseId, paymentId } = req.body;
         const userId = req.user.id;
 
-        // 1. Fetch the course to get its 'validityDays' (Step 1)
         const course = await Course.findOne({ courseId });
         if (!course) return res.status(404).json({ message: "Course not found" });
 
-        // 2. Calculate the Expiry Date (The Math: Current Date + X Days)
-        const expiryDate = new Date();
-        // If validityDays isn't set, default to 365
-        const daysToAdd = course.validityDays || 365; 
-        expiryDate.setDate(expiryDate.getDate() + daysToAdd);
+        // Calculate Expiry Date (Current Date + Course Validity Days)
+        const expiry = new Date();
+        const daysToAdd = course.validityDays || 365; // Default to 1 year if not set
+        expiry.setDate(expiry.getDate() + daysToAdd);
 
-        // 3. Create the Purchase record
         const newPurchase = new Purchase({
             userId,
             courseId: course.courseId,
@@ -25,15 +22,13 @@ const buyCourse = async (req, res) => {
             className: course.className,
             price: course.price,
             paymentId,
-            createdAt: new Date(), // FIX: This solves "Invalid Date"
-            expiryDate: expiryDate  // NEW: This handles the expiration
+            expiryDate: expiry // This will now save correctly because of Step 1
         });
 
         await newPurchase.save();
-        res.status(201).json({ success: true, message: "Course purchased successfully!" });
-
+        res.status(201).json({ success: true, message: "Purchase successful!" });
     } catch (error) {
-        res.status(500).json({ message: "Error processing purchase" });
+        res.status(500).json({ message: "Server error during purchase" });
     }
 };
 exports.buyCourse = async (req, res) => {

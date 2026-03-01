@@ -210,5 +210,26 @@ router.get("/fix-database-dates", auth, admin, async (req, res) => {
         res.status(500).send(e.message);
     }
 });
-
+router.get("/sync-dates", auth, admin, async (req, res) => {
+    try {
+        const purchases = await Purchase.find({});
+        let count = 0;
+        for (let p of purchases) {
+            // 1. Fix Enrolled Date if missing
+            if (!p.createdAt) p.createdAt = new Date("2026-02-01"); 
+            
+            // 2. Fix Expiry Date if missing (set to 1 year from enrollment)
+            if (!p.expiryDate) {
+                const exp = new Date(p.createdAt);
+                exp.setFullYear(exp.getFullYear() + 1);
+                p.expiryDate = exp;
+            }
+            await p.save();
+            count++;
+        }
+        res.json({ message: `Synchronized ${count} records successfully!` });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
 module.exports = router;
