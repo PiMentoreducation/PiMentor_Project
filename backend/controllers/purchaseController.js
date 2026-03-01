@@ -10,7 +10,7 @@ exports.buyCourse = async (req, res) => {
         const course = await Course.findOne({ courseId: cleanId });
         if (!course) return res.status(404).json({ message: "Course not found" });
 
-        // 1. Piecewise Logic (Scalar Timestamp Comparison)
+        // 1. Piecewise Logic (Timestamps)
         const nowMs = Date.now();
         const liveLimitMs = course.liveValidityDate ? new Date(course.liveValidityDate).getTime() : 0;
         
@@ -26,10 +26,9 @@ exports.buyCourse = async (req, res) => {
         const purgeDate = new Date(finalExpiry);
         purgeDate.setDate(purgeDate.getDate() + 10);
 
-        // 2. Create and Save the BASE record
-        // (This triggers your existing logic for className, price, etc.)
-// 1. Create the document with all fields
-        const newPurchase = new Purchase({
+        // 2. THE BYPASS: Use the raw collection to insert
+        // This avoids the 'new Purchase().save()' filtering entirely.
+        const purchaseData = {
             userId: req.user.id,
             courseId: cleanId,
             title: course.title,
@@ -37,28 +36,20 @@ exports.buyCourse = async (req, res) => {
             paymentId: paymentId,
             className: course.className,
             expiryDate: finalExpiry,
-            purgeAt: purgeDate
-        });
+            purgeAt: purgeDate,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            __v: 0
+        };
 
-        // 2. Initial Save
-        const savedDoc = await newPurchase.save();
+        // We use Purchase.collection.insertOne to talk directly to MongoDB
+        const result = await Purchase.collection.insertOne(purchaseData);
 
-        // 3. THE GUARANTEE: Direct Update Bypass
-        // Even if Step 1 fails to save the dates, this Step 3 FORCES them into Atlas.
-        await Purchase.collection.updateOne(
-            { _id: savedDoc._id },
-            { 
-                $set: { 
-                    expiryDate: finalExpiry, 
-                    purgeAt: purgeDate 
-                } 
-            }
-        );
-
-        console.log(`✅ [COMPLETE SAVE] ID: ${savedDoc._id} | Expiry: ${finalExpiry}`);
+        console.log(`✅ [ATOMIC BYPASS] Inserted ID: ${result.insertedId}`);
         res.status(201).json({ success: true, message: "Enrolled!" });
+
     } catch (error) {
-        console.error("❌ PURCHASE ERROR:", error);
+        console.error("❌ CRITICAL ERROR:", error);
         res.status(500).json({ message: "Server error during enrollment" });
     }
 };
