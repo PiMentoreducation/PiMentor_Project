@@ -46,25 +46,29 @@ exports.buyCourse = async (req, res) => {
     try {
         const { courseId, paymentId } = req.body;
         const course = await Course.findOne({ courseId });
+        
         if (!course) return res.status(404).json({ message: "Course not found" });
 
         const now = new Date();
+        // The Fixed Validity Date set by Admin (T_live)
         const liveLimit = course.liveValidityDate ? new Date(course.liveValidityDate) : null;
         
         let finalExpiry;
 
-        // PRIORITY LOGIC
+        // --- THE PRIORITY LOGIC ---
         if (liveLimit && now <= liveLimit) {
-            // Priority 1: Buying during Live/Ongoing phase
+            // RULE 1: Buying ON or BEFORE Validity Date -> Expiry = Fixed Validity Date
             finalExpiry = liveLimit;
+            console.log("Phase: LIVE. Setting fixed expiry:", finalExpiry);
         } else {
-            // Priority 2: Buying during Recorded phase (or if no live date set)
+            // RULE 2: Buying AFTER Validity Date -> Expiry = Purchase Date + Duration
             finalExpiry = new Date();
             const duration = parseInt(course.recordedDurationDays) || 365;
             finalExpiry.setDate(finalExpiry.getDate() + duration);
+            console.log("Phase: RECORDED. Setting duration-based expiry:", finalExpiry);
         }
 
-        // DATABASE PURGE DATE (Expiry + 10 Days Grace Period)
+        // DATABASE PURGE DATE (Expiry + 10 Days for DB cleanup)
         const purgeDate = new Date(finalExpiry);
         purgeDate.setDate(purgeDate.getDate() + 10);
 
@@ -72,17 +76,17 @@ exports.buyCourse = async (req, res) => {
             userId: req.user.id,
             courseId,
             title: course.title,
-            price: course.price, // Captures price at moment of sale
+            price: course.price, 
             paymentId,
-            expiryDate: finalExpiry,
-            purgeAt: purgeDate
+            expiryDate: finalExpiry, // The calculated E
+            purgeAt: purgeDate       // The auto-delete trigger
         });
 
         await newPurchase.save();
         res.status(201).json({ success: true, message: "Enrolled successfully!" });
     } catch (error) {
-        console.error("BUY ERROR:", error);
-        res.status(500).json({ message: "Server error" });
+        console.error("PURCHASE ERROR:", error);
+        res.status(500).json({ message: "Server error during enrollment" });
     }
 };
 
