@@ -264,4 +264,36 @@ router.get("/sync-old-purchases", auth, admin, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+// adminRoutes.js
+router.get("/repair-student-dates", auth, admin, async (req, res) => {
+    try {
+        const purchases = await Purchase.find({});
+        let updatedCount = 0;
+
+        for (let p of purchases) {
+            const course = await Course.findOne({ courseId: p.courseId });
+            if (course) {
+                const now = new Date();
+                const liveLimit = course.liveValidityDate ? new Date(course.liveValidityDate) : null;
+                
+                let finalExpiry;
+                // Apply your logic: if enrollment happened before live end, use live end.
+                if (liveLimit && new Date(p.createdAt) <= liveLimit) {
+                    finalExpiry = liveLimit;
+                } else {
+                    finalExpiry = new Date(p.createdAt);
+                    finalExpiry.setDate(finalExpiry.getDate() + (course.recordedDurationDays || 365));
+                }
+
+                p.expiryDate = finalExpiry;
+                p.purgeAt = new Date(finalExpiry.getTime() + 10 * 24 * 60 * 60 * 1000); // +10 days
+                await p.save();
+                updatedCount++;
+            }
+        }
+        res.json({ message: `Successfully synchronized ${updatedCount} student records with Course validity.` });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 module.exports = router;
