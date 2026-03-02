@@ -65,7 +65,7 @@
         border-radius: 50%; /* This creates the circular border */
         object-fit: cover; /* Prevents stretching */
         border: 2px solid var(--accent); /* Added a thin border to define the circle */
-        filter: drop-shadow(0 0 8px var(--accent));
+        filter: drop-shadow(0 0 8px var(--accent));}
     .logo-text { font-size: 1.5rem; font-weight: 800; background: linear-gradient(90deg, var(--text), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
     .nav-links { display: flex; gap: 30px; align-items: center; margin-left: auto; }
@@ -307,7 +307,6 @@
 
                 return `
                     <div class="course-card">
-                        <div class="price-badge">₹${currentPrice}</div>
                         <span class="status-tag ${isExpired ? 'tag-expired' : 'tag-active'}">
                             ${isExpired ? 'Expired' : 'Active Access'}
                         </span>
