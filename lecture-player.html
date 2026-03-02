@@ -53,11 +53,9 @@
             width: 40px; height: 40px; border-radius: 50%; cursor: pointer; 
             font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.3s;
         }
-        .theme-toggle:hover { background: var(--accent); color: white; box-shadow: 0 0 15px var(--accent-glow); }
 
-        /* LAYOUT */
+        /* --- VIDEO BOX & SHIELD --- */
         .player-layout { display: grid; grid-template-columns: 1fr 350px; gap: 25px; padding: 90px 20px 20px; max-width: 1400px; margin: 0 auto; }
-        
         .video-main { width: 100%; }
         .video-box { 
             position: relative; padding-bottom: 56.25%; height: 0; 
@@ -66,7 +64,6 @@
         }
         .video-box iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
-        /* --- NEW: BOTTOM PRIVACY SHIELD --- */
         .yt-bottom-shield {
             position: absolute; bottom: 0; left: 0; width: 100%; height: 65px;
             background: var(--glass); backdrop-filter: blur(12px);
@@ -80,7 +77,7 @@
         }
         .video-box.overlay-active .yt-bottom-shield { opacity: 1; }
 
-        /* SIDEBAR & OTHER STYLES */
+        /* --- SIDEBAR & BUTTONS --- */
         .sidebar { display: flex; flex-direction: column; gap: 20px; }
         .sidebar-card { background: var(--glass); border-radius: 20px; border: 1px solid var(--card-border); padding: 20px; backdrop-filter: blur(10px); }
         .lecture-list-container { max-height: 400px; overflow-y: auto; margin-top: 15px; }
@@ -91,9 +88,8 @@
         .btn-pdf { background: rgba(255, 77, 77, 0.15); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.3); }
         .btn-mcq { background: rgba(40, 167, 69, 0.15); color: #2ecc71; border: 1px solid rgba(40, 167, 69, 0.3); }
         #doubtText { width: 100%; height: 80px; margin-top: 15px; border-radius: 12px; border: 1px solid var(--card-border); padding: 12px; background: rgba(255,255,255,0.05); color: var(--text); resize: none; }
-        [data-theme="light"] #doubtText { background: #fff; }
-
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(10px); }
+        
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; }
         .modal-content { width: 90%; height: 85%; background: white; border-radius: 20px; overflow: hidden; position: relative; }
         .close-modal { position: absolute; top: 20px; right: 30px; font-size: 35px; color: white; cursor: pointer; z-index: 2002; background: var(--danger); width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
 
@@ -116,41 +112,29 @@
 <div class="player-layout">
     <div class="video-main">
         <div class="video-box">
-            <iframe id="mainIframe" src="" allowfullscreen></iframe>
+            <div id="mainIframe"></div>
             <div class="yt-bottom-shield"></div>
         </div>
-        <div style="background: var(--glass); padding: 25px; border-radius: 20px; margin-top: 20px; border: 1px solid var(--card-border); backdrop-filter: blur(10px);">
+        <div style="background: var(--glass); padding: 25px; border-radius: 20px; margin-top: 20px; border: 1px solid var(--card-border);">
             <h1 id="lectureTitle" style="margin: 0 0 10px; font-size: 1.6rem;">Loading...</h1>
-            <p id="topicDisplay" style="color: var(--accent); font-weight: 800; font-size: 0.9rem; letter-spacing: 0.5px;"></p>
+            <p id="topicDisplay" style="color: var(--accent); font-weight: 800; font-size: 0.9rem;"></p>
             <p id="chapterNameDisplay" style="opacity: 0.6; font-size: 0.8rem; margin-top: 8px;"></p>
         </div>
     </div>
 
     <div class="sidebar">
-        <div class="sidebar-card">
-            <h3>Resources</h3>
-            <button id="pdfBtn" class="btn-res btn-pdf" style="display:none;" onclick="openResourceModal(this.dataset.url)">📄 View PDF Notes</button>
-            <button id="mcqBtn" class="btn-res btn-mcq" style="display:none;" onclick="openResourceModal(this.dataset.url)">📝 Take Quiz</button>
-        </div>
-        <div class="sidebar-card">
-            <h3>Curriculum</h3>
-            <div id="lectureList" class="lecture-list-container"></div>
-        </div>
+        <div class="sidebar-card"><h3>Resources</h3><div id="res-box"></div></div>
+        <div class="sidebar-card"><h3>Curriculum</h3><div id="lectureList" class="lecture-list-container"></div></div>
         <div class="sidebar-card">
             <h3>Ask Doubts</h3>
-            <textarea id="doubtText" placeholder="Ask your mentor about this lecture..."></textarea>
-            <button onclick="submitDoubt()" style="width: 100%; margin-top: 12px; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 800; box-shadow: 0 5px 15px var(--accent-glow);">SEND DOUBT</button>
+            <textarea id="doubtText" placeholder="Ask your mentor..."></textarea>
+            <button onclick="submitDoubt()" style="width: 100%; margin-top: 12px; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 800;">SEND DOUBT</button>
             <p id="doubtStatus" style="font-size: 0.75rem; margin-top: 8px; color: #2ecc71; text-align: center; font-weight: bold;"></p>
         </div>
     </div>
 </div>
 
-<div id="resourceModal" class="modal-overlay">
-    <span class="close-modal" onclick="closeModal()">&times;</span>
-    <div class="modal-content">
-        <iframe id="resourceIframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
-    </div>
-</div>
+<div id="resourceModal" class="modal-overlay"><span class="close-modal" onclick="closeModal()">&times;</span><div class="modal-content"><iframe id="resourceIframe" style="width: 100%; height: 100%; border: none;"></iframe></div></div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
 
@@ -163,6 +147,7 @@
     let activeLectureId = null;
     let ytPlayer;
 
+    // 1. THEME LOGIC
     function applyTheme(theme) {
         document.documentElement.setAttribute("data-theme", theme);
         const btn = document.getElementById("themeBtn");
@@ -172,16 +157,14 @@
     applyTheme(localStorage.getItem("pimentor-theme") || "dark");
     function toggleTheme() { applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"); }
 
-    // --- YOUTUBE API INTEGRATION ---
+    // 2. YOUTUBE API ENTRY POINT
     function onYouTubeIframeAPIReady() {
+        console.log("YouTube API Ready");
         initPlayer();
     }
 
     async function initPlayer() {
-        if (!courseId || !chapter) {
-            window.location.href = "dashboard.html";
-            return;
-        }
+        if (!courseId || !chapter) { window.location.href = "dashboard.html"; return; }
         document.getElementById("backBtn").href = `course-structure.html?id=${courseId}`;
         document.getElementById("chapterNameDisplay").innerText = "CHAPTER: " + chapter;
 
@@ -194,19 +177,20 @@
 
             if (lectures.length > 0) {
                 list.innerHTML = lectures.map((l, index) => `
-                    <div class="lecture-item" id="lec-${l._id}" onclick='prepareVideo(${JSON.stringify(l)})'>
+                    <div class="lecture-item" id="lec-${l._id}" onclick='prepareVideo(${JSON.stringify(l).replace(/'/g, "&apos;")})'>
                         <span>${index + 1}. ${l.title}</span>
                     </div>
                 `).join('');
                 prepareVideo(lectures[0]);
             }
-        } catch (err) { console.error(err); }
+        } catch (err) { console.error("Init Error:", err); }
     }
 
     function prepareVideo(lec) {
         activeLectureId = lec._id;
         document.querySelectorAll('.lecture-item').forEach(el => el.classList.remove('active-lecture'));
-        if(document.getElementById(`lec-${lec._id}`)) document.getElementById(`lec-${lec._id}`).classList.add('active-lecture');
+        const activeItem = document.getElementById(`lec-${lec._id}`);
+        if(activeItem) activeItem.classList.add('active-lecture');
 
         document.getElementById("lectureTitle").innerText = lec.title;
         document.getElementById("topicDisplay").innerText = "TOPIC: " + (lec.topicName || "General");
@@ -215,27 +199,30 @@
 
         if (!ytPlayer) {
             ytPlayer = new YT.Player('mainIframe', {
+                height: '100%',
+                width: '100%',
                 videoId: videoId,
-                playerVars: { 'modestbranding': 1, 'rel': 0 },
+                playerVars: { 'modestbranding': 1, 'rel': 0, 'autoplay': 0 },
                 events: { 'onStateChange': onPlayerStateChange }
             });
         } else {
             ytPlayer.loadVideoById(videoId);
         }
 
-        const pBtn = document.getElementById("pdfBtn");
-        const mBtn = document.getElementById("mcqBtn");
-        if(lec.pdfNotes) { pBtn.style.display = "block"; pBtn.dataset.url = lec.pdfNotes; } else { pBtn.style.display = "none"; }
-        if(lec.practiceMcq) { mBtn.style.display = "block"; mBtn.dataset.url = lec.practiceMcq; } else { mBtn.style.display = "none"; }
+        // Resources
+        const resBox = document.getElementById("res-box");
+        resBox.innerHTML = "";
+        if(lec.pdfNotes) resBox.innerHTML += `<button class="btn-res btn-pdf" onclick="openResourceModal('${lec.pdfNotes}')">📄 View PDF Notes</button>`;
+        if(lec.practiceMcq) resBox.innerHTML += `<button class="btn-res btn-mcq" onclick="openResourceModal('${lec.practiceMcq}')">📝 Take Quiz</button>`;
     }
 
     function onPlayerStateChange(event) {
         const videoBox = document.querySelector('.video-box');
-        // Paused (2), Buffering (3), Cued (5), Unstarted (-1)
-        if ([YT.PlayerState.PAUSED, YT.PlayerState.BUFFERING, YT.PlayerState.CUED, -1].includes(event.data)) {
+        // Shield logic: Show on Pause, Buffer, or Cued
+        if ([YT.PlayerState.PAUSED, YT.PlayerState.BUFFERING, YT.PlayerState.CUED].includes(event.data)) {
             videoBox.classList.add('overlay-active');
-        } else if (event.data === YT.PlayerState.PLAYING) {
-            setTimeout(() => { videoBox.classList.remove('overlay-active'); }, 500);
+        } else {
+            videoBox.classList.remove('overlay-active');
         }
     }
 
@@ -258,7 +245,7 @@
     async function submitDoubt() {
         const question = document.getElementById("doubtText").value;
         const status = document.getElementById("doubtStatus");
-        if(!question.trim()) return alert("Please type your question.");
+        if(!question.trim()) return alert("Type your question.");
         try {
             const res = await fetch(`${BASE_URL}/api/purchase/ask-doubt`, {
                 method: "POST",
@@ -267,20 +254,11 @@
             });
             if(res.ok) {
                 document.getElementById("doubtText").value = "";
-                status.innerText = "Doubt transmitted successfully! 🚀";
+                status.innerText = "Doubt sent! 🚀";
                 setTimeout(() => status.innerText = "", 3000);
             }
         } catch (err) { console.error(err); }
     }
-
-    function handleFullscreenChange() {
-        const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-        if (typeof FullscreenChannel !== 'undefined') {
-            FullscreenChannel.postMessage(isFullscreen ? 'enter_fullscreen' : 'exit_fullscreen');
-        }
-    }
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 </script>
 </body>
 </html>
