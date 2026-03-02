@@ -59,7 +59,13 @@
     }
 
     .brand { display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.3s; }
-    .logo-img { height: 45px; filter: drop-shadow(0 0 8px var(--accent)); }
+.logo-img { 
+        height: 45px; 
+        width: 45px; /* Added width to ensure perfect circle */
+        border-radius: 50%; /* This creates the circular border */
+        object-fit: cover; /* Prevents stretching */
+        border: 2px solid var(--accent); /* Added a thin border to define the circle */
+        filter: drop-shadow(0 0 8px var(--accent));
     .logo-text { font-size: 1.5rem; font-weight: 800; background: linear-gradient(90deg, var(--text), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
     .nav-links { display: flex; gap: 30px; align-items: center; margin-left: auto; }
