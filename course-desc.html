@@ -189,7 +189,7 @@
 
         <div class="content-section">
             <h2 class="section-title">Course Roadmap</h2>
-            <div id="curriculum"></div>
+            <div id="course_roadmap"></div>
         </div>
 
         <div class="content-section">
@@ -303,7 +303,7 @@
             const discount = Math.round(((Number(d.oldPrice || d.price + 500) - d.price) / Number(d.oldPrice || d.price + 500)) * 100);
             if(discount > 0) document.getElementById("discountTxt").innerText = `SAVE ${discount}% TODAY`;
 
-            document.getElementById("curriculum").innerHTML = `<p>Comprehensive roadmap for ${d.title} designed for board excellence and concept clarity.</p>`;
+            document.getElementById("course_roadmap").innerHTML = `<p>${d.course_roadmap}.</p>`;
             renderFAQs();
 
         } catch (err) { 
