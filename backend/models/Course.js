@@ -6,7 +6,16 @@ const courseSchema = new mongoose.Schema({
   title: String,
   className: String,
   price: Number,
+  oldPrice: Number, // 🔥 Added
   description: String,
+  thumbnail: String, // 🔥 Added
+  demo1: String, // 🔥 Added
+  demo2: String, // 🔥 Added
+  learningPoints: String, // 🔥 Added (Stored as comma-separated string)
+  teacherName: String, // 🔥 Added
+  teacherImg: String, // 🔥 Added
+  teacherQual: String, // 🔥 Added
+  teacherAchievements: String, // 🔥 Added
   liveValidityDate: { type: Date }, 
   recordedDurationDays: { type: Number, default: 365 },
   lectures: [
@@ -18,6 +27,6 @@ const courseSchema = new mongoose.Schema({
       practiceMcq: { type: String, default: "" },
     }
   ],
-}, { timestamps: true }); // Let Mongoose handle createdAt/updatedAt
+}, { timestamps: true });
 
 module.exports = mongoose.model("Course", courseSchema);

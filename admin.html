@@ -517,42 +517,53 @@
     }
 
     /* --- COURSE CREATION (EVERY FIELD RETAINED) --- */
-    async function addCourse() {
-        const payload = {
-            courseId: document.getElementById("courseId").value,
-            title: document.getElementById("title").value,
-            className: document.getElementById("className").value,
-            description: document.getElementById("description").value,
-            price: document.getElementById("price").value,
-            oldPrice: document.getElementById("oldPrice").value,
-            thumbnail: document.getElementById("thumbnail").value,
-            demo1: document.getElementById("demo1").value,
-            demo2: document.getElementById("demo2").value,
-            learningPoints: document.getElementById("learningPoints").value,
-            teacherName: document.getElementById("teacherName").value,
-            teacherImg: document.getElementById("teacherImg").value,
-            teacherQual: document.getElementById("teacherQual").value,
-            teacherAchievements: document.getElementById("teacherAchieve").value,
-            liveValidityDate: document.getElementById("liveValidityDate").value,
-            recordedDurationDays: document.getElementById("recordedDurationDays").value
-        };
+async function addCourse() {
+    const payload = {
+        courseId: document.getElementById("courseId").value.trim(),
+        title: document.getElementById("title").value,
+        className: document.getElementById("className").value,
+        description: document.getElementById("description").value,
+        price: Number(document.getElementById("price").value),
+        oldPrice: Number(document.getElementById("oldPrice").value),
+        thumbnail: document.getElementById("thumbnail").value,
+        demo1: document.getElementById("demo1").value,
+        demo2: document.getElementById("demo2").value,
+        learningPoints: document.getElementById("learningPoints").value,
+        teacherName: document.getElementById("teacherName").value,
+        teacherImg: document.getElementById("teacherImg").value,
+        teacherQual: document.getElementById("teacherQual").value,
+        teacherAchievements: document.getElementById("teacherAchieve").value,
+        liveValidityDate: document.getElementById("liveValidityDate").value,
+        recordedDurationDays: Number(document.getElementById("recordedDurationDays").value)
+    };
 
-        try {
-            const response = await fetch(`${BASE_URL}/api/admin/course`, {
-                method: "POST",
-                headers: { 
-                    "Content-Type": "application/json", 
-                    "Authorization": "Bearer " + token 
-                },
-                body: JSON.stringify(payload)
-            });
-            const result = await response.json();
-            alert(result.message);
-            loadOngoingCourses();
-        } catch (error) {
-            alert("Network Error during course creation");
-        }
+    if (!payload.courseId || !payload.title) {
+        return alert("Course ID and Title are mandatory.");
     }
+
+    try {
+        const response = await fetch(`${BASE_URL}/api/admin/course`, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json", 
+                "Authorization": "Bearer " + token 
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            alert("Course Data Synchronized Successfully!");
+            loadOngoingCourses();
+        } else {
+            alert("Error: " + result.message);
+        }
+    } catch (error) {
+        console.error("Course Save Error:", error);
+        alert("Network Error. Check console.");
+    }
+}
 
     /* --- NOTIFICATION LOGIC --- */
     async function broadcastNotification() {
