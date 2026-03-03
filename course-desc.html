@@ -295,10 +295,10 @@
                 ).join('');
             }
 
-            document.getElementById("instName").innerText = d.teacherName || "Expert Mentor";
-            document.getElementById("instImg").src = d.teacherImg || "/images/teacher-default.png";
-            document.getElementById("instQual").innerText = d.teacherQual || "Qualified Educator";
-            document.getElementById("instAchieve").innerText = d.teacherAchievements || "Top Result Producer";
+            document.getElementById("instName").innerText = d.teachers || "Expert Mentor";
+            document.getElementById("instImg").src = d.teachers || "/images/teacher-default.png";
+            document.getElementById("instQual").innerText = d.teachers || "Qualified Educator";
+            document.getElementById("instAchieve").innerText = d.teachers || "Top Result Producer";
 
             const discount = Math.round(((Number(d.oldPrice || d.price + 500) - d.price) / Number(d.oldPrice || d.price + 500)) * 100);
             if(discount > 0) document.getElementById("discountTxt").innerText = `SAVE ${discount}% TODAY`;

@@ -25,14 +25,13 @@ router.get("/all-courses", auth, admin, async (req, res) => {
   }
 });
 
-// Create or Update Course (Upsert)
-// Create or Update Course (Upsert) - UPDATED TO HANDLE ALL 16 FIELDS
+// Create or Update Course (Upsert) - UPDATED TO HANDLE DYNAMIC TEACHERS AND ROADMAP
 router.post("/course", auth, admin, async (req, res) => {
     try {
         const { 
             courseId, title, className, price, oldPrice, 
             description, course_roadmap, thumbnail, demo1, demo2, learningPoints, 
-            teacherName, teacherImg, teacherQual, teacherAchievements,
+            teachers, // 🔥 Now expecting an array from frontend
             liveValidityDate, recordedDurationDays 
         } = req.body;
         
@@ -42,15 +41,12 @@ router.post("/course", auth, admin, async (req, res) => {
             price: Number(price),
             oldPrice: Number(oldPrice),
             description,
-            course_roadmap,
+            course_roadmap, // Updated roadmap field
             thumbnail,
             demo1,
             demo2,
             learningPoints,
-            teacherName,
-            teacherImg,
-            teacherQual,
-            teacherAchievements,
+            teachers, // 🔥 Stores the array of teacher objects
             liveValidityDate: liveValidityDate ? new Date(liveValidityDate) : null,
             recordedDurationDays: parseInt(recordedDurationDays) || 365
         };
@@ -249,14 +245,12 @@ router.get("/force-sync-expiries", auth, admin, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 /* ================= PUBLIC COURSE DETAILS ================= */
 
-// Public route to get course details by courseId string
 router.get("/course/:courseId", async (req, res) => {
     try {
         const { courseId } = req.params;
-        const Course = require("../models/Course"); // Ensure model is available
-        
         const course = await Course.findOne({ courseId: courseId.trim() });
 
         if (!course) {

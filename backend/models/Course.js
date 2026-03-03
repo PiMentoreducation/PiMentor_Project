@@ -13,10 +13,7 @@ const courseSchema = new mongoose.Schema({
   demo1: String, // 🔥 Added
   demo2: String, // 🔥 Added
   learningPoints: String, // 🔥 Added (Stored as comma-separated string)
-  teacherName: String, // 🔥 Added
-  teacherImg: String, // 🔥 Added
-  teacherQual: String, // 🔥 Added
-  teacherAchievements: String, // 🔥 Added
+  teachers: [{name: String, image: String, qual: String, achieve: String }], // 🔥 Added
   liveValidityDate: { type: Date }, 
   recordedDurationDays: { type: Number, default: 365 },
   lectures: [
