@@ -101,6 +101,36 @@
             .demo-grid { grid-template-columns: 1fr; }
             .grid-list { grid-template-columns: 1fr; }
         }
+        .faq-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--card-border);
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 15px;
+        transition: 0.3s ease;
+    }
+    .faq-card:hover {
+        border-color: var(--accent);
+        background: rgba(124, 77, 255, 0.05);
+    }
+    .faq-q {
+        font-weight: 800;
+        color: var(--accent);
+        font-size: 1rem;
+        display: block;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .faq-a {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        line-height: 1.5;
+    }
+    [data-theme="light"] .faq-card {
+        background: #ffffff;
+    }
     </style>
 </head>
 <body>
@@ -155,6 +185,35 @@
         <div class="content-section">
             <h2 class="section-title">Frequently Asked Questions</h2>
             <div id="faqList"></div>
+            <div class="faq-card">
+    <span class="faq-q">🚀 How long will I have access to the course?</span>
+    <span class="faq-a">You will get unlimited access for 1 full year from the date of purchase. This includes all recorded lectures and uploaded notes.</span>
+</div>
+
+<div class="faq-card">
+    <span class="faq-q">📱 Can I watch the classes on my phone?</span>
+    <span class="faq-a">Absolutely! PiMentor is fully responsive. You can learn on your laptop, tablet, or smartphone anytime, anywhere.</span>
+</div>
+
+<div class="faq-card">
+    <span class="faq-q">❓ How can I clear my doubts?</span>
+    <span class="faq-a">Every lecture has a dedicated "Ask Doubt" section. Our mentors usually respond within 24 hours to ensure your learning never stops.</span>
+</div>
+
+<div class="faq-card">
+    <span class="faq-q">📄 Will I get printed notes?</span>
+    <span class="faq-a">We provide high-quality downloadable PDF Mindmaps and Class Notes. You can download them and print them at your convenience.</span>
+</div>
+
+<div class="faq-card">
+    <span class="faq-q">💳 Is my payment secure?</span>
+    <span class="faq-a">Yes, all payments are processed through Razorpay, India's leading secure payment gateway, supporting UPI, Cards, and Netbanking.</span>
+</div>
+
+<div class="faq-card">
+    <span class="faq-q">🔄 Can I renew the course after 1 year?</span>
+    <span class="faq-a">Yes! You can easily renew your subscription from the "Explore Courses" section at a special discounted renewal price.</span>
+</div>
         </div>
     </div>
 
@@ -168,11 +227,11 @@
             <button class="buy-now-btn" onclick="handleEnrollment()">ENROLL NOW</button>
             
             <div style="text-align: left; font-size: 0.85rem; line-height: 2;">
-                <p>🚀 **120+ Lectures** (Recorded + Live)</p>
-                <p>📄 **Downloadable** PDF Mindmaps</p>
-                <p>🎯 **Daily** Practice Problems (DPPs)</p>
-                <p>♾️ **1 Year** Unlimited Access</p>
-                <p>💻 **Watch on** Laptop, Tablet, or Phone</p>
+                <p>🚀 100+ Lectures (Recorded + Live)</p>
+                <p>📄 Downloadable PDF Mindmaps</p>
+                <p>🎯 Daily Practice Mcq Quized & DPPs</p>
+                <p>♾️ Unlimited Access</p>
+                <p>💻 Watch on Laptop, Tablet, or Smartphone</p>
             </div>
 
             <div class="instructor-card">
@@ -261,6 +320,19 @@
             console.error("Fetch Error:", err);
             document.getElementById("title").innerText = "Course Orbit Not Found";
         }
+        // Add this inside loadData() after you fetch the course details
+const defaultFaqs = [
+    { q: "🚀 How long will I have access?", a: "You get 1 full year of unlimited access." },
+    { q: "📱 Is it mobile friendly?", a: "Yes, learn on any device seamlessly." },
+    { q: "❓ How are doubts cleared?", a: "Use the 'Ask Doubt' button below any lecture for expert help." }
+];
+
+document.getElementById("faqList").innerHTML = defaultFaqs.map(f => `
+    <div class="faq-card">
+        <span class="faq-q">${f.q}</span>
+        <span class="faq-a">${f.a}</span>
+    </div>
+`).join('');
     }
     function handleEnrollment() {
         const token = localStorage.getItem("token");
