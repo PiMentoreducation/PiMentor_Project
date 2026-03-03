@@ -26,26 +26,44 @@ router.get("/all-courses", auth, admin, async (req, res) => {
 });
 
 // Create or Update Course (Upsert)
+// Create or Update Course (Upsert) - UPDATED TO HANDLE ALL 16 FIELDS
 router.post("/course", auth, admin, async (req, res) => {
     try {
-        const { courseId, title, className, price, description, liveValidityDate, recordedDurationDays } = req.body;
+        const { 
+            courseId, title, className, price, oldPrice, 
+            description, thumbnail, demo1, demo2, learningPoints, 
+            teacherName, teacherImg, teacherQual, teacherAchievements,
+            liveValidityDate, recordedDurationDays 
+        } = req.body;
         
+        const updateData = {
+            title,
+            className,
+            price: Number(price),
+            oldPrice: Number(oldPrice),
+            description,
+            thumbnail,
+            demo1,
+            demo2,
+            learningPoints,
+            teacherName,
+            teacherImg,
+            teacherQual,
+            teacherAchievements,
+            liveValidityDate: liveValidityDate ? new Date(liveValidityDate) : null,
+            recordedDurationDays: parseInt(recordedDurationDays) || 365
+        };
+
         const course = await Course.findOneAndUpdate(
-            { courseId },
-            { 
-                title, 
-                className, 
-                price, 
-                description, 
-                // Ensure date is properly formatted
-                liveValidityDate: liveValidityDate ? new Date(liveValidityDate) : null, 
-                recordedDurationDays: parseInt(recordedDurationDays) || 365 
-            },
-            { returnDocument: 'after', upsert: true }
+            { courseId: courseId.trim() },
+            { $set: updateData },
+            { new: true, upsert: true, runValidators: true }
         );
-        res.status(201).json({ message: "Course settings updated!", course });
+
+        res.status(201).json({ message: "Course Galaxy Synchronized!", course });
     } catch (error) {
-        res.status(500).json({ message: "Error updating course" });
+        console.error("UPSERT ERROR:", error);
+        res.status(500).json({ message: "Error updating detailed course metrics" });
     }
 });
 
