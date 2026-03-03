@@ -210,42 +210,33 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function buyCourse(course) {
   const token = localStorage.getItem("token");
   try {
-    // Ensuring the EXACT price from the database is sent to the order creation
+    // 1. Create Order
     const res = await fetch("https://pimentor-project.onrender.com/api/payment/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-      body: JSON.stringify({
-        courseId: course.courseId,
-        title: course.title,
-        price: Number(course.price), // Force Number type
-        className: course.className,
-        liveValidityDate: course.liveValidityDate,
-        recordedDurationDays: course.recordedDurationDays
-      })
+      body: JSON.stringify({ courseId: course.courseId }) // Backend fetches price from DB
     });
     
     const data = await res.json();
-    const order = data.order || data; 
+    if (!res.ok) throw new Error(data.message || "Failed to initiate order");
+    
+    const order = data.order; 
 
     const options = {
       key: "rzp_test_SIWx62DBo83S8C",
-      amount: order.amount, // This is now correctly calculated by backend using provided price
+      amount: order.amount, 
       currency: "INR",
       name: "PiMentor",
       description: course.title,
       order_id: order.id,
       handler: async function (response) {
+        // 2. Verify Payment
         const verifyBody = {
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
             course: {
-              courseId: course.courseId,
-              title: course.title,
-              className: course.className,
-              price: Number(course.price),
-              liveValidityDate: course.liveValidityDate,
-              recordedDurationDays: course.recordedDurationDays
+              courseId: course.courseId // Essential for backend lookup
             }
         };
 
@@ -255,19 +246,24 @@ async function buyCourse(course) {
           body: JSON.stringify(verifyBody)
         });
 
+        const verifyResult = await saveRes.json();
+
         if (saveRes.ok) { 
             alert("Payment Successful! Access updated."); 
             window.location.href = "dashboard.html"; 
         } else {
-            const errorData = await saveRes.json();
-            alert("Payment verified but database update failed: " + (errorData.message || "Unknown Error"));
+            alert("Error: " + (verifyResult.message || "Database update failed"));
         }
       },
-      theme: { color: "#7c4dff" }
+      theme: { color: "#7c4dff" },
+      modal: {
+          ondismiss: function() { console.log("Checkout closed"); }
+      }
     };
-    new Razorpay(options).open();
+    const rzp = new Razorpay(options);
+    rzp.open();
   } catch (error) { 
-      alert("Purchase process failed. Check your connection."); 
+      alert(error.message || "Purchase process failed."); 
   }
 }
 </script>
