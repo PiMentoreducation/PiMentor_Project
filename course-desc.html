@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Course Details | PiMentor</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap" rel="stylesheet">
     <style>
@@ -29,99 +29,118 @@
 
         /* --- NAVBAR --- */
         .navbar {
-            position: fixed; top: 0; width: 100%; height: 70px; z-index: 1000;
+            position: fixed; top: 0; width: 100%; height: 80px; z-index: 1000;
             display: flex; align-items: center; padding: 0 5%;
             background: var(--glass); backdrop-filter: blur(15px); border-bottom: 1px solid var(--card-border);
         }
-        .brand { display: flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; }
-        .logo-img { height: 40px; width: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
-        .logo-text { font-size: 1.3rem; font-weight: 800; background: linear-gradient(90deg, var(--text), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .nav-links { display: flex; gap: 20px; align-items: center; margin-left: auto; }
-        .nav-links a { text-decoration: none; color: inherit; font-weight: 600; font-size: 0.9rem; }
-        .btn-cta { background: var(--accent); color: #fff !important; padding: 8px 18px; border-radius: 50px; font-size: 0.85rem; }
+        .brand { display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none; }
+        .logo-img { height: 45px; width: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); filter: drop-shadow(0 0 8px var(--accent)); }
+        .logo-text { font-size: 1.5rem; font-weight: 800; background: linear-gradient(90deg, var(--text), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-links { display: flex; gap: 25px; align-items: center; margin-left: auto; }
+        .nav-links a { text-decoration: none; color: inherit; font-weight: 600; opacity: 0.9; font-size: 0.95rem; }
+        .btn-cta { background: var(--accent); color: #fff !important; padding: 10px 20px; border-radius: 50px; }
 
-        .hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; }
-        .hamburger span { width: 25px; height: 3px; background: var(--text); border-radius: 2px; }
+        .hamburger { display: none; cursor: pointer; flex-direction: column; gap: 6px; }
+        .hamburger span { width: 28px; height: 3px; background: var(--text); border-radius: 2px; }
+
+        @media (max-width: 900px) {
+            .nav-links { display: none; }
+            .hamburger { display: flex; order: -1; margin-right: auto; }
+            .brand { margin-left: auto; }
+        }
 
         /* --- SIDEBAR --- */
         .sidebar {
-            position: fixed; top: 0; left: -320px; width: 280px; height: 100%;
+            position: fixed; top: 0; left: -320px; width: 300px; height: 100%;
             background: var(--glass); backdrop-filter: blur(25px); z-index: 2000;
-            transition: 0.4s ease; padding: 30px; border-right: 1px solid var(--accent);
+            transition: 0.4s ease; padding: 40px 30px; border-right: 1px solid var(--accent);
         }
         .sidebar.open { left: 0; }
         .sidebar-links { display: flex; flex-direction: column; gap: 20px; margin-top: 30px; }
         .sidebar-links a { color: var(--text); text-decoration: none; font-size: 1.1rem; font-weight: 700; }
 
         /* --- LAYOUT GRID --- */
-        .desc-container { max-width: 1200px; margin: 90px auto 40px; padding: 0 5%; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; }
+        .desc-container { max-width: 1200px; margin: 120px auto 40px; padding: 0 5%; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 50px; }
 
         /* --- LEFT COLUMN --- */
-        .main-content h1 { font-size: 2.2rem; font-weight: 800; line-height: 1.2; margin-bottom: 15px; }
-        .badge-row { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-        .badge { padding: 5px 12px; background: var(--accent-glow); border-radius: 8px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--accent); }
+        .main-content h1 { font-size: 3rem; font-weight: 800; line-height: 1.2; margin-bottom: 20px; }
+        .badge-row { display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; }
+        .badge { padding: 6px 14px; background: var(--accent-glow); border-radius: 8px; font-size: 0.85rem; font-weight: 700; border: 1px solid var(--accent); }
 
-        .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 25px 0; }
+        .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0; }
         .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 15px; overflow: hidden; background: #000; border: 1px solid var(--card-border); }
         .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
-        .content-section { background: var(--glass); border: 1px solid var(--card-border); border-radius: 20px; padding: 25px; margin-top: 25px; backdrop-filter: blur(10px); }
-        .section-title { font-size: 1.3rem; font-weight: 800; color: var(--accent); margin-bottom: 20px; border-left: 4px solid var(--accent); padding-left: 12px; }
+        .content-section { background: var(--glass); border: 1px solid var(--card-border); border-radius: 24px; padding: 35px; margin-top: 30px; backdrop-filter: blur(10px); }
+        .section-title { font-size: 1.5rem; font-weight: 800; color: var(--accent); margin-bottom: 25px; border-left: 5px solid var(--accent); padding-left: 15px; }
 
-        .grid-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .list-item { display: flex; gap: 8px; font-size: 0.9rem; opacity: 0.9; align-items: flex-start; }
+        .grid-list { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .list-item { display: flex; gap: 10px; font-size: 0.95rem; opacity: 0.9; }
 
         /* --- SUCCESS STORIES SLIDER --- */
         .success-slider {
-            display: flex; overflow-x: auto; gap: 15px; padding: 10px 5px 20px;
-            scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+            display: flex;
+            overflow-x: auto;
+            gap: 20px;
+            padding: 10px 5px 25px;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) transparent;
         }
-        .success-slider::-webkit-scrollbar { display: none; }
-        .success-card {
-            min-width: 260px; max-width: 260px; background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--card-border); border-radius: 18px; padding: 20px;
-            scroll-snap-align: start; text-align: center;
-        }
-        .student-img { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); margin-bottom: 12px; }
-        .student-name { font-weight: 800; font-size: 1rem; margin-bottom: 5px; }
-        .student-saying { font-size: 0.8rem; opacity: 0.8; font-style: italic; line-height: 1.4; }
+        .success-slider::-webkit-scrollbar { height: 6px; }
+        .success-slider::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
 
-        /* --- ACCORDION --- */
-        .faq-card { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
-        .faq-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 700; color: var(--accent); font-size: 0.9rem; }
-        .faq-icon { transition: 0.3s; }
-        .faq-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: rgba(0, 0, 0, 0.1); }
-        .faq-content { padding: 15px; font-size: 0.85rem; opacity: 0.8; line-height: 1.5; }
-        .faq-card.active .faq-body { max-height: 250px; }
+        .success-card {
+            min-width: 300px;
+            max-width: 300px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 25px;
+            scroll-snap-align: start;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .success-card:hover { transform: translateY(-5px); border-color: var(--accent); background: rgba(124, 77, 255, 0.05); }
+
+        .student-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); margin-bottom: 15px; }
+        .student-name { font-weight: 800; font-size: 1.1rem; color: var(--text); margin-bottom: 5px; }
+        .student-saying { font-size: 0.85rem; opacity: 0.8; font-style: italic; line-height: 1.5; }
+
+        /* --- ACCORDION STYLING --- */
+        .faq-card { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); border-radius: 15px; margin-bottom: 12px; overflow: hidden; transition: var(--transition); }
+        .faq-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 800; color: var(--accent); }
+        .faq-header:hover { background: rgba(124, 77, 255, 0.05); }
+        .faq-icon { font-size: 1.2rem; transition: transform 0.3s ease; }
+        .faq-body { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(0, 0, 0, 0.1); }
+        .faq-content { padding: 0 20px 20px 20px; font-size: 0.9rem; opacity: 0.8; line-height: 1.6; }
+        .faq-card.active .faq-body { max-height: 300px; }
         .faq-card.active .faq-icon { transform: rotate(45deg); }
 
-        /* --- RIGHT COLUMN (SIDEBAR) --- */
-        .sticky-sidebar { position: sticky; top: 90px; height: fit-content; }
-        .pricing-card { background: var(--glass); border: 2px solid var(--accent); border-radius: 25px; padding: 25px; backdrop-filter: blur(20px); text-align: center; }
-        .thumbnail-img { width: 100%; border-radius: 15px; margin-bottom: 15px; }
-        .original-price { text-decoration: line-through; opacity: 0.5; font-size: 1rem; }
-        .current-price { font-size: 2.2rem; font-weight: 800; color: #2ecc71; margin-bottom: 5px; }
-        .discount-tag { color: var(--accent); font-weight: 800; margin-bottom: 15px; display: block; font-size: 0.85rem; }
+        [data-theme="light"] .faq-card, [data-theme="light"] .success-card { background: #ffffff; }
+
+        /* --- RIGHT COLUMN --- */
+        .sticky-sidebar { position: sticky; top: 100px; height: fit-content; }
+        .pricing-card { background: var(--glass); border: 2px solid var(--accent); border-radius: 30px; padding: 30px; backdrop-filter: blur(20px); text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .thumbnail-img { width: 100%; border-radius: 20px; margin-bottom: 20px; border: 1px solid var(--card-border); }
+        .original-price { text-decoration: line-through; opacity: 0.5; font-size: 1.2rem; }
+        .current-price { font-size: 2.8rem; font-weight: 800; color: #2ecc71; margin-bottom: 5px; }
+        .discount-tag { color: var(--accent); font-weight: 800; margin-bottom: 20px; display: block; }
         
-        .buy-now-btn { width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: 15px; color: white; font-weight: 800; font-size: 1.1rem; cursor: pointer; margin-bottom: 15px; }
+        .buy-now-btn { width: 100%; padding: 20px; background: var(--accent); border: none; border-radius: 18px; color: white; font-weight: 800; font-size: 1.2rem; cursor: pointer; transition: 0.3s; margin-bottom: 20px; box-shadow: 0 10px 30px var(--accent-glow); }
+        .buy-now-btn:hover { transform: scale(1.02); filter: brightness(1.1); }
 
-        .instructor-card { display: flex; align-items: center; gap: 15px; text-align: left; margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 20px; }
-        .instructor-img { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--accent); }
+        .instructor-card { display: flex; align-items: center; gap: 20px; text-align: left; margin-top: 30px; border-top: 1px solid var(--card-border); padding-top: 25px; }
+        .instructor-img { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--accent); }
 
-        /* --- MOBILE MEDIA QUERIES --- */
         @media (max-width: 900px) {
-            .navbar { height: 65px; }
-            .nav-links { display: none; }
-            .hamburger { display: flex; order: -1; margin-right: auto; }
-            .brand { margin-left: auto; }
-
-            .desc-container { grid-template-columns: 1fr; margin-top: 80px; gap: 20px; }
+            .desc-container { grid-template-columns: 1fr; margin-top: 100px; }
             .sticky-sidebar { order: -1; position: static; }
-            .main-content h1 { font-size: 1.8rem; }
             .demo-grid { grid-template-columns: 1fr; }
             .grid-list { grid-template-columns: 1fr; }
-            .pricing-card { padding: 20px; }
-            .content-section { padding: 20px; }
         }
     </style>
 </head>
@@ -138,7 +157,7 @@
 
 <aside class="sidebar" id="sidebar">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div class="logo-text" style="background:none; -webkit-text-fill-color: var(--text);">Menu</div>
+        <div class="logo-text">Menu</div>
         <button id="closeSidebar" style="background:none; border:none; color:inherit; font-size:2rem;">&times;</button>
     </div>
     <div class="sidebar-links" id="mobileNav"></div>
@@ -173,19 +192,19 @@
             <h2 class="section-title">Success Stories</h2>
             <div class="success-slider" id="testimonials">
                 <div class="success-card">
-                    <img src="/images/student1.jpg" class="student-img" alt="S1">
+                    <img src="/images/student1.jpg" class="student-img" alt="Student">
                     <div class="student-name">Aditya Verma</div>
-                    <div class="student-saying">"Scored 98 in Math using the Mindmaps provided here!"</div>
+                    <div class="student-saying">"The mindmaps provided in this course helped me score 98 in Mathematics. PiMentor is the best!"</div>
                 </div>
                 <div class="success-card">
-                    <img src="/images/student2.jpg" class="student-img" alt="S2">
+                    <img src="/images/student2.jpg" class="student-img" alt="Student">
                     <div class="student-name">Sneha Kapoor</div>
-                    <div class="student-saying">"Physics felt easy after watching the demo lectures."</div>
+                    <div class="student-saying">"I was struggling with Physics, but the spontaneous demos made concepts so easy to understand."</div>
                 </div>
                 <div class="success-card">
-                    <img src="/images/student3.jpg" class="student-img" alt="S3">
+                    <img src="/images/student3.jpg" class="student-img" alt="Student">
                     <div class="student-name">Rahul Singh</div>
-                    <div class="student-saying">"24/7 doubt support saved my boards preparation."</div>
+                    <div class="student-saying">"The 24/7 doubt support is amazing. I never felt lost during my board preparation."</div>
                 </div>
             </div>
         </div>
@@ -198,31 +217,31 @@
 
     <div class="sticky-sidebar">
         <div class="pricing-card">
-            <img id="thumb" class="thumbnail-img" alt="Thumbnail">
+            <img id="thumb" class="thumbnail-img" alt="Course Thumbnail">
             <div class="original-price" id="oldPrice">₹--</div>
             <div class="current-price" id="newPrice">₹--</div>
             <span class="discount-tag" id="discountTxt">SAVE --% TODAY</span>
             
             <button class="buy-now-btn" onclick="handleEnrollment()">ENROLL NOW</button>
             
-            <div style="text-align: left; font-size: 0.8rem; line-height: 1.8;">
+            <div style="text-align: left; font-size: 0.85rem; line-height: 2;">
                 <p>🚀 100+ Lectures (Recorded + Live)</p>
                 <p>📄 Downloadable PDF Mindmaps</p>
-                <p>🎯 Daily Practice MCQ & DPPs</p>
+                <p>🎯 Daily Practice MCQ Quizzes & DPPs</p>
                 <p>♾️ Unlimited Access</p>
-                <p>💻 Multi-Device Support</p>
+                <p>💻 Watch on Laptop, Tablet, or Smartphone</p>
             </div>
 
             <div class="instructor-card">
-                <img id="instImg" class="instructor-img" alt="Mentor">
+                <img id="instImg" class="instructor-img">
                 <div>
-                    <h4 id="instName" style="margin-bottom: 2px; font-size:0.95rem;">Teacher Name</h4>
+                    <h4 id="instName" style="margin-bottom: 2px;">Teacher Name</h4>
                     <p id="instQual" style="font-size: 0.75rem; font-weight: 700; color: var(--accent);"></p>
-                    <p id="instAchieve" style="font-size: 0.7rem; opacity: 0.7; margin-top: 2px;"></p>
+                    <p id="instAchieve" style="font-size: 0.7rem; opacity: 0.7; margin-top: 4px;"></p>
                 </div>
             </div>
         </div>
-        <a href="courses.html" style="display: block; text-align: center; margin-top: 15px; color: inherit; text-decoration: none; font-weight: 700; font-size: 0.85rem;">Explore Other Courses →</a>
+        <a href="courses.html" style="display: block; text-align: center; margin-top: 20px; color: inherit; text-decoration: none; font-weight: 700; font-size: 0.9rem;">Explore Other Courses →</a>
     </div>
 </main>
 
@@ -235,7 +254,7 @@
         const links = `
             <a href="index.html">Home</a>
             <a href="dashboard.html">Dashboard</a>
-            <a href="courses.html">Courses</a>
+            <a href="courses.html">All Courses</a>
             <a href="#">Community</a>
             ${token ? '' : '<a href="login.html">Login</a><a href="register.html" class="btn-cta">Get Started</a>'}
             <button onclick="toggleTheme()" style="background:none; border:none; color:inherit; cursor:pointer; font-size:1.2rem;">🌙</button>
@@ -245,13 +264,19 @@
     }
 
     async function loadData() {
-        if (!courseId) return window.location.href = "courses.html";
+        if (!courseId) {
+            alert("No Course Selected!");
+            window.location.href = "courses.html";
+            return;
+        }
+
         try {
             const res = await fetch(`${BASE_URL}/api/admin/course/${courseId}`);
+            if (!res.ok) throw new Error("Course data not found in galaxy.");
             const d = await res.json();
 
-            document.getElementById("title").innerText = d.title || "Course Details";
-            document.getElementById("oldPrice").innerText = `₹${d.oldPrice || Number(d.price) + 500}`;
+            document.getElementById("title").innerText = d.title || "Untitled Course";
+            document.getElementById("oldPrice").innerText = d.oldPrice ? `₹${d.oldPrice}` : `₹${Number(d.price) + 500}`;
             document.getElementById("newPrice").innerText = `₹${d.price}`;
             document.getElementById("thumb").src = d.thumbnail || "/images/course-default.png";
             
@@ -266,42 +291,54 @@
             
             if (d.learningPoints) {
                 const lp = d.learningPoints.split(',');
-                document.getElementById("learningList").innerHTML = lp.map(x => `<div class="list-item">✨ ${x.trim()}</div>`).join('');
+                document.getElementById("learningList").innerHTML = lp.map(x => 
+                    `<div class="list-item">✨ ${x.trim()}</div>`
+                ).join('');
             }
 
-            document.getElementById("instName").innerText = d.teacherName || "Master Mentor";
+            document.getElementById("instName").innerText = d.teacherName || "Expert Mentor";
             document.getElementById("instImg").src = d.teacherImg || "/images/teacher-default.png";
-            document.getElementById("instQual").innerText = d.teacherQual || "Expert Educator";
+            document.getElementById("instQual").innerText = d.teacherQual || "Qualified Educator";
             document.getElementById("instAchieve").innerText = d.teacherAchievements || "Top Result Producer";
 
-            const discount = Math.round(((Number(d.oldPrice || d.price+500) - d.price) / Number(d.oldPrice || d.price+500)) * 100);
+            const discount = Math.round(((d.oldPrice - d.price) / d.oldPrice) * 100);
             if(discount > 0) document.getElementById("discountTxt").innerText = `SAVE ${discount}% TODAY`;
 
-            document.getElementById("curriculum").innerHTML = `<p style="font-size:0.9rem; opacity:0.8;">Complete syllabus for ${d.title} covering all NCERT concepts and Advanced problems.</p>`;
+            document.getElementById("curriculum").innerHTML = `<p>Detailed syllabus including NCERT Exercise, PYQs, and Test Series for ${d.title}.</p>`;
+
             renderFAQs();
-        } catch (err) { console.error(err); }
+
+        } catch (err) { 
+            console.error("Fetch Error:", err);
+            document.getElementById("title").innerText = "Course Orbit Not Found";
+        }
     }
 
     function renderFAQs() {
         const faqs = [
-            { q: "🚀 How long is the access?", a: "1 full year of unlimited access to all content." },
-            { q: "📱 Does it work on phones?", a: "Yes, PiMentor is fully mobile-optimized." },
-            { q: "❓ How to clear doubts?", a: "Use the 'Ask Doubt' button below any lecture." },
-            { q: "📄 Can I download notes?", a: "Yes, all PDF Mindmaps are downloadable." },
-            { q: "💳 Is payment safe?", a: "100% secure payments via Razorpay encryption." }
+            { q: "🚀 How long will I have access?", a: "You get 1 full year of unlimited access to all recorded lectures and mindmaps from your date of purchase." },
+            { q: "📱 Can I watch on my mobile?", a: "Yes! PiMentor is built for mobile. You can access your classes on any smartphone, tablet, or laptop seamlessly." },
+            { q: "❓ How do I clear my doubts?", a: "Every video has an 'Ask Doubt' button. Your mentors will respond directly to your queries within 24 hours." },
+            { q: "📄 Are the notes downloadable?", a: "Yes, all mindmaps and PDF notes can be downloaded and printed for offline study." },
+            { q: "💳 What are the payment options?", a: "We support all major UPI apps (GPay, PhonePe), Debit/Credit cards, and Netbanking via secure Razorpay encryption." }
         ];
-        document.getElementById("faqList").innerHTML = faqs.map((f, i) => `
-            <div class="faq-card" id="faq-${i}">
-                <div class="faq-header" onclick="toggleFaq(${i})">
-                    <span>${f.q}</span><span class="faq-icon">+</span>
+
+        const faqContainer = document.getElementById("faqList");
+        faqContainer.innerHTML = faqs.map((f, index) => `
+            <div class="faq-card" id="faq-${index}">
+                <div class="faq-header" onclick="toggleFaq(${index})">
+                    <span>${f.q}</span>
+                    <span class="faq-icon">+</span>
                 </div>
-                <div class="faq-body"><div class="faq-content">${f.a}</div></div>
+                <div class="faq-body">
+                    <div class="faq-content">${f.a}</div>
+                </div>
             </div>
         `).join('');
     }
 
-    function toggleFaq(i) {
-        const card = document.getElementById(`faq-${i}`);
+    function toggleFaq(index) {
+        const card = document.getElementById(`faq-${index}`);
         const isActive = card.classList.contains('active');
         document.querySelectorAll('.faq-card').forEach(c => c.classList.remove('active'));
         if (!isActive) card.classList.add('active');
