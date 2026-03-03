@@ -8,16 +8,25 @@ const { buyCourse } = require("../controllers/purchaseController");
 
 /* ================= CREATE ORDER ================= */
 router.post("/create-order", auth, async (req, res) => {
-  const { courseId, price } = req.body;
+  const { courseId } = req.body;
 
   try {
+    const Course = require("../models/Course");
+
+    const course = await Course.findOne({ courseId });
+
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
     const order = await razorpay.orders.create({
-      amount: price * 100,
+      amount: Number(course.price) * 100,  // 🔥 get from DB
       currency: "INR",
       receipt: `rcpt_${courseId}_${Date.now()}`
     });
 
     res.json({ order });
+
   } catch (err) {
     console.error("Order creation failed:", err);
     res.status(500).json({ message: "Failed to create order" });
@@ -45,9 +54,20 @@ router.post("/verify", auth, async (req, res) => {
       return res.status(400).json({ message: "Payment verification failed" });
     }
 
-    // Forward to purchase controller
+    const Course = require("../models/Course");
+    const dbCourse = await Course.findOne({ courseId: course.courseId });
+
+    if (!dbCourse) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
     req.body = {
-      courseId: course.courseId,
+      courseId: dbCourse.courseId,
+      title: dbCourse.title,
+      className: dbCourse.className,
+      price: dbCourse.price,
+      liveValidityDate: dbCourse.liveValidityDate,
+      recordedDurationDays: dbCourse.recordedDurationDays,
       paymentId: razorpay_payment_id
     };
 
