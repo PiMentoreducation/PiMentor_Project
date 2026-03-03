@@ -101,36 +101,61 @@
             .demo-grid { grid-template-columns: 1fr; }
             .grid-list { grid-template-columns: 1fr; }
         }
-        .faq-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid var(--card-border);
-        padding: 20px;
-        border-radius: 15px;
-        margin-bottom: 15px;
-        transition: 0.3s ease;
-    }
-    .faq-card:hover {
-        border-color: var(--accent);
-        background: rgba(124, 77, 255, 0.05);
-    }
-    .faq-q {
-        font-weight: 800;
-        color: var(--accent);
-        font-size: 1rem;
-        display: block;
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .faq-a {
-        font-size: 0.9rem;
-        opacity: 0.8;
-        line-height: 1.5;
-    }
-    [data-theme="light"] .faq-card {
-        background: #ffffff;
-    }
+/* --- ACCORDION STYLING --- */
+.faq-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.faq-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 800;
+    color: var(--accent);
+}
+
+.faq-header:hover {
+    background: rgba(124, 77, 255, 0.05);
+}
+
+.faq-icon {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+.faq-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.faq-content {
+    padding: 0 20px 20px 20px;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    line-height: 1.6;
+}
+
+/* State when active */
+.faq-card.active .faq-body {
+    max-height: 200px; /* Adjust if answer is very long */
+}
+
+.faq-card.active .faq-icon {
+    transform: rotate(45deg); /* Turns + into x */
+}
+
+[data-theme="light"] .faq-card {
+    background: #ffffff;
+}
     </style>
 </head>
 <body>
@@ -321,18 +346,39 @@
             document.getElementById("title").innerText = "Course Orbit Not Found";
         }
         // Add this inside loadData() after you fetch the course details
-const defaultFaqs = [
-    { q: "🚀 How long will I have access?", a: "You get 1 full year of unlimited access." },
-    { q: "📱 Is it mobile friendly?", a: "Yes, learn on any device seamlessly." },
-    { q: "❓ How are doubts cleared?", a: "Use the 'Ask Doubt' button below any lecture for expert help." }
+const faqs = [
+    { q: "🚀 How long will I have access?", a: "You get 1 full year of unlimited access to all recorded lectures and mindmaps from your date of purchase." },
+    { q: "📱 Can I watch on my mobile?", a: "Yes! PiMentor is built for mobile. You can access your classes on any smartphone, tablet, or laptop seamlessly." },
+    { q: "❓ How do I clear my doubts?", a: "Every video has an 'Ask Doubt' button. Your mentors will respond directly to your queries within 24 hours." },
+    { q: "📄 Are the notes downloadable?", a: "Yes, all mindmaps and PDF notes can be downloaded and printed for offline study." },
+    { q: "💳 What are the payment options?", a: "We support all major UPI apps (GPay, PhonePe), Debit/Credit cards, and Netbanking via secure Razorpay encryption." }
 ];
 
-document.getElementById("faqList").innerHTML = defaultFaqs.map(f => `
-    <div class="faq-card">
-        <span class="faq-q">${f.q}</span>
-        <span class="faq-a">${f.a}</span>
+const faqContainer = document.getElementById("faqList");
+faqContainer.innerHTML = faqs.map((f, index) => `
+    <div class="faq-card" id="faq-${index}">
+        <div class="faq-header" onclick="toggleFaq(${index})">
+            <span>${f.q}</span>
+            <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-body">
+            <div class="faq-content">${f.a}</div>
+        </div>
     </div>
 `).join('');
+
+// Toggle Function
+function toggleFaq(index) {
+    const card = document.getElementById(`faq-${index}`);
+    const isActive = card.classList.contains('active');
+    
+    // Close all other cards (Optional: remove this line if you want multiple open at once)
+    document.querySelectorAll('.faq-card').forEach(c => c.classList.remove('active'));
+    
+    if (!isActive) {
+        card.classList.add('active');
+    }
+}
     }
     function handleEnrollment() {
         const token = localStorage.getItem("token");
