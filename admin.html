@@ -40,6 +40,7 @@
             min-height: 100vh;
         }
         
+        /* --- STARDUST BACKGROUND --- */
         body::before {
             content: ""; 
             position: fixed; 
@@ -52,6 +53,7 @@
             z-index: -1;
         }
 
+        /* --- HEADER & NAVIGATION --- */
         .header { 
             max-width: 1100px; 
             margin: 0 auto 30px; 
@@ -65,10 +67,31 @@
             border: 1px solid var(--card-border);
         }
 
-        .logo-section { display: flex; align-items: center; gap: 15px; }
-        .logo-section img { height: 50px; width: 50px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover; }
-        .logo-text { font-size: 1.2rem; font-weight: 800; }
+        .logo-section { 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+        }
+
+        .logo-section img { 
+            height: 50px; 
+            width: 50px; 
+            border-radius: 50%; 
+            border: 2px solid var(--primary); 
+            object-fit: cover; 
+        }
+
+        .logo-text { 
+            font-size: 1.2rem; 
+            font-weight: 800; 
+        }
         
+        .nav-actions { 
+            display: flex; 
+            gap: 15px; 
+            align-items: center; 
+        }
+
         .dash-btn { 
             padding: 10px 22px; 
             background: var(--primary); 
@@ -80,6 +103,7 @@
             box-shadow: 0 4px 15px rgba(124, 77, 255, 0.3);
         }
 
+        /* --- SECTION BOXES --- */
         section { 
             max-width: 1100px; 
             margin: 0 auto 25px; 
@@ -101,9 +125,19 @@
             margin-bottom: 25px;
         }
         
-        .row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 10px; }
-        .col { flex: 1; min-width: 280px; }
+        .row { 
+            display: flex; 
+            gap: 20px; 
+            flex-wrap: wrap; 
+            margin-bottom: 10px;
+        }
 
+        .col { 
+            flex: 1; 
+            min-width: 280px; 
+        }
+
+        /* --- FORM ELEMENTS --- */
         input, textarea, select { 
             width: 100%; 
             margin-bottom: 18px; 
@@ -115,10 +149,27 @@
             font-size: 0.95rem;
         }
 
-        [data-theme="light"] input, [data-theme="light"] textarea, [data-theme="light"] select { background: white; color: #1b4332; }
+        [data-theme="light"] input, 
+        [data-theme="light"] textarea, 
+        [data-theme="light"] select { 
+            background: white; 
+            color: #1b4332; 
+        }
+
+        input:focus, textarea:focus {
+            outline: 2px solid var(--primary);
+            border-color: transparent;
+        }
 
         button { 
-            width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; font-size: 1rem;
+            width: 100%; 
+            padding: 15px; 
+            border: none; 
+            border-radius: 12px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            font-size: 1rem;
         }
 
         .btn-create { background: var(--primary); color: white; }
@@ -127,11 +178,31 @@
         .btn-broadcast { background: var(--warning); color: #000; }
         .btn-add-teacher { background: rgba(255,255,255,0.1); color: var(--text); margin-bottom: 20px; border: 1px dashed var(--primary); }
 
-        .hint { font-size: 0.75rem; opacity: 0.7; margin-bottom: 8px; display: block; font-weight: 700; text-transform: uppercase; }
-        .toggle-btn { color: var(--primary); cursor: pointer; font-size: 0.85rem; font-weight: 800; text-decoration: underline; margin-bottom: 15px; display: inline-block; }
+        button:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
 
+        .hint { 
+            font-size: 0.75rem; 
+            opacity: 0.7; 
+            margin-bottom: 8px; 
+            display: block; 
+            font-weight: 700; 
+            text-transform: uppercase;
+        }
+
+        .toggle-chapter { 
+            color: var(--primary); 
+            cursor: pointer; 
+            font-size: 0.85rem; 
+            font-weight: 800; 
+            text-decoration: underline;
+        }
+
+        /* Multi-Teacher Styles */
         .teacher-box {
-            background: rgba(255,255,255,0.03);
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--card-border);
             padding: 20px;
             border-radius: 15px;
@@ -139,14 +210,66 @@
             position: relative;
         }
         .remove-teacher {
-            position: absolute; top: 10px; right: 10px; background: var(--danger); color: white; border: none; width: 25px; height: 25px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        table { width: 100%; border-collapse: collapse; color: var(--text); }
-        th { text-align: left; padding: 15px; border-bottom: 2px solid var(--card-border); opacity: 0.6; font-size: 0.75rem; text-transform: uppercase; }
-        td { padding: 15px; border-bottom: 1px solid var(--card-border); font-size: 0.9rem; }
+        /* --- DATA PRESENTATION --- */
+        .doubt-card { 
+            border: 1px solid var(--card-border); 
+            padding: 20px; 
+            border-radius: 18px; 
+            margin-bottom: 15px; 
+            background: rgba(255,255,255,0.02); 
+        }
 
-        @media (max-width: 900px) { .header { padding: 15px; } .logo-text { display: none; } .row { flex-direction: column; } section { padding: 20px; } }
+        .notif-item {
+            border: 1px solid var(--card-border);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            background: rgba(241, 196, 15, 0.05);
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            color: var(--text); 
+        }
+
+        th { 
+            text-align: left; 
+            padding: 15px; 
+            border-bottom: 2px solid var(--card-border); 
+            opacity: 0.6; 
+            font-size: 0.75rem; 
+            text-transform: uppercase;
+        }
+
+        td { 
+            padding: 15px; 
+            border-bottom: 1px solid var(--card-border); 
+            font-size: 0.9rem; 
+        }
+
+        @media (max-width: 900px) {
+            .header { padding: 15px; }
+            .logo-text { display: none; }
+            .row { flex-direction: column; }
+            section { padding: 20px; }
+        }
     </style>
 </head>
 <body onload="initAdmin()">
@@ -164,63 +287,65 @@
 
 <section style="border-left: 5px solid var(--warning);">
     <h2 style="color: var(--warning);">📢 Broadcast Center</h2>
+    <span class="hint">Messaging Console</span>
     <input id="notifHeading" placeholder="Message Title (e.g. Test Scheduled)">
-    <textarea id="notifDesc" placeholder="Detailed description..." rows="3"></textarea>
+    <textarea id="notifDesc" placeholder="Detailed description of the update..." rows="3"></textarea>
     <input id="notifLink" placeholder="External Action Link (Optional)">
+    
+    <span class="hint">Target Groups (Hold Ctrl to select multiple)</span>
     <select id="notifCourseSelect" multiple style="height: 120px;"></select>
+    
     <button class="btn-broadcast" onclick="broadcastNotification()">Send Push Notification</button>
-    <div id="adminNotifList" style="margin-top:25px;"></div>
+
+    <div id="adminNotifList" style="margin-top:25px;">
+        <p style="opacity:0.5; font-size:0.8rem;">Loading active broadcasts...</p>
+    </div>
 </section>
 
 <section>
     <h2>Step 1: Course Configuration & Details</h2>
     
-    <div id="course-select-mode">
+    <div id="course-select-area">
         <span class="hint">Select Course to Edit (Auto-fills all fields)</span>
         <select id="editCourseDropdown" onchange="autoFillCourseData()">
             <option value="">-- Choose Course to Update --</option>
         </select>
     </div>
 
-    <div id="course-new-mode" style="display:none;">
-        <span class="hint">New Identification</span>
+    <div id="course-new-area" style="display:none;">
+        <span class="hint">Identification for New Course</span>
         <input id="courseId" placeholder="Unique Course ID (e.g. math_10_01)">
     </div>
 
-    <span class="toggle-btn" onclick="toggleCourseMode()" id="courseToggleText">+ Create New Course Instead</span>
+    <span class="toggle-chapter" onclick="toggleCourseCreateMode()" id="courseToggleLabel" style="margin-bottom: 20px; display: inline-block;">+ Add New Course Instead</span>
 
     <div class="row">
         <div class="col">
-            <span class="hint">Course Name</span>
+            <span class="hint">Identification & Pricing</span>
             <input id="title" placeholder="Full Course Title">
-            <span class="hint">Target Class</span>
             <input id="className" placeholder="Target Class / Grade">
-            <span class="hint">Selling Price (₹)</span>
             <input id="price" type="number" placeholder="Offer Price (₹)">
-            <span class="hint">Original Price (MRP)</span>
-            <input id="oldPrice" type="number" placeholder="Original Price (₹)">
+            <input id="oldPrice" type="number" placeholder="Original Price (Strikethrough ₹)">
         </div>
         <div class="col">
-            <span class="hint">Media Assets</span>
+            <span class="hint">Media Assets & Validity</span>
             <input id="thumbnail" placeholder="Thumbnail Image URL">
             <input id="demo1" placeholder="Demo Video 1 (YouTube URL)">
             <input id="demo2" placeholder="Demo Video 2 (YouTube URL)">
-            <span class="hint">Live Expiry & Validity</span>
-            <input id="recordedDurationDays" type="number" value="365">
             <input id="liveValidityDate" type="date">
+            <input id="recordedDurationDays" type="number" value="365">
         </div>
     </div>
     
-    <span class="hint">Banner Tagline</span>
-    <textarea id="description" placeholder="Short course subline..." rows="2"></textarea>
-    <span class="hint">Detailed Course Roadmap</span>
+    <span class="hint">Marketing Description</span>
+    <textarea id="description" placeholder="Short course subline for the banner..." rows="2"></textarea>
     <textarea id="course_roadmap" placeholder="Course_Roadmap" rows="2"></textarea>
-    <span class="hint">What students will learn (Comma separated)</span>
-    <textarea id="learningPoints" placeholder="Learning Objectives (e.g. PYQs, DPPs, Live Classes)"></textarea>
+    <textarea id="learningPoints" placeholder="Learning Objectives (Separate with commas, e.g. Daily Quizzes, 1:1 Doubt Solving, Board Prep)"></textarea>
 
     <div style="margin-top: 25px; border-top: 1px solid var(--card-border); padding-top: 25px;">
         <h3 style="font-size: 0.9rem; color: var(--primary); margin-bottom: 15px;">👨‍🏫 TEACHER PROFILES</h3>
-        <div id="teachersContainer"></div>
+        <div id="teachersContainer">
+            </div>
         <button class="btn-add-teacher" onclick="addTeacherField()">+ Add Another Teacher</button>
     </div>
 
@@ -231,33 +356,52 @@
     <h2>Step 2: Content Injection (Lectures)</h2>
     <div class="row">
         <div class="col">
-            <select id="courseDropdown" onchange="syncCourseSelection()"></select>
+            <span class="hint">Selection</span>
+            <select id="courseDropdown" onchange="syncCourseSelection()">
+                <option value="">-- Choose Course --</option>
+            </select>
         </div>
         <div class="col">
+            <span class="hint">System ID</span>
             <input id="targetCourseId" readonly style="opacity:0.6; background: rgba(0,0,0,0.2);">
         </div>
     </div>
     
     <div class="row">
         <div class="col">
-            <div id="chapter-select-container"><select id="chapterDropdown"></select></div>
-            <div id="chapter-input-container" style="display: none;"><input id="chapterNameInput" placeholder="New Chapter Name"></div>
-            <span class="toggle-btn" onclick="toggleChapterInput()" id="toggleText">+ Create New Chapter</span>
+            <span class="hint">Organizational Unit</span>
+            <div id="chapter-select-container">
+                <select id="chapterDropdown"><option value="">-- Load a course --</option></select>
+            </div>
+            <div id="chapter-input-container" style="display: none;">
+                <input id="chapterNameInput" placeholder="Enter New Chapter Name">
+            </div>
+            <span class="toggle-chapter" onclick="toggleChapterInput()" id="toggleText">+ Create New Chapter</span>
         </div>
-        <div class="col"><input id="topicName" placeholder="Sub-topic Heading"></div>
+        <div class="col">
+            <span class="hint">Topic Detail</span>
+            <input id="topicName" placeholder="Sub-topic Heading">
+        </div>
     </div>
 
     <div class="row">
-        <div class="col" style="flex:2;"><input id="lectureTitle" placeholder="Lecture Title"></div>
-        <div class="col"><input id="order" type="number" value="1"></div>
+        <div class="col" style="flex:2;">
+            <span class="hint">Lesson Name</span>
+            <input id="lectureTitle" placeholder="Lecture Title">
+        </div>
+        <div class="col">
+            <span class="hint">Sequence</span>
+            <input id="order" type="number" value="1">
+        </div>
     </div>
 
-    <input id="videoUrl" placeholder="YouTube Video URL">
+    <span class="hint">Content Links</span>
+    <input id="videoUrl" placeholder="YouTube Video URL (Standard or Embed)">
     <div class="row">
-        <input id="duration" placeholder="Video Duration">
-        <input id="pdfNotes" placeholder="Notes URL (PDF)">
+        <input id="duration" placeholder="Video Duration (e.g. 1:15:00)">
+        <input id="pdfNotes" placeholder="Notes URL (Drive/PDF)">
     </div>
-    <input id="practiceMcq" placeholder="Quiz URL">
+    <input id="practiceMcq" placeholder="Quiz/Assessment URL">
     
     <button class="btn-lecture" onclick="addLecture()">Deploy Lecture to Cloud</button>
 </section>
@@ -266,72 +410,108 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
         <h2>Registry & CSV Exporter (<span id="enrollmentCount">0</span>)</h2>
         <div style="display: flex; gap: 10px;">
-            <button onclick="downloadEmails()" style="width:auto; padding:10px 20px; background:var(--success); color:white; font-size:0.85rem;">📥 CSV</button>
-            <input type="text" id="studentSearch" placeholder="🔍 Search..." onkeyup="filterStudentTable()" style="width:250px; margin-bottom:0;">
+            <button onclick="downloadEmails()" style="width:auto; padding:10px 20px; background:var(--success); color:white; font-size:0.85rem;">📥 Download Emails</button>
+            <input type="text" id="studentSearch" placeholder="🔍 Search Name or Email..." onkeyup="filterStudentTable()" style="width:250px; margin-bottom:0;">
         </div>
     </div>
     <div style="overflow-x: auto; max-height: 450px;">
         <table id="enrollmentTable">
-            <thead><tr><th>Name</th><th>Email</th><th>Class</th><th>Enrolled Date</th></tr></thead>
-            <tbody id="enrollmentBody"></tbody>
+            <thead>
+                <tr>
+                    <th>Full Name</th>
+                    <th>Email Address</th>
+                    <th>Class</th>
+                    <th>Registration Date</th>
+                </tr>
+            </thead>
+            <tbody id="enrollmentBody">
+                <tr><td colspan="4" style="text-align:center; padding:30px; opacity:0.6;">Select a course above...</td></tr>
+            </tbody>
         </table>
     </div>
 </section>
 
-<section><h2>Pending Doubts</h2><div id="doubtsContainer"></div></section>
+<section>
+    <h2>Step 3: Doubt Resolution Command</h2>
+    <div id="doubtsContainer">
+        <p style="opacity:0.5; font-size:0.9rem;">Course queries will appear here after selection.</p>
+    </div>
+</section>
 
 <section style="border: 2px solid var(--danger);">
     <h2 style="color: var(--danger);">Danger & Cleanup Zone</h2>
     <div class="row">
         <div class="col">
-            <select id="deleteLectureDropdown"></select>
+            <span class="hint">Surgical Delete</span>
+            <select id="deleteLectureDropdown"><option value="">-- Select Course Above --</option></select>
             <button class="btn-delete" style="background:var(--warning); color:black;" onclick="deleteLecture()">Delete Selected Lecture</button>
         </div>
         <div class="col">
+            <span class="hint">Total Course Wipe</span>
             <input id="deleteCourseId" readonly style="background: rgba(220, 53, 69, 0.1);">
-            <button class="btn-delete" onclick="deleteCourse()">Delete Entire Course</button>
+            <button class="btn-delete" onclick="deleteCourse()">Delete Entire Course & Content</button>
         </div>
     </div>
 </section>
 
 <script>
+    /* --- 1. CONFIGURATION --- */
     const BASE_URL = "https://pimentor-project.onrender.com";
     const token = localStorage.getItem("token");
-    let isNewChapter = false, isNewCourseMode = false;
+    let isNewChapter = false;
+    let isNewCourseMode = false; // Flag for Course Update vs Create New
 
+    /* --- 2. INITIALIZATION --- */
     function initAdmin() {
-        if (!token) { window.location.href = "login.html"; return; }
+        if (!token) {
+            alert("Admin session required. Redirecting to login...");
+            window.location.href = "login.html";
+            return;
+        }
         applyTheme(localStorage.getItem('pimentor-theme') || 'dark');
         loadOngoingCourses();
         loadActiveNotifs();
-        addTeacherField(); 
+        addTeacherField(); // Default one teacher block
     }
 
-    /* --- THEME --- */
-    function applyTheme(t) {
-        document.documentElement.setAttribute('data-theme', t);
-        if (document.getElementById('themeBtn')) document.getElementById('themeBtn').innerText = (t === 'dark') ? '☀️' : '🌙';
-        localStorage.setItem('pimentor-theme', t);
+    /* --- 3. UI CONTROLS --- */
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        if (document.getElementById('themeBtn')) document.getElementById('themeBtn').innerText = (theme === 'dark') ? '☀️' : '🌙';
+        localStorage.setItem('pimentor-theme', theme);
     }
-    function toggleTheme() { applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    }
 
-    /* --- SMART AUTO-FILL UPDATE LOGIC --- */
-    function toggleCourseMode() {
+    function toggleCourseCreateMode() {
         isNewCourseMode = !isNewCourseMode;
-        document.getElementById('course-select-mode').style.display = isNewCourseMode ? 'none' : 'block';
-        document.getElementById('course-new-mode').style.display = isNewCourseMode ? 'block' : 'none';
-        document.getElementById('courseToggleText').innerText = isNewCourseMode ? "← Back to Edit Mode" : "+ Add New Course Instead";
+        document.getElementById('course-select-area').style.display = isNewCourseMode ? 'none' : 'block';
+        document.getElementById('course-new-area').style.display = isNewCourseMode ? 'block' : 'none';
+        document.getElementById('courseToggleLabel').innerText = isNewCourseMode ? "← Back to Update Mode" : "+ Add New Course Instead";
         if(isNewCourseMode) clearCourseForm();
     }
 
+    function toggleChapterInput() {
+        isNewChapter = !isNewChapter;
+        document.getElementById('chapter-select-container').style.display = isNewChapter ? 'none' : 'block';
+        document.getElementById('chapter-input-container').style.display = isNewChapter ? 'block' : 'none';
+        document.getElementById('toggleText').innerText = isNewChapter ? "← Select Existing" : "+ Create New Chapter";
+    }
+
+    /* --- 4. SMART AUTO-FILL LOGIC --- */
     async function autoFillCourseData() {
         const selectedId = document.getElementById("editCourseDropdown").value;
         if(!selectedId) return;
+
         try {
-            const res = await fetch(`${BASE_URL}/api/admin/course/${selectedId}`, { headers: { "Authorization": "Bearer " + token } });
+            const res = await fetch(`${BASE_URL}/api/admin/course/${selectedId}`, {
+                headers: { "Authorization": "Bearer " + token }
+            });
             const d = await res.json();
 
-            // Mapped to your specific DB screenshot keys
+            // Direct Mapping to your Database Screenshot Keys
             document.getElementById("title").value = d.title || "";
             document.getElementById("className").value = d.className || "";
             document.getElementById("price").value = d.price || 0;
@@ -343,8 +523,10 @@
             document.getElementById("course_roadmap").value = d.course_roadmap || "";
             document.getElementById("learningPoints").value = d.learningPoints || "";
             document.getElementById("recordedDurationDays").value = d.recordedDurationDays || 365;
+            
             if(d.liveValidityDate) document.getElementById("liveValidityDate").value = d.liveValidityDate.split('T')[0];
 
+            // Reconstruct Teacher Array
             const container = document.getElementById('teachersContainer');
             container.innerHTML = "";
             if(d.teachers && Array.isArray(d.teachers) && d.teachers.length > 0) {
@@ -354,14 +536,13 @@
     }
 
     function clearCourseForm() {
-        ["title", "className", "price", "oldPrice", "thumbnail", "demo1", "demo2", "description", "course_roadmap", "learningPoints"].forEach(id => {
-            document.getElementById(id).value = "";
-        });
+        const fields = ["title", "className", "price", "oldPrice", "thumbnail", "demo1", "demo2", "description", "course_roadmap", "learningPoints"];
+        fields.forEach(f => document.getElementById(f).value = "");
         document.getElementById("teachersContainer").innerHTML = "";
         addTeacherField();
     }
 
-    /* --- TEACHER LOGIC --- */
+    /* --- 5. TEACHER PROFILES --- */
     function addTeacherField(data = null) {
         const container = document.getElementById('teachersContainer');
         const div = document.createElement('div');
@@ -369,29 +550,30 @@
         div.innerHTML = `
             <button class="remove-teacher" onclick="this.parentElement.remove()">×</button>
             <div class="row">
-                <div class="col"><input class="t-name" placeholder="Name" value="${data ? data.name : ''}"></div>
-                <div class="col"><input class="t-img" placeholder="Photo URL" value="${data ? data.image : ''}"></div>
+                <div class="col"><input class="teacher-name" placeholder="Faculty Name" value="${data ? data.name : ''}"></div>
+                <div class="col"><input class="teacher-img" placeholder="Faculty Photo URL" value="${data ? data.image : ''}"></div>
             </div>
             <div class="row">
-                <div class="col"><input class="t-qual" placeholder="Qualifications" value="${data ? data.qual : ''}"></div>
-                <div class="col"><input class="t-achieve" placeholder="Achievements" value="${data ? data.achieve : ''}"></div>
+                <div class="col"><input class="teacher-qual" placeholder="Qualifications" value="${data ? data.qual : ''}"></div>
+                <div class="col"><input class="teacher-achieve" placeholder="Achievements" value="${data ? data.achieve : ''}"></div>
             </div>`;
         container.appendChild(div);
     }
 
     function getTeacherData() {
         return Array.from(document.querySelectorAll('.teacher-box')).map(box => ({
-            name: box.querySelector('.t-name').value,
-            image: box.querySelector('.t-img').value,
-            qual: box.querySelector('.t-qual').value,
-            achieve: box.querySelector('.t-achieve').value
+            name: box.querySelector('.teacher-name').value,
+            image: box.querySelector('.teacher-img').value,
+            qual: box.querySelector('.teacher-qual').value,
+            achieve: box.querySelector('.teacher-achieve').value
         }));
     }
 
-    /* --- DATA ACTIONS --- */
+    /* --- 6. CORE DATA ACTIONS --- */
     async function addCourse() {
         const cid = isNewCourseMode ? document.getElementById("courseId").value.trim() : document.getElementById("editCourseDropdown").value;
-        if(!cid) return alert("Course ID required!");
+        if (!cid) return alert("Please select a course or enter an ID.");
+
         const payload = {
             courseId: cid,
             title: document.getElementById("title").value,
@@ -408,78 +590,93 @@
             liveValidityDate: document.getElementById("liveValidityDate").value,
             recordedDurationDays: Number(document.getElementById("recordedDurationDays").value)
         };
-        const res = await fetch(`${BASE_URL}/api/admin/course`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify(payload) });
-        alert((await res.json()).message);
-        loadOngoingCourses();
+
+        try {
+            const response = await fetch(`${BASE_URL}/api/admin/course`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            alert(result.message);
+            loadOngoingCourses();
+        } catch (error) { alert("Deployment Error."); }
     }
 
     async function loadOngoingCourses() {
         try {
-            const res = await fetch(`${BASE_URL}/api/admin/all-courses`, { headers: { "Authorization": "Bearer " + token } });
-            const courses = await res.json();
+            const response = await fetch(`${BASE_URL}/api/admin/all-courses`, { headers: { "Authorization": "Bearer " + token } });
+            const courses = await response.json();
             const d1 = document.getElementById("courseDropdown"), d2 = document.getElementById("notifCourseSelect"), d3 = document.getElementById("editCourseDropdown");
-            d1.innerHTML = '<option value="">-- Choose Course --</option>';
+            d1.innerHTML = '<option value="">-- Select Course --</option>';
             d3.innerHTML = '<option value="">-- Choose Course to Update --</option>';
-            d2.innerHTML = '<option value="all">🌍 BROADCAST ALL</option>';
+            d2.innerHTML = '<option value="all" style="font-weight:bold; color:var(--primary);">🌍 BROADCAST TO ALL</option>'; 
             courses.forEach(c => {
-                const opt = `<option value="${c.courseId}">${c.title}</option>`;
+                const opt = `<option value="${c.courseId}">${c.title} (${c.courseId})</option>`;
                 d1.innerHTML += opt; d2.innerHTML += opt; d3.innerHTML += opt;
             });
-        } catch (e) {}
+        } catch (e) { }
     }
 
+    /* --- 7. LECTURE & DOUBT LOGIC (Untouched) --- */
     async function syncCourseSelection() {
-        const cid = document.getElementById("courseDropdown").value;
-        document.getElementById("targetCourseId").value = cid;
-        document.getElementById("deleteCourseId").value = cid;
-        if(!cid) return;
-        const chapRes = await fetch(`${BASE_URL}/api/purchase/course-chapters/${cid}`, { headers: { "Authorization": "Bearer " + token } });
-        const chaps = await chapRes.json();
-        document.getElementById('chapterDropdown').innerHTML = chaps.map(ch => `<option value="${ch}">${ch}</option>`).join('');
-        const lecRes = await fetch(`${BASE_URL}/api/purchase/all-lectures-admin/${cid}`, { headers: { "Authorization": "Bearer " + token } });
-        const lecs = await lecRes.json();
-        document.getElementById("deleteLectureDropdown").innerHTML = lecs.map(l => `<option value="${l._id}">${l.chapterName} > ${l.title}</option>`).join('');
-        loadEnrollments(cid); loadDoubts(cid);
+        const selectedId = document.getElementById("courseDropdown").value;
+        document.getElementById("targetCourseId").value = selectedId;
+        document.getElementById("deleteCourseId").value = selectedId;
+        if (!selectedId) return;
+        try {
+            const chapRes = await fetch(`${BASE_URL}/api/purchase/course-chapters/${selectedId}`, { headers: { "Authorization": "Bearer " + token } });
+            const chapters = await chapRes.json();
+            document.getElementById('chapterDropdown').innerHTML = chapters.map(ch => `<option value="${ch}">${ch}</option>`).join('');
+            const lecRes = await fetch(`${BASE_URL}/api/purchase/all-lectures-admin/${selectedId}`, { headers: { "Authorization": "Bearer " + token } });
+            const lectures = await lecRes.json();
+            document.getElementById("deleteLectureDropdown").innerHTML = lectures.map(l => `<option value="${l._id}">${l.chapterName} > ${l.title}</option>`).join('');
+            loadDoubts(selectedId); loadEnrollments(selectedId);
+        } catch (e) { }
     }
 
     async function addLecture() {
-        const cid = document.getElementById("targetCourseId").value;
+        const targetId = document.getElementById("targetCourseId").value;
         const chap = isNewChapter ? document.getElementById("chapterNameInput").value : document.getElementById("chapterDropdown").value;
-        const p = { lectureTitle: document.getElementById("lectureTitle").value, chapterName: chap, topicName: document.getElementById("topicName").value, order: document.getElementById("order").value, videoUrl: document.getElementById("videoUrl").value, duration: document.getElementById("duration").value, pdfNotes: document.getElementById("pdfNotes").value, practiceMcq: document.getElementById("practiceMcq").value };
-        await fetch(`${BASE_URL}/api/admin/course/${cid}/lecture`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify(p) });
+        const payload = { lectureTitle: document.getElementById("lectureTitle").value, chapterName: chap, topicName: document.getElementById("topicName").value, order: document.getElementById("order").value, videoUrl: document.getElementById("videoUrl").value, duration: document.getElementById("duration").value, pdfNotes: document.getElementById("pdfNotes").value, practiceMcq: document.getElementById("practiceMcq").value };
+        await fetch(`${BASE_URL}/api/admin/course/${targetId}/lecture`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify(payload) });
         syncCourseSelection();
     }
 
-    async function loadEnrollments(cid) {
-        const res = await fetch(`${BASE_URL}/api/admin/course-enrollments/${cid}`, { headers: { "Authorization": "Bearer " + token } });
-        const data = await res.json();
-        document.getElementById("enrollmentCount").innerText = data.length;
-        document.getElementById("enrollmentBody").innerHTML = data.map(s => `<tr><td>${s.name}</td><td>${s.email}</td><td>${s.studentClass}</td><td>${new Date(s.enrolledAt).toLocaleDateString()}</td></tr>`).join('');
-    }
-
-    async function loadDoubts(cid) {
-        const res = await fetch(`${BASE_URL}/api/admin/doubts/${cid}`, { headers: { "Authorization": "Bearer " + token } });
+    /* --- 8. DOUBTS, NOTIFS, REGISTRY (Original Lines) --- */
+    async function loadDoubts(courseId) {
+        const container = document.getElementById("doubtsContainer");
+        const res = await fetch(`${BASE_URL}/api/admin/doubts/${courseId}`, { headers: { "Authorization": "Bearer " + token } });
         const doubts = await res.json();
-        document.getElementById("doubtsContainer").innerHTML = doubts.map(d => `<div class="doubt-card"><b>${d.studentName}</b> asked: ${d.question}<textarea id="reply-${d._id}"></textarea><button onclick="resolveDoubt('${d._id}')">Submit</button></div>`).join('');
+        if (doubts.length === 0) { container.innerHTML = "<p style='opacity:0.5;'>All doubts resolved.</p>"; return; }
+        container.innerHTML = doubts.map(d => `<div class="doubt-card"><b>${d.studentName}</b> asked on <i>${d.lectureTitle}</i><br>Q: ${d.question}<textarea id="reply-${d._id}" rows="2"></textarea><button onclick="resolveDoubt('${d._id}')" style="width:auto; padding:8px 20px;">Submit</button></div>`).join('');
     }
 
-    async function resolveDoubt(id) {
-        const ans = document.getElementById(`reply-${id}`).value;
-        await fetch(`${BASE_URL}/api/admin/resolve-doubt`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify({ doubtId: id, answer: ans }) });
+    async function resolveDoubt(doubtId) {
+        const answer = document.getElementById(`reply-${doubtId}`).value;
+        await fetch(`${BASE_URL}/api/admin/resolve-doubt`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify({ doubtId, answer }) });
         syncCourseSelection();
+    }
+
+    async function loadEnrollments(courseId) {
+        const body = document.getElementById("enrollmentBody");
+        const res = await fetch(`${BASE_URL}/api/admin/course-enrollments/${courseId}`, { headers: { "Authorization": "Bearer " + token } });
+        const students = await res.json();
+        document.getElementById("enrollmentCount").innerText = students.length;
+        body.innerHTML = students.map(s => `<tr><td>${s.name}</td><td>${s.email}</td><td>${s.studentClass}</td><td>${new Date(s.enrolledAt).toLocaleDateString()}</td></tr>`).join('');
     }
 
     async function broadcastNotification() {
-        const targets = Array.from(document.getElementById("notifCourseSelect").selectedOptions).map(o => o.value);
-        const p = { heading: document.getElementById("notifHeading").value, description: document.getElementById("notifDesc").value, link: document.getElementById("notifLink").value, targetCourses: targets };
-        await fetch(`${BASE_URL}/api/admin/send-notification`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify(p) });
-        loadActiveNotifs();
+        const targets = Array.from(document.getElementById("notifCourseSelect").selectedOptions).map(opt => opt.value);
+        const payload = { heading: document.getElementById("notifHeading").value, description: document.getElementById("notifDesc").value, link: document.getElementById("notifLink").value, targetCourses: targets };
+        const res = await fetch(`${BASE_URL}/api/admin/send-notification`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify(payload) });
+        if(res.ok) loadActiveNotifs();
     }
 
     async function loadActiveNotifs() {
         const res = await fetch(`${BASE_URL}/api/admin/active-notifications`, { headers: { "Authorization": "Bearer " + token } });
-        const data = await res.json();
-        document.getElementById("adminNotifList").innerHTML = data.map(n => `<div class="notif-item"><b>${n.heading}</b><button onclick="deleteNotif('${n._id}')" style="width:auto; float:right;">Delete</button></div>`).join('');
+        const list = await res.json();
+        document.getElementById("adminNotifList").innerHTML = list.map(n => `<div class="notif-item"><b>${n.heading}</b> <button onclick="deleteNotif('${n._id}')" style="width:auto; float:right;">Delete</button></div>`).join('');
     }
 
     async function deleteNotif(id) { await fetch(`${BASE_URL}/api/admin/notification/${id}`, { method: "DELETE", headers: { "Authorization": "Bearer " + token } }); loadActiveNotifs(); }
@@ -489,18 +686,19 @@
     function downloadEmails() {
         const rows = document.getElementById("enrollmentBody").querySelectorAll("tr");
         const emails = ["Email Address"];
-        rows.forEach(r => { if(r.cells[1]) emails.push(r.cells[1].innerText.trim()); });
+        rows.forEach(r => { if (r.cells[1] && r.cells[1].innerText.includes("@")) emails.push(r.cells[1].innerText.trim()); });
         const csvContent = "data:text/csv;charset=utf-8," + emails.join("\n");
         const link = document.createElement("a");
         link.setAttribute("href", encodeURI(csvContent));
-        link.setAttribute("download", "student_emails.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        link.setAttribute("download", `Students_PiMentor.csv`);
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
-    function toggleChapterInput() { isNewChapter = !isNewChapter; document.getElementById('chapter-select-container').style.display = isNewChapter ? 'none' : 'block'; document.getElementById('chapter-input-container').style.display = isNewChapter ? 'block' : 'none'; document.getElementById('toggleText').innerText = isNewChapter ? "← Select Existing" : "+ New Chapter"; }
-    function filterStudentTable() { const input = document.getElementById("studentSearch").value.toUpperCase(); const rows = document.getElementById("enrollmentBody").getElementsByTagName("tr"); for (let i = 0; i < rows.length; i++) { rows[i].style.display = rows[i].innerText.toUpperCase().indexOf(input) > -1 ? "" : "none"; } }
+    function filterStudentTable() {
+        const input = document.getElementById("studentSearch").value.toUpperCase();
+        const rows = document.getElementById("enrollmentBody").getElementsByTagName("tr");
+        for (let i = 0; i < rows.length; i++) { rows[i].style.display = rows[i].innerText.toUpperCase().indexOf(input) > -1 ? "" : "none"; }
+    }
 </script>
 </body>
 </html>
