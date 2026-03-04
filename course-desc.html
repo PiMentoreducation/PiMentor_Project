@@ -293,6 +293,7 @@
             if(discount > 0) document.getElementById("discountTxt").innerText = `SAVE ${discount}% TODAY`;
 
             document.getElementById("course_roadmap").innerHTML = `<p>${d.course_roadmap || 'Roadmap coming soon.'}</p>`;
+            document.getElementById("description").innerHTML = `<p>${d.description || 'Roadmap coming soon.'}</p>`;
             renderFAQs();
 
         } catch (err) { 
