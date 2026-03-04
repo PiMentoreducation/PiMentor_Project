@@ -87,19 +87,20 @@ const Notification = require("./models/Notification"); // Import the model
 // Replace the old temporary route at the bottom of server.js with this:
 const Notification = require("./models/Notification"); // Ensure this model exists
 
+// DO NOT add the 'const Notification' line here again if it's at the top of the file
 app.get('/api/notifications/latest', async (req, res) => {
     try {
-        // Fetch the absolute newest broadcast
+        // Find the newest notification
         const latest = await Notification.findOne().sort({ createdAt: -1 });
 
         if (!latest) {
             return res.json({ new_alert: false });
         }
 
-        // The Flutter app's "message" variable will now contain both heading and description
+        // Return the combined message for the Flutter notification tray
         res.status(200).json({
             new_alert: true, 
-            message: `${latest.heading}: ${latest.description}`, 
+            message: `${latest.heading}: ${latest.description}`,
             id: latest._id.toString() 
         });
     } catch (error) {
