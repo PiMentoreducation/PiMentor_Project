@@ -202,7 +202,7 @@
 
         /* Multi-Teacher Styles */
         .teacher-box {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255,255,255,0.03);
             border: 1px solid var(--card-border);
             padding: 20px;
             border-radius: 15px;
@@ -321,7 +321,7 @@
 
     <div class="row">
         <div class="col">
-            <span class="hint">Identification & Pricing</span>
+            <span class="hint">Basic Details</span>
             <input id="title" placeholder="Full Course Title">
             <input id="className" placeholder="Target Class / Grade">
             <input id="price" type="number" placeholder="Offer Price (₹)">
@@ -408,11 +408,18 @@
 
 <section>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
-        <h2>Registry & CSV Exporter (<span id="enrollmentCount">0</span>)</h2>
+        <h2>Student Registry (<span id="enrollmentCount">0</span>)</h2>
         <div style="display: flex; gap: 10px;">
             <button onclick="downloadEmails()" style="width:auto; padding:10px 20px; background:var(--success); color:white; font-size:0.85rem;">📥 Download Emails</button>
-            <input type="text" id="studentSearch" placeholder="🔍 Search Name or Email..." onkeyup="filterStudentTable()" style="width:250px; margin-bottom:0;">
+            <input type="text" id="studentSearch" placeholder="🔍 Search..." onkeyup="filterStudentTable()" style="width:250px; margin-bottom:0;">
         </div>
+    </div>
+</section>
+
+<section>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+        <h2>Enrolled Student Registry (<span id="enrollmentCount">0</span>)</h2>
+        <input type="text" id="studentSearch" placeholder="🔍 Search Name or Email..." onkeyup="filterStudentTable()" style="width:280px; margin-bottom:0;">
     </div>
     <div style="overflow-x: auto; max-height: 450px;">
         <table id="enrollmentTable">
@@ -425,7 +432,7 @@
                 </tr>
             </thead>
             <tbody id="enrollmentBody">
-                <tr><td colspan="4" style="text-align:center; padding:30px; opacity:0.6;">Select a course above...</td></tr>
+                <tr><td colspan="4" style="text-align:center; padding:30px; opacity:0.6;">Select a course from the dropdown above to view students...</td></tr>
             </tbody>
         </table>
     </div>
@@ -459,7 +466,7 @@
     const BASE_URL = "https://pimentor-project.onrender.com";
     const token = localStorage.getItem("token");
     let isNewChapter = false;
-    let isNewCourseMode = false; // Flag for Course Update vs Create New
+    let isNewCourseMode = false; // Flag to track if we are adding new or updating
 
     /* --- 2. INITIALIZATION --- */
     function initAdmin() {
@@ -471,10 +478,10 @@
         applyTheme(localStorage.getItem('pimentor-theme') || 'dark');
         loadOngoingCourses();
         loadActiveNotifs();
-        addTeacherField(); // Default one teacher block
+        addTeacherField(); 
     }
 
-    /* --- 3. UI CONTROLS --- */
+    /* --- 3. UI THEME --- */
     function applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         if (document.getElementById('themeBtn')) document.getElementById('themeBtn').innerText = (theme === 'dark') ? '☀️' : '🌙';
@@ -485,6 +492,7 @@
         applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
     }
 
+    /* --- 4. SMART AUTO-FILL LOGIC (Matches DB Keys) --- */
     function toggleCourseCreateMode() {
         isNewCourseMode = !isNewCourseMode;
         document.getElementById('course-select-area').style.display = isNewCourseMode ? 'none' : 'block';
@@ -493,14 +501,6 @@
         if(isNewCourseMode) clearCourseForm();
     }
 
-    function toggleChapterInput() {
-        isNewChapter = !isNewChapter;
-        document.getElementById('chapter-select-container').style.display = isNewChapter ? 'none' : 'block';
-        document.getElementById('chapter-input-container').style.display = isNewChapter ? 'block' : 'none';
-        document.getElementById('toggleText').innerText = isNewChapter ? "← Select Existing" : "+ Create New Chapter";
-    }
-
-    /* --- 4. SMART AUTO-FILL LOGIC --- */
     async function autoFillCourseData() {
         const selectedId = document.getElementById("editCourseDropdown").value;
         if(!selectedId) return;
@@ -511,7 +511,7 @@
             });
             const d = await res.json();
 
-            // Direct Mapping to your Database Screenshot Keys
+            // Explicitly Mapping your DB screenshot keys
             document.getElementById("title").value = d.title || "";
             document.getElementById("className").value = d.className || "";
             document.getElementById("price").value = d.price || 0;
@@ -526,13 +526,13 @@
             
             if(d.liveValidityDate) document.getElementById("liveValidityDate").value = d.liveValidityDate.split('T')[0];
 
-            // Reconstruct Teacher Array
+            // Teachers Array Loop
             const container = document.getElementById('teachersContainer');
             container.innerHTML = "";
             if(d.teachers && Array.isArray(d.teachers) && d.teachers.length > 0) {
                 d.teachers.forEach(t => addTeacherField(t));
             } else { addTeacherField(); }
-        } catch (e) { console.error("Auto-fill fail", e); }
+        } catch (e) { console.error("Sync Error", e); }
     }
 
     function clearCourseForm() {
@@ -542,22 +542,24 @@
         addTeacherField();
     }
 
-    /* --- 5. TEACHER PROFILES --- */
+    /* --- 5. TEACHER LOGIC --- */
     function addTeacherField(data = null) {
         const container = document.getElementById('teachersContainer');
-        const div = document.createElement('div');
-        div.className = 'teacher-box';
-        div.innerHTML = `
+        const teacherDiv = document.createElement('div');
+        teacherDiv.className = 'teacher-box';
+        teacherDiv.innerHTML = `
             <button class="remove-teacher" onclick="this.parentElement.remove()">×</button>
             <div class="row">
-                <div class="col"><input class="teacher-name" placeholder="Faculty Name" value="${data ? data.name : ''}"></div>
-                <div class="col"><input class="teacher-img" placeholder="Faculty Photo URL" value="${data ? data.image : ''}"></div>
-            </div>
-            <div class="row">
-                <div class="col"><input class="teacher-qual" placeholder="Qualifications" value="${data ? data.qual : ''}"></div>
-                <div class="col"><input class="teacher-achieve" placeholder="Achievements" value="${data ? data.achieve : ''}"></div>
+                <div class="col">
+                    <input class="teacher-name" placeholder="Faculty Name" value="${data ? data.name : ''}">
+                    <input class="teacher-img" placeholder="Faculty Photo URL" value="${data ? data.image : ''}">
+                </div>
+                <div class="col">
+                    <input class="teacher-qual" placeholder="Qualifications" value="${data ? data.qual : ''}">
+                    <input class="teacher-achieve" placeholder="Achievements" value="${data ? data.achieve : ''}">
+                </div>
             </div>`;
-        container.appendChild(div);
+        container.appendChild(teacherDiv);
     }
 
     function getTeacherData() {
@@ -569,10 +571,10 @@
         }));
     }
 
-    /* --- 6. CORE DATA ACTIONS --- */
+    /* --- 6. CORE ACTIONS --- */
     async function addCourse() {
         const cid = isNewCourseMode ? document.getElementById("courseId").value.trim() : document.getElementById("editCourseDropdown").value;
-        if (!cid) return alert("Please select a course or enter an ID.");
+        if (!cid) return alert("Course ID required.");
 
         const payload = {
             courseId: cid,
@@ -591,16 +593,13 @@
             recordedDurationDays: Number(document.getElementById("recordedDurationDays").value)
         };
 
-        try {
-            const response = await fetch(`${BASE_URL}/api/admin/course`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-                body: JSON.stringify(payload)
-            });
-            const result = await response.json();
-            alert(result.message);
-            loadOngoingCourses();
-        } catch (error) { alert("Deployment Error."); }
+        const response = await fetch(`${BASE_URL}/api/admin/course`, {
+            method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        alert(result.message);
+        loadOngoingCourses();
     }
 
     async function loadOngoingCourses() {
@@ -610,15 +609,14 @@
             const d1 = document.getElementById("courseDropdown"), d2 = document.getElementById("notifCourseSelect"), d3 = document.getElementById("editCourseDropdown");
             d1.innerHTML = '<option value="">-- Select Course --</option>';
             d3.innerHTML = '<option value="">-- Choose Course to Update --</option>';
-            d2.innerHTML = '<option value="all" style="font-weight:bold; color:var(--primary);">🌍 BROADCAST TO ALL</option>'; 
-            courses.forEach(c => {
+            d2.innerHTML = '<option value="all" style="font-weight:bold; color:var(--primary);">🌍 BROADCAST ALL</option>'; 
+            courses.forEach(function(c) {
                 const opt = `<option value="${c.courseId}">${c.title} (${c.courseId})</option>`;
                 d1.innerHTML += opt; d2.innerHTML += opt; d3.innerHTML += opt;
             });
         } catch (e) { }
     }
 
-    /* --- 7. LECTURE & DOUBT LOGIC (Untouched) --- */
     async function syncCourseSelection() {
         const selectedId = document.getElementById("courseDropdown").value;
         document.getElementById("targetCourseId").value = selectedId;
@@ -630,26 +628,26 @@
             document.getElementById('chapterDropdown').innerHTML = chapters.map(ch => `<option value="${ch}">${ch}</option>`).join('');
             const lecRes = await fetch(`${BASE_URL}/api/purchase/all-lectures-admin/${selectedId}`, { headers: { "Authorization": "Bearer " + token } });
             const lectures = await lecRes.json();
-            document.getElementById("deleteLectureDropdown").innerHTML = lectures.map(l => `<option value="${l._id}">${l.chapterName} > ${l.title}</option>`).join('');
+            document.getElementById("deleteLectureDropdown").innerHTML = lectures.map(lec => `<option value="${lec._id}">${lec.chapterName} > ${lec.title}</option>`).join('');
             loadDoubts(selectedId); loadEnrollments(selectedId);
         } catch (e) { }
     }
 
     async function addLecture() {
-        const targetId = document.getElementById("targetCourseId").value;
+        const tid = document.getElementById("targetCourseId").value;
         const chap = isNewChapter ? document.getElementById("chapterNameInput").value : document.getElementById("chapterDropdown").value;
         const payload = { lectureTitle: document.getElementById("lectureTitle").value, chapterName: chap, topicName: document.getElementById("topicName").value, order: document.getElementById("order").value, videoUrl: document.getElementById("videoUrl").value, duration: document.getElementById("duration").value, pdfNotes: document.getElementById("pdfNotes").value, practiceMcq: document.getElementById("practiceMcq").value };
-        await fetch(`${BASE_URL}/api/admin/course/${targetId}/lecture`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify(payload) });
+        await fetch(`${BASE_URL}/api/admin/course/${tid}/lecture`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify(payload) });
         syncCourseSelection();
     }
 
-    /* --- 8. DOUBTS, NOTIFS, REGISTRY (Original Lines) --- */
+    /* --- DOUBTS & NOTIFS --- */
     async function loadDoubts(courseId) {
         const container = document.getElementById("doubtsContainer");
         const res = await fetch(`${BASE_URL}/api/admin/doubts/${courseId}`, { headers: { "Authorization": "Bearer " + token } });
         const doubts = await res.json();
-        if (doubts.length === 0) { container.innerHTML = "<p style='opacity:0.5;'>All doubts resolved.</p>"; return; }
-        container.innerHTML = doubts.map(d => `<div class="doubt-card"><b>${d.studentName}</b> asked on <i>${d.lectureTitle}</i><br>Q: ${d.question}<textarea id="reply-${d._id}" rows="2"></textarea><button onclick="resolveDoubt('${d._id}')" style="width:auto; padding:8px 20px;">Submit</button></div>`).join('');
+        if (doubts.length === 0) { container.innerHTML = "<p style='opacity:0.5;'>No pending doubts.</p>"; return; }
+        container.innerHTML = doubts.map(d => `<div class="doubt-card"><b>${d.studentName}</b> asked: ${d.question}<textarea id="reply-${d._id}" placeholder="Answer..."></textarea><button onclick="resolveDoubt('${d._id}')">Submit</button></div>`).join('');
     }
 
     async function resolveDoubt(doubtId) {
@@ -658,6 +656,21 @@
         syncCourseSelection();
     }
 
+    async function broadcastNotification() {
+        const sel = document.getElementById("notifCourseSelect");
+        const targets = Array.from(sel.selectedOptions).map(o => o.value);
+        const payload = { heading: document.getElementById("notifHeading").value, description: document.getElementById("notifDesc").value, link: document.getElementById("notifLink").value, targetCourses: targets };
+        const res = await fetch(`${BASE_URL}/api/admin/send-notification`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify(payload) });
+        if (res.ok) loadActiveNotifs();
+    }
+
+    async function loadActiveNotifs() {
+        const res = await fetch(`${BASE_URL}/api/admin/active-notifications`, { headers: { "Authorization": "Bearer " + token } });
+        const data = await res.json();
+        document.getElementById("adminNotifList").innerHTML = data.map(n => `<div class="notif-item"><b>${n.heading}</b><button onclick="deleteNotif('${n._id}')" style="width:auto; float:right;">Delete</button></div>`).join('');
+    }
+
+    /* --- UTIL & REGISTRY --- */
     async function loadEnrollments(courseId) {
         const body = document.getElementById("enrollmentBody");
         const res = await fetch(`${BASE_URL}/api/admin/course-enrollments/${courseId}`, { headers: { "Authorization": "Bearer " + token } });
@@ -666,39 +679,23 @@
         body.innerHTML = students.map(s => `<tr><td>${s.name}</td><td>${s.email}</td><td>${s.studentClass}</td><td>${new Date(s.enrolledAt).toLocaleDateString()}</td></tr>`).join('');
     }
 
-    async function broadcastNotification() {
-        const targets = Array.from(document.getElementById("notifCourseSelect").selectedOptions).map(opt => opt.value);
-        const payload = { heading: document.getElementById("notifHeading").value, description: document.getElementById("notifDesc").value, link: document.getElementById("notifLink").value, targetCourses: targets };
-        const res = await fetch(`${BASE_URL}/api/admin/send-notification`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify(payload) });
-        if(res.ok) loadActiveNotifs();
-    }
-
-    async function loadActiveNotifs() {
-        const res = await fetch(`${BASE_URL}/api/admin/active-notifications`, { headers: { "Authorization": "Bearer " + token } });
-        const list = await res.json();
-        document.getElementById("adminNotifList").innerHTML = list.map(n => `<div class="notif-item"><b>${n.heading}</b> <button onclick="deleteNotif('${n._id}')" style="width:auto; float:right;">Delete</button></div>`).join('');
+    function downloadEmails() {
+        const rows = document.getElementById("enrollmentBody").querySelectorAll("tr");
+        const emails = ["Email Address"];
+        rows.forEach(row => { if (row.cells[1] && row.cells[1].innerText.includes("@")) emails.push(row.cells[1].innerText.trim()); });
+        const csvContent = "data:text/csv;charset=utf-8," + emails.join("\n");
+        const link = document.createElement("a");
+        link.setAttribute("href", encodeURI(csvContent));
+        link.setAttribute("download", `PiMentor_Students.csv`);
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
     async function deleteNotif(id) { await fetch(`${BASE_URL}/api/admin/notification/${id}`, { method: "DELETE", headers: { "Authorization": "Bearer " + token } }); loadActiveNotifs(); }
     async function deleteLecture() { await fetch(`${BASE_URL}/api/admin/course/${document.getElementById("targetCourseId").value}/lecture/${document.getElementById("deleteLectureDropdown").value}`, { method: "DELETE", headers: { "Authorization": "Bearer " + token } }); syncCourseSelection(); }
-    async function deleteCourse() { const id = document.getElementById("deleteCourseId").value; if(!confirm("Delete?")) return; await fetch(`${BASE_URL}/api/admin/course/${id}`, { method: "DELETE", headers: { "Authorization": "Bearer " + token } }); loadOngoingCourses(); }
+    async function deleteCourse() { const id = document.getElementById("deleteCourseId").value; if(!confirm("CRITICAL: Wipe Course?")) return; await fetch(`${BASE_URL}/api/admin/course/${id}`, { method: "DELETE", headers: { "Authorization": "Bearer " + token } }); loadOngoingCourses(); }
 
-    function downloadEmails() {
-        const rows = document.getElementById("enrollmentBody").querySelectorAll("tr");
-        const emails = ["Email Address"];
-        rows.forEach(r => { if (r.cells[1] && r.cells[1].innerText.includes("@")) emails.push(r.cells[1].innerText.trim()); });
-        const csvContent = "data:text/csv;charset=utf-8," + emails.join("\n");
-        const link = document.createElement("a");
-        link.setAttribute("href", encodeURI(csvContent));
-        link.setAttribute("download", `Students_PiMentor.csv`);
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
-    }
-
-    function filterStudentTable() {
-        const input = document.getElementById("studentSearch").value.toUpperCase();
-        const rows = document.getElementById("enrollmentBody").getElementsByTagName("tr");
-        for (let i = 0; i < rows.length; i++) { rows[i].style.display = rows[i].innerText.toUpperCase().indexOf(input) > -1 ? "" : "none"; }
-    }
+    function toggleChapterInput() { isNewChapter = !isNewChapter; document.getElementById('chapter-select-container').style.display = isNewChapter ? 'none' : 'block'; document.getElementById('chapter-input-container').style.display = isNewChapter ? 'block' : 'none'; document.getElementById('toggleText').innerText = isNewChapter ? "← Use Existing" : "+ Create New Chapter"; }
+    function filterStudentTable() { const input = document.getElementById("studentSearch").value.toUpperCase(); const rows = document.getElementById("enrollmentBody").getElementsByTagName("tr"); for (let i = 0; i < rows.length; i++) { rows[i].style.display = rows[i].innerText.toUpperCase().indexOf(input) > -1 ? "" : "none"; } }
 </script>
 </body>
 </html>
