@@ -9,19 +9,16 @@ const axios = require("axios");
 const connectDB = require("./config/db");
 const Course = require("./models/Course");
 const purchaseRoutes = require("./routes/purchaseRoutes");
-const Purchase = require("./models/Purchase");
-Purchase.syncIndexes();
-// ... existing imports ...
 const shortsRoutes = require("./routes/shortsRoutes"); // 1. Import the new route file
-
-// ... existing middleware ...
-app.use("/api/shorts", shortsRoutes); // 2. Mount the routes on /api/shorts
+const Purchase = require("./models/Purchase");
+const Notification = require("./models/Notification"); // Import the model
 
 // Initialize Environment Variables and Database
 dotenv.config();
 connectDB();
+Purchase.syncIndexes();
 
-const app = express();
+const app = express(); // Initialize app before using it!
 
 // --- SIMPLIFIED CORS CONFIGURATION ---
 // This version is more reliable for cloud handshakes
@@ -54,7 +51,7 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/purchase", purchaseRoutes);
 app.use("/api/payment", require("./routes/paymentRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
-
+app.use("/api/shorts", shortsRoutes); // 2. Mount the routes on /api/shorts
 
 // --- RENDER KEEP-ALIVE LOGIC ---
 
@@ -81,15 +78,7 @@ setInterval(async () => {
     }
 }, 14 * 60 * 1000); 
 
-// --- START SERVER ---
-const PORT = process.env.PORT || 10000; 
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on port ${PORT}`);
-});
 // This is the "endpoint" your Flutter app is looking for
-const Notification = require("./models/Notification"); // Import the model
-
-// DO NOT add the 'const Notification' line here again if it's at the top of the file
 app.get('/api/notifications/latest', async (req, res) => {
     try {
         // Find the newest notification
@@ -109,4 +98,10 @@ app.get('/api/notifications/latest', async (req, res) => {
         console.error("Poll Error:", error);
         res.status(500).json({ new_alert: false });
     }
+});
+
+// --- START SERVER ---
+const PORT = process.env.PORT || 10000; 
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
 });
