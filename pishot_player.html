@@ -111,13 +111,13 @@
             justify-content: center;
         }
 
-        iframe { height: 100%; width: 100%; pointer-events: none; } /* Initially blocked */
+        iframe { height: 100%; width: 100%; pointer-events: none; } 
 
         .interaction-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: 10; background: transparent;
-            display: block; /* Always blocking initially */
+            display: block; 
         }
 
         .video-info {
@@ -135,7 +135,9 @@
         }
     </style>
 </head>
-<body onclick="handleMasterTap()"> <div id="unmute-splash">
+<body onclick="handleMasterTap()"> 
+
+<div id="unmute-splash">
     <div class="splash-content">
         <div style="font-size: 3.5rem; margin-bottom: 15px;">🔊</div>
         <h2 style="color:white; font-size: 1.8rem; font-weight: 800;">TAP ANYWHERE</h2>
@@ -185,7 +187,8 @@
 
     function applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
-        document.getElementById('themeToggle').innerText = (theme === 'dark') ? '☀️' : '🌙';
+        const btn = document.getElementById('themeToggle');
+        if(btn) btn.innerText = (theme === 'dark') ? '☀️' : '🌙';
         localStorage.setItem('pimentor-theme', theme);
     }
 
@@ -248,7 +251,6 @@
                             if(index === 0) setupIntersectionObserver();
                         },
                         'onStateChange': (e) => {
-                            // Guard against WebView auto-pause
                             if (e.data === 2 && isUserInteracted) {
                                 e.target.playVideo();
                             }
@@ -266,22 +268,27 @@
                 const index = entry.target.id.split('-')[1];
                 if (entry.isIntersecting) {
                     if(players[index] && players[index].playVideo) {
+                        if(isUserInteracted) {
+                            players[index].unMute();
+                            players[index].setVolume(100);
+                        } else {
+                            players[index].mute();
+                        }
                         players[index].playVideo();
-                        if(!isUserInteracted) players[index].mute();
                     }
-                } else { if(players[index] && players[index].pauseVideo) players[index].pauseVideo(); }
+                } else { 
+                    if(players[index] && players[index].pauseVideo) players[index].pauseVideo(); 
+                }
             });
-        }, { threshold: 0.7 });
+        }, { threshold: 0.6 });
         document.querySelectorAll('.video-card').forEach(card => observer.observe(card));
     }
 
-    // --- NEW MASTER UNMUTE LOGIC ---
     function handleMasterTap() {
         if (isUserInteracted) return;
         isUserInteracted = true;
-        console.log("Audio Unlocked");
+        console.log("Audio Unlocked & Splash Cleared");
 
-        // 1. Unmute ALL players simultaneously (Satisfies WebView gesture policy)
         players.forEach((p) => {
             if (p && p.unMute) {
                 p.unMute();
@@ -290,14 +297,24 @@
             }
         });
 
-        // 2. Clear UI blockages
-        document.getElementById('unmute-splash').style.display = 'none';
-        document.getElementById('mainNav').classList.add('hidden');
+        const splash = document.getElementById('unmute-splash');
+        if (splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => { splash.style.display = 'none'; }, 600); 
+        }
 
-        // 3. Enable Scroller/Touches by removing blocking layers
+        document.getElementById('mainNav').classList.add('hidden');
         document.querySelectorAll('.interaction-overlay').forEach(el => el.style.display = 'none');
         document.querySelectorAll('iframe').forEach(el => el.style.pointerEvents = 'auto');
     }
+
+    // 🔥 Auto-hide splash message after 1 second, but keep sensor active
+    setTimeout(() => {
+        if(!isUserInteracted) {
+            const splash = document.getElementById('unmute-splash');
+            if(splash) splash.style.opacity = '0';
+        }
+    }, 1000);
 
     let lastScroll = 0;
     scroller.onscroll = () => {
