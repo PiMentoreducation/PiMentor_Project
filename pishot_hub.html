@@ -190,7 +190,7 @@
             // Map categories to UI cards
             // Each card takes you to 'pishot-player.html?cat=CategoryName'
             grid.innerHTML = categories.map(cat => `
-                <div class="category-card" onclick="window.location.href='pishot-player.html?cat=${encodeURIComponent(cat.name)}'">
+                <div class="category-card" onclick="window.location.href='pishot_player.html?cat=${encodeURIComponent(cat.name)}'">
                     <div class="cat-icon">${cat.icon || '🚀'}</div>
                     <div class="cat-title">${cat.name}</div>
                     <div class="cat-count">${cat.videoCount} Pi-Shots Available</div>
