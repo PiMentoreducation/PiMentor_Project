@@ -41,7 +41,7 @@
             height: 100vh;
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(10px);
-            z-index: 9999; /* Highest priority to catch first tap */
+            z-index: 9999; 
             display: flex;
             align-items: center;
             justify-content: center;
@@ -52,7 +52,7 @@
         .splash-content {
             text-align: center;
             animation: splashPulse 1.5s infinite;
-            pointer-events: none; /* Let the tap fall to the splash div */
+            pointer-events: none; 
         }
 
         @keyframes splashPulse {
@@ -111,14 +111,13 @@
             justify-content: center;
         }
 
-        iframe { height: 100%; width: 100%; }
+        iframe { height: 100%; width: 100%; pointer-events: none; } /* Initially blocked */
 
-        /* Ghost Scroller Layer - Starts Hidden */
         .interaction-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: 10; background: transparent;
-            display: none; 
+            display: block; /* Always blocking initially */
         }
 
         .video-info {
@@ -136,9 +135,7 @@
         }
     </style>
 </head>
-<body>
-
-<div id="unmute-splash" onclick="handleMasterTap()">
+<body onclick="handleMasterTap()"> <div id="unmute-splash">
     <div class="splash-content">
         <div style="font-size: 3.5rem; margin-bottom: 15px;">🔊</div>
         <h2 style="color:white; font-size: 1.8rem; font-weight: 800;">TAP ANYWHERE</h2>
@@ -192,14 +189,15 @@
         localStorage.setItem('pimentor-theme', theme);
     }
 
-    document.getElementById('themeToggle').onclick = () => {
+    document.getElementById('themeToggle').onclick = (e) => {
+        e.stopPropagation();
         const current = document.documentElement.getAttribute('data-theme');
         applyTheme(current === 'dark' ? 'light' : 'dark');
     };
 
     const sidebar = document.getElementById('sidebar');
-    document.getElementById('openDrawer').onclick = () => sidebar.classList.add('open');
-    document.getElementById('closeDrawer').onclick = () => sidebar.classList.remove('open');
+    document.getElementById('openDrawer').onclick = (e) => { e.stopPropagation(); sidebar.classList.add('open'); }
+    document.getElementById('closeDrawer').onclick = (e) => { e.stopPropagation(); sidebar.classList.remove('open'); }
 
     async function fetchShorts() {
         try {
@@ -215,7 +213,7 @@
         scroller.innerHTML = shorts.map((s, index) => {
             return `
                 <div class="video-card" id="card-${index}">
-                    <div class="interaction-overlay" id="overlay-${index}"></div>
+                    <div class="interaction-overlay"></div>
                     <div id="player-${index}"></div>
                     <div class="video-info">
                         <p>#${s.category}</p>
@@ -234,18 +232,23 @@
                 players[index] = new YT.Player(`player-${index}`, {
                     videoId: vidId,
                     playerVars: { 
-                        'autoplay': 1, // Start playing immediately (muted)
+                        'autoplay': 1, 
                         'mute': 1, 
                         'controls': 0, 
                         'rel': 0, 
                         'loop': 1, 
                         'playlist': vidId,
-                        'playsinline': 1 
+                        'playsinline': 1,
+                        'enablejsapi': 1
                     },
                     events: {
-                        'onReady': onPlayerReady,
+                        'onReady': (e) => {
+                            e.target.mute();
+                            e.target.playVideo();
+                            if(index === 0) setupIntersectionObserver();
+                        },
                         'onStateChange': (e) => {
-                            // Guard: if video pauses unexpectedly after interaction, resume it
+                            // Guard against WebView auto-pause
                             if (e.data === 2 && isUserInteracted) {
                                 e.target.playVideo();
                             }
@@ -255,12 +258,6 @@
             });
         };
         if (typeof YT !== 'undefined' && YT.loaded) window.onYouTubeIframeAPIReady();
-    }
-
-    function onPlayerReady(event) { 
-        event.target.mute();
-        event.target.playVideo();
-        setupIntersectionObserver(); 
     }
 
     function setupIntersectionObserver() {
@@ -278,44 +275,29 @@
         document.querySelectorAll('.video-card').forEach(card => observer.observe(card));
     }
 
-    // MASTER SENSOR LOGIC
+    // --- NEW MASTER UNMUTE LOGIC ---
     function handleMasterTap() {
         if (isUserInteracted) return;
         isUserInteracted = true;
+        console.log("Audio Unlocked");
 
-        // Find currently visible index
-        const visibleCard = [...document.querySelectorAll('.video-card')].find(card => {
-            const rect = card.getBoundingClientRect();
-            return rect.top >= -100 && rect.top <= 100;
+        // 1. Unmute ALL players simultaneously (Satisfies WebView gesture policy)
+        players.forEach((p) => {
+            if (p && p.unMute) {
+                p.unMute();
+                p.setVolume(100);
+                p.playVideo();
+            }
         });
-        const index = visibleCard ? visibleCard.id.split('-')[1] : 0;
 
-        // Unmute and Force Play
-        if(players[index] && players[index].unMute) {
-            players[index].unMute();
-            players[index].setVolume(100);
-            players[index].playVideo();
-        }
-
-        // Remove splash and activate scroller overlays
-        const splash = document.getElementById('unmute-splash');
-        splash.style.display = 'none';
-        
-        activateOverlay();
-    }
-
-    function activateOverlay() {
-        document.querySelectorAll('.interaction-overlay').forEach(el => el.style.display = 'block');
+        // 2. Clear UI blockages
+        document.getElementById('unmute-splash').style.display = 'none';
         document.getElementById('mainNav').classList.add('hidden');
-    }
 
-    // Splash Auto-Hide Fallback
-    setTimeout(() => {
-        if(!isUserInteracted) {
-            document.getElementById('unmute-splash').classList.add('hidden-splash');
-            // We don't display:none here because we want to catch the tap even if it's invisible
-        }
-    }, 3000);
+        // 3. Enable Scroller/Touches by removing blocking layers
+        document.querySelectorAll('.interaction-overlay').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('iframe').forEach(el => el.style.pointerEvents = 'auto');
+    }
 
     let lastScroll = 0;
     scroller.onscroll = () => {
