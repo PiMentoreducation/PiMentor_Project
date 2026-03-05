@@ -436,7 +436,37 @@
         <p style="opacity:0.5; font-size:0.9rem;">Course queries will appear here after selection.</p>
     </div>
 </section>
+<section style="border-left: 5px solid #00f2fe;">
+    <h2 style="color: #00f2fe;">🚀 Pi-Shot Management</h2>
+    
+    <div class="row">
+        <div class="col">
+            <span class="hint">1. Create/Update Category</span>
+            <input id="pishotCatName" placeholder="Category Name (e.g. Vedas)">
+            <input id="pishotCatIcon" placeholder="Emoji Icon (e.g. 🕉️)">
+            <button class="btn-lecture" style="background: #00f2fe; color: #000;" onclick="managePishotCategory()">Save Category</button>
+        </div>
 
+        <div class="col">
+            <span class="hint">2. Upload Pi-Shot</span>
+            <select id="pishotCatSelect">
+                <option value="">-- Select Category --</option>
+            </select>
+            <input id="pishotTitle" placeholder="Short Title">
+            <input id="pishotUrl" placeholder="YouTube Shorts URL">
+            <button class="btn-create" onclick="uploadPishot()">Deploy Pi-Shot</button>
+        </div>
+        <div class="row" style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--card-border);">
+    <div class="col">
+        <span class="hint">3. Surgical Delete Pi-Shot</span>
+        <select id="pishotDeleteSelect">
+            <option value="">-- Select Short to Remove --</option>
+        </select>
+        <button class="btn-delete" onclick="deletePishot()">Delete Selected Pi-Shot</button>
+    </div>
+</div>
+    </div>
+</section>
 <section style="border: 2px solid var(--danger);">
     <h2 style="color: var(--danger);">Danger & Cleanup Zone</h2>
     <div class="row">
@@ -859,6 +889,91 @@ async function loadCourseDetails() {
     link.click();
     document.body.removeChild(link);
 }
+/* --- PI-SHOT ADMIN LOGIC --- */
+
+// Fetch categories to fill the dropdown
+async function loadPishotCategories() {
+    try {
+        const res = await fetch(`${BASE_URL}/api/shorts/categories`, {
+            headers: { "Authorization": "Bearer " + token }
+        });
+        const categories = await res.json();
+        const select = document.getElementById('pishotCatSelect');
+        select.innerHTML = '<option value="">-- Select Category --</option>';
+        categories.forEach(cat => {
+            select.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+        });
+    } catch (e) { console.error("Pishot category load fail"); }
+}
+
+async function managePishotCategory() {
+    const name = document.getElementById('pishotCatName').value;
+    const icon = document.getElementById('pishotCatIcon').value;
+    
+    if(!name) return alert("Category Name is required");
+
+    const res = await fetch(`${BASE_URL}/api/shorts/manage-category`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+        body: JSON.stringify({ name, icon })
+    });
+    const result = await res.json();
+    alert(result.message);
+    loadPishotCategories(); // Refresh dropdown
+}
+
+async function uploadPishot() {
+    const payload = {
+        category: document.getElementById('pishotCatSelect').value,
+        title: document.getElementById('pishotTitle').value,
+        ytUrl: document.getElementById('pishotUrl').value
+    };
+
+    if(!payload.category || !payload.ytUrl) return alert("Category and URL are mandatory.");
+
+    const res = await fetch(`${BASE_URL}/api/shorts/upload`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+        body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+    alert(result.message);
+}
+/* --- PI-SHOT DELETE LOGIC --- */
+
+// Call this to fill the delete dropdown
+async function refreshPishotDeleteList() {
+    try {
+        const res = await fetch(`${BASE_URL}/api/shorts/list`); // Gets all shorts
+        const shorts = await res.json();
+        const delSelect = document.getElementById('pishotDeleteSelect');
+        delSelect.innerHTML = '<option value="">-- Select Short to Remove --</option>';
+        shorts.forEach(s => {
+            delSelect.innerHTML += `<option value="${s._id}">${s.category} | ${s.title}</option>`;
+        });
+    } catch (e) { console.error("Failed to load delete list"); }
+}
+
+async function deletePishot() {
+    const shotId = document.getElementById('pishotDeleteSelect').value;
+    if(!shotId) return alert("Please select a shot to delete.");
+    
+    if(!confirm("Are you sure you want to remove this Pi-Shot from the galaxy?")) return;
+
+    try {
+        const res = await fetch(`${BASE_URL}/api/shorts/delete/${shotId}`, {
+            method: "DELETE",
+            headers: { "Authorization": "Bearer " + token }
+        });
+        const result = await res.json();
+        alert(result.message);
+        refreshPishotDeleteList(); // Refresh list after deletion
+    } catch (e) { alert("Deletion failed."); }
+}
+
+// Ensure you call refreshPishotDeleteList() inside your initAdmin() function!
+// Call this inside your existing initAdmin() function
+// loadPishotCategories();
 </script>
 </body>
 </html>
