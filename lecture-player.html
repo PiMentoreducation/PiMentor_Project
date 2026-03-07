@@ -399,25 +399,22 @@
 function renderQuizQuestions(questions) {
     const area = document.getElementById("questionArea");
     
-    // Aggressive healer for the specific errors in your screenshots
     const healLaTeX = (str) => {
         if (!str) return "";
         let fixed = str
-            // 1. Repair common "swallowed" backslash patterns (ext -> \text, det -> \det)
-            .replace(/ext\s*\{/g, '\\text{')
-            .replace(/et\s*\(A\)/g, '\\det(A)')
-            .replace(/race\s*\(/g, '\\trace(')
-            // 2. Add backslashes to keywords if they are missing
-            .replace(/(?<!\\)\b(lambda|sum|det|trace|prod|times|sqrt|frac|dots|alpha|beta|theta|I)\b/g, '\\$1')
-            // 3. Clean up formatting (double slashes or unintended characters)
-            .replace(/\\+/g, '\\') 
-            .replace(/\s+/g, ' ');
+            // 1. Fix the "ext{...}" by restoring the full \text command
+            .replace(/ext\{/g, '\\text{')
+            // 2. Fix the "et(A)" or "et (A)" issue for determinant
+            .replace(/et\s*\(/g, '\\det(')
+            // 3. Remove accidental DOUBLE slashes (\\\\ -> \)
+            .replace(/\\+/g, '\\')
+            // 4. Remove any existing $ signs so we can wrap the whole thing cleanly
+            .replace(/\$/g, '');
 
-        // 4. Force wrap in $ delimiters if MathJax tags are missing but symbols exist
-        if ((fixed.includes('\\') || fixed.includes('_') || fixed.includes('^')) && !fixed.includes('$')) {
-            fixed = `$${fixed}$`;
-        }
-        return fixed;
+        // 5. THE MASTER FIX: Wrap the entire string in $ delimiters
+        // This forces MathJax to render EVERYTHING inside as math, 
+        // which removes the raw "\" and makes \text work.
+        return `$ ${fixed} $`;
     };
 
     area.innerHTML = questions.map((q, i) => {
@@ -442,7 +439,7 @@ function renderQuizQuestions(questions) {
             </div>`;
     }).join('');
 
-    // Trigger MathJax with a sufficient delay to ensure DOM is ready
+    // Trigger MathJax
     if (window.MathJax && window.MathJax.typesetPromise) {
         setTimeout(() => {
             MathJax.typesetPromise([area]).catch((err) => console.log('MathJax Error:', err));
