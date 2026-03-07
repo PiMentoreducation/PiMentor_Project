@@ -399,21 +399,22 @@
 function renderQuizQuestions(questions) {
     const area = document.getElementById("questionArea");
     
-    area.innerHTML = questions.map((q, i) => {
-        // FIX: If a backslash was lost (e.g., "ext" instead of "\text"), 
-        // we manually restore common LaTeX patterns.
-        const fixLaTeX = (str) => {
-            if (!str) return "";
-            return str
-                .replace(/ext{/g, '\\text{')
-                .replace(/sum_/g, '\\sum_')
-                .replace(/lambda/g, '\\lambda')
-                .replace(/dots/g, '\\dots')
-                .replace(/prod_/g, '\\prod_');
-        };
+    // This internal function repairs the backslashes that JSON often breaks
+    const fixLaTeX = (str) => {
+        if (!str) return "";
+        return str
+            .replace(/\\/g, '\\\\') // Double the backslashes
+            .replace(/\\\\text/g, '\\text') // Fix common misinterpreted sequences
+            .replace(/\\\\lambda/g, '\\lambda')
+            .replace(/\\\\dots/g, '\\dots')
+            .replace(/\\\\sum/g, '\\sum')
+            .replace(/\\\\prod/g, '\\prod')
+            .replace(/\\\\times/g, '\\times');
+    };
 
-        const cleanText = fixLaTeX(q.questionText);
-        // Ensure wrapped in $ if not already
+    area.innerHTML = questions.map((q, i) => {
+        const cleanText = q.questionText;
+        // Logic to ensure $ delimiters exist for MathJax to find
         const finalMainText = cleanText.includes('$') ? cleanText : `$${cleanText}$`;
 
         return `
@@ -421,8 +422,7 @@ function renderQuizQuestions(questions) {
                 <p style="font-weight:bold; margin-bottom:18px; font-size: 1.1rem;">${i + 1}. ${finalMainText}</p>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     ${q.options.map((opt, oi) => {
-                        const cleanOpt = fixLaTeX(opt);
-                        const finalOpt = cleanOpt.includes('$') ? cleanOpt : `$${cleanOpt}$`;
+                        const finalOpt = opt.includes('$') ? opt : `$${opt}$`;
                         return `
                             <label style="display:block; cursor:pointer; background: rgba(255,255,255,0.05); padding: 14px; border-radius: 10px;">
                                 <input type="radio" name="q${i}" value="${oi}" style="margin-right: 10px;"> ${finalOpt}
@@ -433,14 +433,13 @@ function renderQuizQuestions(questions) {
             </div>`;
     }).join('');
 
+    // Re-trigger MathJax to process the newly injected HTML
     if (window.MathJax && window.MathJax.typesetPromise) {
-        // Small delay ensures DOM is fully painted
         setTimeout(() => {
             MathJax.typesetPromise([area]).catch((err) => console.log('MathJax Error:', err));
         }, 100);
     }
 }
-
 async function calculateScore() {
     let score = 0;
     let reviewHtml = '<h3 style="color:var(--accent); margin-bottom:15px;">Review Answers:</h3>';
