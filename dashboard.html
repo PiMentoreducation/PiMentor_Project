@@ -478,7 +478,7 @@
                             </small>
                         </div>
                         <div style="font-weight:bold; color:var(--accent);">
-                            ${stat?.isQuizAttempted ? stat.highestQuizScore + '%' : '--'}
+                            ${stat?.isQuizAttempted ? stat.highestQuizScore*10 + '%' : '--'}
                         </div>
                     </div>`;
             }).join('');
