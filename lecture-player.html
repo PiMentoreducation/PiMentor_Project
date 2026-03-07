@@ -402,19 +402,33 @@ function renderQuizQuestions(questions) {
     const healLaTeX = (str) => {
         if (!str) return "";
         let fixed = str
-            // 1. Fix the "ext{...}" by restoring the full \text command
-            .replace(/ext\{/g, '\\text{')
-            // 2. Fix the "et(A)" or "et (A)" issue for determinant
-            .replace(/et\s*\(/g, '\\det(')
-            // 3. Remove accidental DOUBLE slashes (\\\\ -> \)
-            .replace(/\\+/g, '\\')
-            // 4. Remove any existing $ signs so we can wrap the whole thing cleanly
-            .replace(/\$/g, '');
+            // 1. Fix common "swallowed" backslash patterns (ext -> \text, det -> \det)
+            .replace(/ext\s*\{/g, '\\text{')
+            .replace(/et\s*\(A\)/g, '\\det(A)')
+            .replace(/race\s*\(/g, '\\text{trace}(')
+            // 2. Add backslashes to keywords if they are missing
+            .replace(/(?<!\\)\b(lambda|sum|det|trace|prod|times|sqrt|frac|dots|alpha|beta|gamma|theta|I)\b/g, '\\$1')
+            // 3. Clean up formatting
+            .replace(/\\+/g, '\\') 
+            .replace(/\s+/g, ' ')
+            .replace(/\$/g, ''); // Remove all $ temporarily to re-evaluate
 
-        // 5. THE MASTER FIX: Wrap the entire string in $ delimiters
-        // This forces MathJax to render EVERYTHING inside as math, 
-        // which removes the raw "\" and makes \text work.
-        return `$ ${fixed} $`;
+        // 4. INTELLIGENT WRAPPING:
+        // If the string contains multiple spaces, it's a sentence. 
+        // We only wrap parts that look like math.
+        const words = fixed.split(' ');
+        if (words.length > 2) {
+            return words.map(word => {
+                // If the word contains math symbols, wrap just that word
+                if (word.includes('\\') || word.includes('_') || word.includes('^') || word.includes('=') || (word.length === 1 && /[A-Z]/.test(word))) {
+                    return `$${word}$`;
+                }
+                return word;
+            }).join(' ');
+        } else {
+            // It's a single formula or short phrase, wrap the whole thing
+            return `$${fixed}$`;
+        }
     };
 
     area.innerHTML = questions.map((q, i) => {
