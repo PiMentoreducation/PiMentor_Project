@@ -13,130 +13,178 @@
             --glass: rgba(255, 255, 255, 0.05);
             --text: #ffffff;
             --card-border: rgba(255, 255, 255, 0.1);
+            --drawer-bg: #0d1117;
         }
 
+        /* Fixed Light Theme: Greenish Tree Shade */
         [data-theme="light"] {
-            --space-bg: linear-gradient(180deg, #f0f4f8 0%, #d9e2ec 100%);
+            --space-bg: linear-gradient(180deg, #87CEEB 0%, #E0F7FA 40%, #A8E063 100%);
             --text: #1b4332;
             --accent: #2d6a4f;
             --glass: rgba(255, 255, 255, 0.85);
             --card-border: rgba(45, 106, 79, 0.2);
+            --drawer-bg: #E0F7FA;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background: var(--space-bg); color: var(--text); min-height: 100vh; line-height: 1.6; transition: 0.5s; }
+        body { background: var(--space-bg); background-attachment: fixed; color: var(--text); min-height: 100vh; line-height: 1.6; transition: 0.5s; }
 
         /* Navigation Bar */
         .nav-bar {
-            position: fixed; top: 0; width: 100%; height: 70px; z-index: 1000;
+            position: fixed; top: 0; width: 100%; height: 75px; z-index: 1000;
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 5%; background: var(--glass); backdrop-filter: blur(15px);
             border-bottom: 1px solid var(--card-border);
         }
-        .nav-links { display: flex; gap: 15px; align-items: center; }
-        .nav-btn {
-            text-decoration: none; color: var(--text); font-size: 0.85rem; font-weight: 700;
-            padding: 8px 16px; border-radius: 20px; transition: 0.3s; border: 1px solid transparent;
-        }
-        .nav-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(124, 77, 255, 0.1); }
-        .nav-btn.active { background: var(--accent); color: white; }
 
-        /* Main Layout */
-        .container { max-width: 1100px; margin: 0 auto; padding: 100px 20px 50px; }
+        /* Logo Branding Fix */
+        .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; z-index: 1001; }
+        .logo-img { 
+            height: 45px; width: 45px; border-radius: 50%; 
+            object-fit: cover; border: 2px solid var(--accent); 
+            filter: drop-shadow(0 0 5px var(--accent-glow)); 
+        }
+        .logo-text { font-size: 1.3rem; font-weight: 800; color: var(--text); }
+
+        /* Desktop Links */
+        .nav-links { display: flex; gap: 10px; align-items: center; }
+        .nav-btn {
+            text-decoration: none; color: var(--text); font-size: 0.8rem; font-weight: 700;
+            padding: 8px 15px; border-radius: 20px; transition: 0.3s;
+        }
+        .nav-btn:hover, .nav-btn.active { background: var(--accent); color: white !important; }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none; background: none; border: none; color: var(--text);
+            font-size: 1.8rem; cursor: pointer; z-index: 1002;
+        }
+
+        /* Mobile Sidebar Drawer */
+        .nav-drawer {
+            position: fixed; top: 0; right: -100%; width: 280px; height: 100%;
+            background: var(--drawer-bg); z-index: 1001; padding: 100px 30px;
+            display: flex; flex-direction: column; gap: 20px;
+            transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+        }
+        .nav-drawer.open { right: 0; }
+        .drawer-btn {
+            text-decoration: none; color: var(--text); font-size: 1.1rem; 
+            font-weight: 700; padding: 10px 0; border-bottom: 1px solid var(--card-border);
+        }
+
+        /* Main Content Container */
+        .container { max-width: 1100px; margin: 0 auto; padding: 120px 20px 50px; }
         
         .hero { text-align: center; margin-bottom: 60px; }
-        .hero h1 { font-size: 3rem; font-weight: 800; background: linear-gradient(90deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero h1 { font-size: 3rem; font-weight: 800; margin-bottom: 10px; }
 
-        /* Support Grid */
-        .support-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 60px; }
+        .support-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
         .card { 
             background: var(--glass); border: 1px solid var(--card-border); padding: 30px; 
-            border-radius: 24px; backdrop-filter: blur(10px); transition: 0.3s;
+            border-radius: 24px; backdrop-filter: blur(10px);
         }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
 
         /* QR Section */
-        .qr-section { display: flex; align-items: center; gap: 40px; background: var(--glass); padding: 40px; border-radius: 30px; border: 1px solid var(--accent); margin-top: 40px; flex-wrap: wrap; justify-content: center; }
-        .qr-img { width: 220px; height: 220px; border-radius: 20px; border: 5px solid white; box-shadow: 0 0 20px var(--accent-glow); }
+        .qr-section { 
+            display: flex; align-items: center; gap: 40px; background: var(--glass); 
+            padding: 40px; border-radius: 30px; border: 1px solid var(--accent); 
+            margin-top: 40px; flex-wrap: wrap; justify-content: center; 
+        }
+        .qr-img { 
+            width: 220px; height: 220px; border-radius: 20px; 
+            border: 5px solid white; box-shadow: 0 0 20px var(--accent-glow); 
+        }
 
         /* FAQ Styling */
-        .faq-item { margin-bottom: 15px; border-radius: 15px; background: rgba(255,255,255,0.02); overflow: hidden; border: 1px solid var(--card-border); }
-        .faq-question { padding: 18px 25px; cursor: pointer; font-weight: 700; display: flex; justify-content: space-between; transition: 0.3s; }
-        .faq-question:hover { background: rgba(124, 77, 255, 0.1); }
-        .faq-answer { padding: 0 25px; max-height: 0; overflow: hidden; transition: 0.4s ease-out; opacity: 0; font-size: 0.95rem; }
+        .faq-item { margin-bottom: 15px; border-radius: 15px; background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); }
+        .faq-question { padding: 18px 25px; cursor: pointer; font-weight: 700; display: flex; justify-content: space-between; }
+        .faq-answer { padding: 0 25px; max-height: 0; overflow: hidden; transition: 0.3s; opacity: 0; }
         .faq-item.open .faq-answer { padding: 10px 25px 25px; max-height: 200px; opacity: 1; }
 
-        .email-link { color: var(--accent); font-weight: 800; text-decoration: none; }
-        
-        @media (max-width: 768px) { .nav-links { display: none; } .hero h1 { font-size: 2rem; } }
+        @media (max-width: 900px) {
+            .nav-links { display: none; }
+            .menu-toggle { display: block; }
+            .hero h1 { font-size: 2.2rem; }
+            .nav-bar { padding: 0 20px; }
+        }
     </style>
 </head>
 <body>
 
 <nav class="nav-bar">
-    <a href="/" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
-        <img src="/images/OUR_LOGO.png" height="40" alt="Logo">
-        <span style="font-weight: 800; color: var(--text); font-size: 1.2rem;">PiMentor</span>
+    <a href="/index.html" class="brand">
+        <img src="/images/OUR_LOGO.png" alt="Logo" class="logo-img">
+        <span class="logo-text">PiMentor</span>
     </a>
-    <div class="nav-links" id="navLinks">
+
+    <div class="nav-links" id="desktopNav">
         <a href="/index.html" class="nav-btn">HOME</a>
         <a href="/courses.html" class="nav-btn">COURSES</a>
         <a href="/pishot.html" class="nav-btn">PISHOT</a>
         <a href="/support.html" class="nav-btn active">COMMUNITY</a>
         </div>
-    <button onclick="toggleTheme()" style="background:none; border:none; cursor:pointer; font-size:1.2rem;" id="themeBtn">🌙</button>
+
+    <div style="display: flex; gap: 15px; align-items: center;">
+        <button onclick="toggleTheme()" id="themeBtn" style="background:none; border:none; cursor:pointer; font-size:1.3rem;">🌙</button>
+        <button class="menu-toggle" onclick="toggleDrawer()">☰</button>
+    </div>
 </nav>
+
+<div class="nav-drawer" id="mobileDrawer">
+    <a href="/index.html" class="drawer-btn">HOME</a>
+    <a href="/courses.html" class="drawer-btn">COURSES</a>
+    <a href="/pishot.html" class="drawer-btn">PISHOT</a>
+    <a href="/support.html" class="drawer-btn">COMMUNITY</a>
+    <div id="drawerDynamic"></div>
+</div>
 
 <div class="container">
     <section class="hero">
         <h1>How can we help?</h1>
-        <p style="opacity: 0.7; margin-top: 10px;">Everything you need to master PiMentor and your learning journey.</p>
+        <p style="opacity: 0.8;">Empowering your learning journey with 24/7 support.</p>
     </section>
 
     <div class="support-grid">
         <div class="card">
-            <h3 style="color: var(--accent); margin-bottom: 15px;">🚀 Key Features</h3>
-            <ul style="list-style: none; padding: 0; font-size: 0.9rem;">
-                <li style="margin-bottom: 12px;">✅ <b>Dynamic Quiz Player:</b> Interactive MCQs with real-time LaTeX symbol rendering for math.</li>
-                <li style="margin-bottom: 12px;">✅ <b>Progress Tracking:</b> Leaderboards that update as you master each lecture.</li>
-                <li style="margin-bottom: 12px;">✅ <b>Doubt Transmitting:</b> Ask questions directly to mentors while watching a video.</li>
-                <li style="margin-bottom: 12px;">✅ <b>Resource Library:</b> Access PDF notes and additional reading in one click.</li>
+            <h3 style="color: var(--accent); margin-bottom: 15px;">🚀 Features & How-To</h3>
+            <ul style="list-style: none; font-size: 0.9rem;">
+                <li>🔹 <b>Dashboard:</b> View enrolled courses and resume learning.</li>
+                <li>🔹 <b>PiShot:</b> Quick revision shorts for key concepts.</li>
+                <li>🔹 <b>Quizzes:</b> Complete MCQs to unlock the next chapter.</li>
+                <li>🔹 <b>Doubt Desk:</b> Use the player sidebar to ask mentors directly.</li>
             </ul>
         </div>
 
         <div class="card">
-            <h3 style="margin-bottom: 20px;">❓ Common Questions</h3>
+            <h3 style="margin-bottom: 20px;">❓ FAQs</h3>
             <div class="faq-item">
-                <div class="faq-question" onclick="toggleFaq(this)">How do I track my progress? <span>+</span></div>
-                <div class="faq-answer">Your progress is automatically saved when you watch 85% of a video or pass a lecture quiz. Check the 'Curriculum' sidebar in the player.</div>
+                <div class="faq-question" onclick="toggleFaq(this)">Symbol Rendering Issues? <span>+</span></div>
+                <div class="faq-answer">Wait for MathJax to load or refresh the page if symbols appear as raw code.</div>
             </div>
             <div class="faq-item">
-                <div class="faq-question" onclick="toggleFaq(this)">Math symbols aren't loading? <span>+</span></div>
-                <div class="faq-answer">Wait 1-2 seconds for MathJax to render. If it still doesn't show, refresh the page to re-trigger the rendering engine.</div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question" onclick="toggleFaq(this)">Can I access PDF notes offline? <span>+</span></div>
-                <div class="faq-answer">Yes, once you open the PDF resource in the player, you can use the 'Download' icon in the top right of the viewer.</div>
+                <div class="faq-question" onclick="toggleFaq(this)">Forgot Password? <span>+</span></div>
+                <div class="faq-answer">Click "Login" and select "Forgot Password" to receive a reset link via email.</div>
             </div>
         </div>
     </div>
 
     <div class="qr-section">
-        <div style="flex: 1; min-width: 300px;">
-            <h2 style="margin-bottom: 15px;">Join the Community</h2>
-            <p style="margin-bottom: 20px; opacity: 0.8;">Scan the QR code to join our <b>PiMentor Student WhatsApp Group</b>. Get instant updates, discuss doubts with peers, and stay connected.</p>
-            <p>For official queries: <a href="mailto:pimentor.education@gmail.com" class="email-link">pimentor.education@gmail.com</a></p>
+        <div style="flex: 1; min-width: 280px;">
+            <h2>Join Student Community</h2>
+            <p style="margin: 15px 0; opacity: 0.8;">Scan the QR code to join our official WhatsApp group for instant peer support and updates.</p>
+            <p>Support Email: <b style="color:var(--accent)">pimentor.education@gmail.com</b></p>
         </div>
-        <img src="/images/whatsapp_qr.jpg" alt="WhatsApp Group QR" class="qr-img" id="qrDisplay">
+        <img src="/images/whatsapp_qr.jpg" alt="WhatsApp QR" class="qr-img">
     </div>
 </div>
 
 <script>
-    // --- THEME LOGIC ---
+    // Theme Logic with Greenish Light Mode
     function applyTheme(theme) {
         document.documentElement.setAttribute("data-theme", theme);
-        const btn = document.getElementById("themeBtn");
-        if(btn) btn.innerText = theme === "dark" ? "☀️" : "🌙";
+        document.getElementById("themeBtn").innerText = theme === "dark" ? "☀️" : "🌙";
         localStorage.setItem("pimentor-theme", theme);
     }
     applyTheme(localStorage.getItem('pimentor-theme') || 'dark');
@@ -145,38 +193,55 @@
         applyTheme(current === "dark" ? "light" : "dark"); 
     }
 
-    // --- NAVIGATION LOGIC ---
+    // Nav Logic: Injects Dashboard/Login based on Auth
     function updateNav() {
-        const nav = document.getElementById("navLinks");
+        const desktop = document.getElementById("desktopNav");
+        const drawer = document.getElementById("drawerDynamic");
         const token = localStorage.getItem("token");
 
-        if (token) {
-            nav.innerHTML += `
-                <a href="/dashboard.html" class="nav-btn">DASHBOARD</a>
-                <a href="#" onclick="logout()" class="nav-btn" style="color: #ff4d4d;">LOGOUT</a>
-            `;
-        } else {
-            nav.innerHTML += `
-                <a href="/login.html" class="nav-btn">LOGIN</a>
-                <a href="/register.html" class="nav-btn" style="border: 1px solid var(--accent);">REGISTER</a>
-            `;
-        }
+        const authLinks = token ? `
+            <a href="/dashboard.html" class="nav-btn">DASHBOARD</a>
+            <a href="#" onclick="logout()" class="nav-btn" style="color:#ff4d4d">LOGOUT</a>
+        ` : `
+            <a href="/login.html" class="nav-btn">LOGIN</a>
+            <a href="/register.html" class="nav-btn" style="border:1px solid var(--accent)">REGISTER</a>
+        `;
+
+        const drawerLinks = token ? `
+            <a href="/dashboard.html" class="drawer-btn">DASHBOARD</a>
+            <a href="#" onclick="logout()" class="drawer-btn" style="color:#ff4d4d">LOGOUT</a>
+        ` : `
+            <a href="/login.html" class="drawer-btn">LOGIN</a>
+            <a href="/register.html" class="drawer-btn">REGISTER</a>
+        `;
+
+        desktop.innerHTML += authLinks;
+        drawer.innerHTML = drawerLinks;
     }
 
-    function logout() {
-        localStorage.removeItem("token");
-        window.location.href = "/login.html";
+    function logout() { localStorage.removeItem("token"); window.location.href = "/login.html"; }
+
+    // Sidebar Drawer Toggle
+    function toggleDrawer() {
+        document.getElementById("mobileDrawer").classList.toggle('open');
     }
 
-    // --- FAQ ACCORDION ---
+    // FAQ Accordion
     function toggleFaq(el) {
         const item = el.parentElement;
         item.classList.toggle('open');
-        const icon = el.querySelector('span');
-        icon.innerText = item.classList.contains('open') ? '-' : '+';
+        el.querySelector('span').innerText = item.classList.contains('open') ? '-' : '+';
     }
 
     document.addEventListener("DOMContentLoaded", updateNav);
+    // Close drawer when clicking outside
+    document.addEventListener('click', (e) => {
+        const drawer = document.getElementById("mobileDrawer");
+        const toggle = document.querySelector(".menu-toggle");
+        if (!drawer.contains(e.target) && !toggle.contains(e.target) && drawer.classList.contains('open')) {
+            drawer.classList.remove('open');
+        }
+    });
 </script>
 </body>
 </html>
