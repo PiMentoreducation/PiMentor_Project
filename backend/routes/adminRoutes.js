@@ -252,5 +252,21 @@ router.delete("/notification/:id", auth, admin, async (req, res) => {
         res.status(500).json({ message: "Delete failed" });
     }
 });
-
+// NEW: Fetch single course details by courseId for the Admin Panel
+router.get("/course/:courseId", auth, admin, async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        // Search for the custom courseId (e.g., 'math_10_01')
+        const course = await Course.findOne({ courseId: courseId.trim() });
+        
+        if (!course) {
+            return res.status(404).json({ message: "Course details not found in the galaxy." });
+        }
+        
+        res.json(course);
+    } catch (err) {
+        console.error("FETCH COURSE ERROR:", err);
+        res.status(500).json({ message: "Server error fetching course details" });
+    }
+});
 module.exports = router;
