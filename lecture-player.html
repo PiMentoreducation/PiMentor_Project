@@ -384,6 +384,9 @@
             document.getElementById("quizModal").style.display = "flex";
             document.getElementById("quizContainer").style.display = "block";
             document.getElementById("quizResult").style.display = "none";
+            if (window.MathJax) {
+    MathJax.typesetPromise(); 
+            }
             
             // Re-render MathJax to display the technical formulas correctly
             if (window.MathJax) MathJax.typesetPromise();
