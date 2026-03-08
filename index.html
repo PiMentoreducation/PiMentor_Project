@@ -213,61 +213,83 @@
 <footer><p style="text-align:center; padding: 40px; border-top: 1px solid var(--card-border);">© 2026 PiMentor. Galactic Learning. Built by Harsh Vardhan Vishwakarma.</p></footer>
 
 <script>
-    /* --- THEME LOGIC (ON/OFF SWITCH) --- */
-    const toggles = [document.getElementById('themeToggleDesktop'), document.getElementById('themeToggleMobile')];
-    const applyTheme = (theme) => {
-        document.documentElement.setAttribute('data-theme', theme);
-        toggles.forEach(t => t.checked = (theme === 'dark'));
-        localStorage.setItem('pimentor-theme', theme);
-    };
+   /* --- THEME LOGIC --- */
+const toggles = [document.getElementById('themeToggleDesktop'), document.getElementById('themeToggleMobile')];
+const applyTheme = (theme) => {
+    document.documentElement.setAttribute('data-theme', theme);
+    toggles.forEach(t => { if(t) t.checked = (theme === 'dark'); });
+    localStorage.setItem('pimentor-theme', theme);
+};
+toggles.forEach(t => { if(t) t.onchange = () => applyTheme(t.checked ? 'dark' : 'light'); });
+applyTheme(localStorage.getItem('pimentor-theme') || 'dark');
 
-    toggles.forEach(t => t.onchange = () => applyTheme(t.checked ? 'dark' : 'light'));
-    applyTheme(localStorage.getItem('pimentor-theme') || 'dark');
+/* --- SIDEBAR --- */
+document.getElementById('hamburger').onclick = () => document.getElementById('sidebar').classList.add('open');
+document.getElementById('closeSidebar').onclick = () => document.getElementById('sidebar').classList.remove('open');
 
-    /* --- SIDEBAR --- */
-    document.getElementById('hamburger').onclick = () => document.getElementById('sidebar').classList.add('open');
-    document.getElementById('closeSidebar').onclick = () => document.getElementById('sidebar').classList.remove('open');
+/* --- AUTH & DATA SYNC --- */
+document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("token");
+    const desktopAuth = document.getElementById("desktopAuth");
+    const mobileAuth = document.getElementById("mobileAuth");
 
-    /* --- AUTH CHECK (DASHBOARD VS LOGIN) --- */
-    document.addEventListener("DOMContentLoaded", () => {
-        const token = localStorage.getItem("token");
-        const desktopAuth = document.getElementById("desktopAuth");
-        const mobileAuth = document.getElementById("mobileAuth");
-
-        if (token) {
-            desktopAuth.innerHTML = `<a href="dashboard.html" class="btn-action">Dashboard</a>`;
-            mobileAuth.innerHTML = `<a href="dashboard.html" style="color:var(--accent)">Dashboard</a>`;
-        }
-        fetchDynamicData();
-    });
-
-    /* --- DYNAMIC FETCHING --- */
-    async function fetchDynamicData() {
-        try {
-            // Courses
-            const cRes = await fetch('https://pimentor-project.onrender.com/api/courses');
-            const courses = await cRes.json();
-            document.getElementById('dynamicCourses').innerHTML = courses.slice(-3).reverse().map(c => `
-                <div class="card">
-                    <img src="/images/course.png" style="width:100%; border-radius:15px; margin-bottom:15px;">
-                    <h3>${c.title}</h3>
-                    <p style="font-size:0.9rem; opacity:0.7; margin-top:10px;">The latest curriculum addition.</p>
-                    <a href="/courses.html" style="color:var(--accent); text-decoration:none; display:block; margin-top:15px; font-weight:800;">View Details →</a>
-                </div>
-            `).join('');
-
-            // PiShots (Mock top 3 categories)
-            const categories = ["Mathematics", "Physics", "Exam Strategy"];
-            document.getElementById('dynamicShots').innerHTML = categories.map(cat => `
-                <div class="card" style="text-align:center">
-                    <div style="font-size:3rem; margin-bottom:15px;">🎬</div>
-                    <h3>${cat}</h3>
-                    <p style="opacity:0.7;">Top Category: Most Shorts Uploaded</p>
-                    <a href="/pishot_hub.html" class="btn-action" style="display:inline-block; margin-top:20px; font-size:0.8rem;">Explore</a>
-                </div>
-            `).join('');
-        } catch (e) { console.error("Sync Error", e); }
+    if (token) {
+        if(desktopAuth) desktopAuth.innerHTML = `<a href="dashboard.html" class="btn-action">Dashboard</a>`;
+        if(mobileAuth) mobileAuth.innerHTML = `<a href="dashboard.html" style="color:var(--accent); font-weight:800;">Dashboard</a>`;
     }
+    fetchDynamicData();
+});
+
+async function fetchDynamicData() {
+    const courseContainer = document.getElementById('dynamicCourses');
+    const shotContainer = document.getElementById('dynamicShots');
+
+    try {
+        // 1. Fetch Latest Courses
+        const cRes = await fetch('https://pimentor-project.onrender.com/api/courses');
+        if (!cRes.ok) throw new Error('Course API failed');
+        
+        const courses = await cRes.json();
+        console.log("Courses Received:", courses); // Debugging
+
+        if (courses && courses.length > 0) {
+            // Take last 3, reverse so newest is first
+            const latest = courses.slice(-3).reverse();
+            courseContainer.innerHTML = latest.map(c => `
+                <div class="card">
+                    <img src="${c.thumbnail || '/images/course.png'}" style="width:100%; border-radius:15px; margin-bottom:15px; height:180px; object-fit:cover;">
+                    <h3 style="font-size:1.2rem;">${c.title}</h3>
+                    <p style="font-size:0.85rem; opacity:0.7; margin-top:10px; height:40px; overflow:hidden;">${c.description || 'Master this subject with PiMentor galactic curriculum.'}</p>
+                    <a href="/courses.html" style="color:var(--accent); text-decoration:none; display:block; margin-top:15px; font-weight:800;">Enroll Now →</a>
+                </div>
+            `).join('');
+        }
+
+        // 2. Fetch PiShot Categories
+        // Note: Replace this URL with your actual PiShot Category API if different
+        const sRes = await fetch('https://pimentor-project.onrender.com/api/pishots/categories');
+        const categories = sRes.ok ? await sRes.json() : ["Mathematics", "Physics", "Chemistry"];
+
+        shotContainer.innerHTML = categories.slice(0, 3).map(cat => `
+            <div class="card" style="text-align:center; border-bottom: 4px solid var(--gold);">
+                <div style="font-size:3rem; margin-bottom:15px;">🎬</div>
+                <h3 style="letter-spacing:1px;">${cat.name || cat}</h3>
+                <p style="opacity:0.7; font-size:0.8rem; margin-top:5px;">Most Trending Category</p>
+                <a href="/pishot_hub.html" class="btn-action" style="display:inline-block; margin-top:20px; font-size:0.8rem; padding: 8px 20px;">Watch Shorts</a>
+            </div>
+        `).join('');
+
+    } catch (e) { 
+        console.error("Sync Error:", e);
+        // Fallback UI so the page isn't empty if server is slow
+        courseContainer.innerHTML = `<p style="grid-column:1/-1; opacity:0.5; text-align:center;">Visit our Courses page to see the latest launches.</p>`;
+    }
+}
+
+function logout() {
+    localStorage.removeItem("token");
+    window.location.reload();
+}
 </script>
 </body>
 </html>
