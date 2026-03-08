@@ -164,13 +164,16 @@
     const sidebar = document.getElementById("sidebar");
     const hamburger = document.getElementById("hamburger");
     const closeSidebar = document.getElementById("closeSidebar");
+    
+    // Get Course ID from URL
     const urlParams = new URLSearchParams(window.location.search);
     const courseId = urlParams.get('id');
 
+    // --- SIDEBAR LOGIC ---
     hamburger.onclick = () => sidebar.classList.add('open');
     closeSidebar.onclick = () => sidebar.classList.remove('open');
 
-    // --- ENHANCED THEME MANAGEMENT ---
+    // --- THEME MANAGEMENT (Green Tree Light Mode) ---
     const applyTheme = (theme) => {
         document.documentElement.setAttribute("data-theme", theme);
         const isDark = theme === "dark";
@@ -178,14 +181,9 @@
         const labelText = isDark ? "Dark Mode" : "Light Mode";
         const iconSymbol = isDark ? "🌙" : "☀️";
 
-        // Update Nav Box
-        document.getElementById("themeLabelNav").innerText = labelText;
-        document.getElementById("themeIconNav").innerText = iconSymbol;
-
-        // Update Sidebar Box
-        document.getElementById("themeLabelSidebar").innerText = labelText;
-        document.getElementById("themeIconSidebar").innerText = iconSymbol;
-
+        if(document.getElementById("themeLabelNav")) document.getElementById("themeLabelNav").innerText = labelText;
+        if(document.getElementById("themeIconNav")) document.getElementById("themeIconNav").innerText = iconSymbol;
+        
         localStorage.setItem("pimentor-theme", theme);
     };
 
@@ -196,11 +194,72 @@
         applyTheme(current === "dark" ? "light" : "dark");
     };
 
-    themeToggleNav.onclick = toggleHandler;
-    themeToggleSidebar.onclick = toggleHandler;
+    if(themeToggleNav) themeToggleNav.onclick = toggleHandler;
+    if(themeToggleSidebar) themeToggleSidebar.onclick = toggleHandler;
 
-    // --- API LOGIC REMAINS SAME ---
-    // ... loadChapters() function ...
+    // --- FIXED CURRICULUM FETCHING ---
+    async function loadChapters() {
+        const container = document.getElementById("chapterContainer");
+        
+        if (!courseId) {
+            container.innerHTML = `<div class="loading-text">Error: Course ID missing from URL.</div>`;
+            return;
+        }
+
+        try {
+            // UPDATED URL: Matches authRoutes.js
+            const res = await fetch(`https://pimentor-project.onrender.com/api/auth/courses/${courseId}/lectures`, {
+                headers: { 
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/json"
+                }
+            });
+
+            const data = await res.json();
+
+            if (!data.success) {
+                container.innerHTML = `<div class="loading-text">${data.message || 'Failed to load curriculum.'}</div>`;
+                return;
+            }
+
+            const lectures = data.lectures;
+
+            if (!lectures || lectures.length === 0) {
+                container.innerHTML = `<div class="loading-text">No lectures available in this course yet.</div>`;
+                return;
+            }
+
+            // Render the lectures dynamically
+            container.innerHTML = lectures.map((lecture, index) => `
+                <a href="/lecture-player.html?courseId=${courseId}&lectureId=${lecture._id}" class="chapter-card">
+                    <div class="chapter-info">
+                        <div class="folder-icon">${index + 1}</div>
+                        <div class="chapter-name">${lecture.title}</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            `).join('');
+
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            container.innerHTML = `<div class="loading-text">Server connection lost. Please log in again.</div>`;
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem("token");
+        window.location.href = "/login.html";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Handle Auth display in sidebar/nav
+        const desktopNav = document.querySelector(".nav-links");
+        if (token && desktopNav && !document.getElementById("dashBtn")) {
+             desktopNav.insertAdjacentHTML('afterbegin', '<a href="/dashboard.html" id="dashBtn">Dashboard</a>');
+        }
+        
+        loadChapters();
+    });
 </script>
 </body>
 </html>
