@@ -247,11 +247,15 @@
     }
 
     // --- PLAYER INITIALIZATION ---
+// --- UPDATED PLAYER INITIALIZATION ---
     async function initPlayer() {
         if (!courseId || !chapter) {
             window.location.href = "dashboard.html";
             return;
         }
+
+        // Get the specific lectureId from URL if it exists
+        const targetLectureId = urlParams.get('lectureId');
 
         document.getElementById("backBtn").href = `course-structure.html?id=${courseId}`;
         document.getElementById("chapterNameDisplay").innerText = "CHAPTER: " + chapter;
@@ -272,14 +276,21 @@
             renderLectureList(lectures);
 
             if (lectures.length > 0) {
-                playLecture(lectures[0]);
+                // NEW LOGIC: Look for the specific lecture from URL, otherwise pick the first
+                let lectureToPlay = lectures[0]; 
+                
+                if (targetLectureId) {
+                    const found = lectures.find(l => l._id === targetLectureId);
+                    if (found) lectureToPlay = found;
+                }
+
+                playLecture(lectureToPlay);
             } else {
                 document.getElementById("lectureList").innerHTML = "<p style='text-align:center; opacity:0.5;'>No lectures found.</p>";
             }
             await fetchLeaderboard(); 
         } catch (err) { console.error(err); }
     }
-
     function renderLectureList(lectures) {
         const list = document.getElementById("lectureList");
         list.innerHTML = lectures.map((l, index) => {
