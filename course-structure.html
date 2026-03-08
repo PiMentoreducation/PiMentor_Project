@@ -25,10 +25,9 @@
             --folder-bg: rgba(45, 106, 79, 0.1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.4s; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.4s, color 0.4s; }
         body { background: var(--bg); background-attachment: fixed; color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
-        /* --- NAVIGATION --- */
         .navbar {
             position: fixed; top: 0; width: 100%; height: 80px; z-index: 1000;
             display: flex; align-items: center; padding: 0 5%;
@@ -38,9 +37,9 @@
         .logo-img { height: 45px; width: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
         .logo-text { font-size: 1.5rem; font-weight: 800; background: linear-gradient(90deg, var(--text), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* --- HAMBURGER & SIDEBAR --- */
         .hamburger { display: none; cursor: pointer; flex-direction: column; gap: 6px; z-index: 2002; }
         .hamburger span { width: 28px; height: 3px; background: var(--text); border-radius: 2px; }
+        
         .sidebar { position: fixed; top: 0; left: -320px; width: 300px; height: 100%; background: var(--bg); z-index: 2001; transition: 0.4s; padding: 80px 30px; border-right: 1px solid var(--accent); }
         .sidebar.open { left: 0; }
         .sidebar-links a { display: block; color: var(--text); text-decoration: none; font-weight: 700; margin-bottom: 20px; font-size: 1.1rem; }
@@ -51,11 +50,9 @@
             .brand { margin-right: auto; }
         }
 
-        /* --- CONTENT --- */
         .container { max-width: 900px; margin: 120px auto 50px; padding: 0 20px; }
-        .header-box { background: var(--glass); padding: 35px; border-radius: 24px; border-left: 8px solid var(--accent); margin-bottom: 30px; border: 1px solid var(--card-border); border-left: 8px solid var(--accent); }
+        .header-box { background: var(--glass); padding: 35px; border-radius: 24px; border-left: 8px solid var(--accent); margin-bottom: 30px; border: 1px solid var(--card-border); }
         
-        /* Chapter/Lecture Cards */
         .card-list { display: flex; flex-direction: column; gap: 15px; }
         .item-card {
             background: var(--glass); padding: 20px 30px; border-radius: 20px;
@@ -89,7 +86,7 @@
 </header>
 
 <aside class="sidebar" id="sidebar">
-    <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
         <span class="logo-text">Menu</span>
         <button id="closeSidebar" style="background:none; border:none; color:var(--text); font-size:2rem;">&times;</button>
     </div>
@@ -119,8 +116,9 @@
     const courseId = urlParams.get('id');
     const container = document.getElementById("contentList");
     const backBtn = document.getElementById("backBtn");
+    const BASE_URL = "https://pimentor-project.onrender.com";
 
-    // Sidebar Logic
+    // Navigation Logic
     document.getElementById("hamburger").onclick = () => document.getElementById("sidebar").classList.add("open");
     document.getElementById("closeSidebar").onclick = () => document.getElementById("sidebar").classList.remove("open");
 
@@ -128,19 +126,21 @@
     const applyTheme = (t) => {
         document.documentElement.setAttribute("data-theme", t);
         localStorage.setItem("pimentor-theme", t);
+        const toggle = document.getElementById("themeToggleNav");
+        if(toggle) toggle.checked = (t === "dark");
     };
     applyTheme(localStorage.getItem("pimentor-theme") || "dark");
     document.getElementById("themeToggleNav").onchange = (e) => applyTheme(e.target.checked ? "dark" : "light");
 
-    // --- STEP 1: FETCH CHAPTERS ---
+    // STEP 1: FETCH CHAPTERS using purchaseRoutes GET /course-chapters/:courseId
     async function loadChapters() {
         if (!courseId) return alert("Course ID Missing");
         backBtn.style.display = "none";
         document.getElementById("pageHeading").innerText = "Course Chapters";
+        container.innerHTML = '<div style="text-align:center; opacity:0.5;">Loading Chapters...</div>';
         
         try {
-            // Target: router.get("/course-chapters/:courseId")
-            const res = await fetch(`https://pimentor-project.onrender.com/api/purchase/course-chapters/${courseId}`, {
+            const res = await fetch(`${BASE_URL}/api/purchase/course-chapters/${courseId}`, {
                 headers: { "Authorization": "Bearer " + token }
             });
             const chapters = await res.json();
@@ -159,24 +159,26 @@
                     <div style="opacity:0.5;">Explore →</div>
                 </div>
             `).join('');
-        } catch (e) { container.innerHTML = "Error loading chapters."; }
+        } catch (e) { 
+            console.error(e);
+            container.innerHTML = "Error loading chapters."; 
+        }
     }
 
-    // --- STEP 2: FETCH LECTURES FOR CHAPTER ---
+    // STEP 2: FETCH LECTURES using purchaseRoutes GET /course-content/:courseId/:chapterName
     async function loadLectures(chapterName) {
         container.innerHTML = `<div style="text-align:center;">Opening ${decodeURIComponent(chapterName)}...</div>`;
         backBtn.style.display = "block";
         document.getElementById("pageHeading").innerText = decodeURIComponent(chapterName);
 
         try {
-            // Target: router.get("/course-content/:courseId/:chapterName")
-            const res = await fetch(`https://pimentor-project.onrender.com/api/purchase/course-content/${courseId}/${chapterName}`, {
+            const res = await fetch(`${BASE_URL}/api/purchase/course-content/${courseId}/${chapterName}`, {
                 headers: { "Authorization": "Bearer " + token }
             });
             const lectures = await res.json();
 
             container.innerHTML = lectures.map((lec, i) => `
-                <a href="/lecture-player.html?courseId=${courseId}&lectureId=${lec._id}" class="item-card">
+                <a href="/lecture-player.html?courseId=${courseId}&chapter=${chapterName}&lectureId=${lec._id}" class="item-card">
                     <div class="item-info">
                         <div class="icon-box">T${i + 1}</div>
                         <div style="font-weight:700;">${lec.title}</div>
@@ -184,12 +186,19 @@
                     <div style="opacity:0.5;">Watch Topic →</div>
                 </a>
             `).join('');
-        } catch (e) { container.innerHTML = "Error loading lectures."; }
+        } catch (e) { 
+            console.error(e);
+            container.innerHTML = "Error loading lectures."; 
+        }
     }
 
     backBtn.onclick = loadChapters;
 
-    function logout() { localStorage.clear(); window.location.href = "/login.html"; }
+    function logout() { 
+        localStorage.clear(); 
+        window.location.href = "/login.html"; 
+    }
+
     document.addEventListener("DOMContentLoaded", loadChapters);
 </script>
 </body>
