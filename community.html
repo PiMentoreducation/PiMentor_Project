@@ -13,14 +13,17 @@
             --glass: rgba(255, 255, 255, 0.03);
             --text: #ffffff;
             --gold: #ffcc00;
+            --drawer-bg: #0d1117;
         }
 
+        /* Restored Green Tree Light Theme */
         [data-theme="light"] {
             --space-bg: linear-gradient(180deg, #87CEEB 0%, #E0F7FA 40%, #A8E063 100%);
             --text: #1b4332;
             --accent: #2d6a4f;
             --glass: rgba(255, 255, 255, 0.8);
             --gold: #b8860b;
+            --drawer-bg: #E0F7FA;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -33,85 +36,104 @@
             padding: 0 5%; background: var(--glass); backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-        .logo-img { height: 45px; width: 45px; border-radius: 50%; border: 2px solid var(--accent); }
-        .nav-links { display: flex; gap: 20px; }
-        .nav-btn { text-decoration: none; color: var(--text); font-weight: 700; font-size: 0.8rem; padding: 10px 20px; border-radius: 30px; transition: 0.3s; }
-        .nav-btn:hover { background: var(--accent); color: white; }
 
-        /* Hypnotic Hero Section */
-        .hero {
-            height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; padding: 0 20px; position: relative;
+        /* Logo Branding Fix */
+        .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; z-index: 1001; }
+        .logo-img { 
+            height: 45px; width: 45px; border-radius: 50%; 
+            object-fit: cover; border: 2px solid var(--accent); 
+            filter: drop-shadow(0 0 10px var(--accent-glow));
         }
-        .hero h1 {
-            font-size: clamp(3rem, 8vw, 6rem); font-weight: 800; line-height: 1;
-            background: linear-gradient(to bottom, #fff 30%, var(--accent));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            animation: pulse 4s infinite ease-in-out;
+        .logo-text { font-size: 1.3rem; font-weight: 800; color: var(--text); }
+
+        /* Desktop Links */
+        .nav-links { display: flex; gap: 15px; align-items: center; }
+        .nav-btn { 
+            text-decoration: none; color: var(--text); font-weight: 700; 
+            font-size: 0.8rem; padding: 10px 20px; border-radius: 30px; transition: 0.3s; 
         }
+        .nav-btn:hover, .nav-btn.active { background: var(--accent); color: white !important; }
+
+        /* Mobile Hamburger Icon */
+        .menu-toggle {
+            display: none; background: none; border: none; color: var(--text);
+            font-size: 1.8rem; cursor: pointer; z-index: 1002;
+        }
+
+        /* Sidebar Drawer (Left) */
+        .nav-drawer {
+            position: fixed; top: 0; left: -100%; width: 280px; height: 100%;
+            background: var(--drawer-bg); z-index: 1001; padding: 100px 30px;
+            display: flex; flex-direction: column; gap: 20px;
+            transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+            border-right: 1px solid var(--accent);
+        }
+        .nav-drawer.open { left: 0; }
+        .drawer-btn {
+            text-decoration: none; color: var(--text); font-size: 1.1rem; 
+            font-weight: 700; padding: 12px 0; border-bottom: 1px solid rgba(124, 77, 255, 0.1);
+        }
+
+        /* Sections */
+        .hero { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 20px; position: relative; }
+        .hero h1 { font-size: clamp(3rem, 8vw, 6rem); font-weight: 800; line-height: 1; background: linear-gradient(to bottom, #fff 30%, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: pulse 4s infinite ease-in-out; }
         @keyframes pulse { 0%, 100% { filter: drop-shadow(0 0 10px var(--accent-glow)); } 50% { filter: drop-shadow(0 0 30px var(--accent)); } }
 
-        /* Stats Section */
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 30px; width: 100%; max-width: 1200px; margin: -50px auto 100px;
-        }
-        .stat-card {
-            background: var(--glass); padding: 40px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);
-            text-align: center; backdrop-filter: blur(15px);
-        }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; width: 100%; max-width: 1200px; margin: -50px auto 100px; }
+        .stat-card { background: var(--glass); padding: 40px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); text-align: center; backdrop-filter: blur(15px); }
         .stat-card h2 { font-size: 2.5rem; color: var(--gold); margin-bottom: 10px; }
 
-        /* Features Section */
         .content-section { max-width: 1200px; margin: 0 auto; padding: 100px 20px; }
-        .feature-box {
-            display: flex; align-items: center; gap: 50px; margin-bottom: 100px;
-            opacity: 0; transform: translateY(50px); transition: 1s;
-        }
+        .feature-box { display: flex; align-items: center; gap: 50px; margin-bottom: 100px; opacity: 0; transform: translateY(50px); transition: 1s; }
         .feature-box.visible { opacity: 1; transform: translateY(0); }
         .feature-text { flex: 1; }
         .feature-text h3 { font-size: 2.5rem; margin-bottom: 20px; color: var(--accent); }
         .feature-visual { flex: 1; height: 300px; background: var(--glass); border-radius: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--accent); }
 
-        /* WhatsApp QR Floating Box */
-        .cta-box {
-            background: linear-gradient(135deg, var(--accent) 0%, #4b2cbe 100%);
-            padding: 60px; border-radius: 40px; text-align: center; color: white;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin-bottom: 100px;
-        }
-        .qr-frame {
-            background: white; padding: 15px; border-radius: 20px; display: inline-block;
-            margin: 30px 0; transform: rotate(-3deg); transition: 0.5s;
-        }
-        .qr-frame:hover { transform: rotate(0deg) scale(1.1); }
+        .cta-box { background: linear-gradient(135deg, var(--accent) 0%, #4b2cbe 100%); padding: 60px; border-radius: 40px; text-align: center; color: white; box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin-bottom: 100px; }
+        .qr-frame { background: white; padding: 15px; border-radius: 20px; display: inline-block; margin: 30px 0; transform: rotate(-3deg); transition: 0.5s; }
         .qr-frame img { width: 200px; height: 200px; display: block; }
 
-        /* Theme Toggle */
-        #themeBtn { background: var(--glass); border: 1px solid var(--card-border); padding: 10px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; }
+        #themeBtn { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; z-index: 1002; }
 
-        @media (max-width: 768px) {
-            .feature-box { flex-direction: column; text-align: center; }
-            .hero h1 { font-size: 3.5rem; }
+        @media (max-width: 900px) {
             .nav-links { display: none; }
+            .menu-toggle { display: block; order: -1; } /* Hamburger to left */
+            .brand { order: 1; margin-left: auto; } /* Brand to right */
+            .nav-bar { padding: 0 20px; }
+            .hero h1 { font-size: 3.5rem; }
+            .feature-box { flex-direction: column; text-align: center; }
         }
     </style>
 </head>
 <body>
 
 <nav class="nav-bar">
+    <button class="menu-toggle" onclick="toggleDrawer()">☰</button>
+
     <a href="/index.html" class="brand">
-        <img src="/images/OUR_LOGO.png" alt="PiMentor Logo" class="logo-img">
-        <span style="font-weight: 800; color: var(--text);">PiMentor</span>
+        <img src="/images/OUR_LOGO.png" alt="Logo" class="logo-img">
+        <span class="logo-text">PiMentor</span>
     </a>
+
     <div class="nav-links" id="navContainer">
         <a href="/index.html" class="nav-btn">HOME</a>
         <a href="/courses.html" class="nav-btn">COURSES</a>
         <a href="/pishot.html" class="nav-btn">PISHOT</a>
-        <a href="/support.html" class="nav-btn active">Contact Us</a>
-        </div>
-    <button id="themeBtn" onclick="toggleTheme()">🌙</button>
+        <a href="/support.html" class="nav-btn active">CONTACT US</a>
+    </div>
+
+    <button id="themeBtn" onclick="toggleTheme()" style="order: 2; margin-left: 15px;">🌙</button>
 </nav>
+
+<div class="nav-drawer" id="mobileDrawer">
+    <a href="/index.html" class="drawer-btn">HOME</a>
+    <a href="/courses.html" class="drawer-btn">COURSES</a>
+    <a href="/pishot.html" class="drawer-btn">PISHOT</a>
+    <a href="/support.html" class="drawer-btn">CONTACT US</a>
+    <div id="drawerDynamic"></div>
+</div>
 
 <section class="hero">
     <p style="letter-spacing: 5px; text-transform: uppercase; font-weight: 700; color: var(--accent);">Welcome to the Future</p>
@@ -125,7 +147,7 @@
 <div class="stats-grid">
     <div class="stat-card"><h2>10K+</h2><p>Minds Connected</p></div>
     <div class="stat-card"><h2>500+</h2><p>Expert Mentors</p></div>
-    <div class="stat-card"><h2>98%</h2><p>Success Rate</p></div>
+    <div class="stat-card)<h2>98%</h2><p>Success Rate</p></div>
 </div>
 
 <div class="content-section">
@@ -134,19 +156,15 @@
             <h3>More Than a Group. <br> A Movement.</h3>
             <p>We don't just solve problems; we redefine them. Our community is a high-octane environment where doubts are destroyed and curiosity is celebrated.</p>
         </div>
-        <div class="feature-visual">
-            <span style="font-size: 5rem;">🚀</span>
-        </div>
+        <div class="feature-visual"><span style="font-size: 5rem;">🚀</span></div>
     </div>
 
     <div class="feature-box" style="flex-direction: row-reverse;">
         <div class="feature-text">
             <h3>Real-Time Mentorship.</h3>
-            <p>Stuck on a complex LaTeX symbol? Or a deep calculus theory? Our peer-to-peer network and live mentors respond faster than you can blink.</p>
+            <p>Stuck on a complex LaTeX symbol? Our peer-to-peer network and live mentors respond faster than you can blink.</p>
         </div>
-        <div class="feature-visual">
-            <span style="font-size: 5rem;">🧠</span>
-        </div>
+        <div class="feature-visual"><span style="font-size: 5rem;">🧠</span></div>
     </div>
 
     <div id="join" class="cta-box">
@@ -160,7 +178,6 @@
 </div>
 
 <script>
-    // Theme Logic (Greenish tree light mode supported)
     function applyTheme(theme) {
         document.documentElement.setAttribute("data-theme", theme);
         document.getElementById("themeBtn").innerText = theme === "dark" ? "☀️" : "🌙";
@@ -172,27 +189,54 @@
         applyTheme(current === "dark" ? "light" : "dark"); 
     }
 
-    // Scroll Animation Logic
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) entry.target.classList.add('visible');
         });
     }, { threshold: 0.1 });
-
     document.querySelectorAll('.feature-box').forEach(box => observer.observe(box));
 
-    // Navigation Injection (Dashboard/Logout/Login)
-    function updateNav() {
-        const container = document.getElementById("navContainer");
-        const token = localStorage.getItem("token");
-        if (token) {
-            container.innerHTML += `<a href="/dashboard.html" class="nav-btn">DASHBOARD</a><a href="#" onclick="logout()" class="nav-btn" style="color:#ff4d4d">LOGOUT</a>`;
-        } else {
-            container.innerHTML += `<a href="/login.html" class="nav-btn">LOGIN</a><a href="/register.html" class="nav-btn">REGISTER</a>`;
-        }
+    function toggleDrawer() {
+        document.getElementById("mobileDrawer").classList.toggle('open');
     }
+
+    function updateNav() {
+        const desktop = document.getElementById("navContainer");
+        const drawer = document.getElementById("drawerDynamic");
+        const token = localStorage.getItem("token");
+        
+        const authLinks = token ? `
+            <a href="/dashboard.html" class="nav-btn">DASHBOARD</a>
+            <a href="#" onclick="logout()" class="nav-btn" style="color:#ff4d4d">LOGOUT</a>
+        ` : `
+            <a href="/login.html" class="nav-btn">LOGIN</a>
+            <a href="/register.html" class="nav-btn">REGISTER</a>
+        `;
+        
+        const drawerLinks = token ? `
+            <a href="/dashboard.html" class="drawer-btn">DASHBOARD</a>
+            <a href="#" onclick="logout()" class="drawer-btn" style="color:#ff4d4d">LOGOUT</a>
+        ` : `
+            <a href="/login.html" class="drawer-btn">LOGIN</a>
+            <a href="/register.html" class="drawer-btn">REGISTER</a>
+        `;
+
+        desktop.innerHTML += authLinks;
+        drawer.innerHTML = drawerLinks;
+    }
+    
     function logout() { localStorage.removeItem("token"); window.location.href = "/login.html"; }
-    updateNav();
+    
+    document.addEventListener("DOMContentLoaded", updateNav);
+    
+    // Close drawer when clicking outside
+    document.addEventListener('click', (e) => {
+        const drawer = document.getElementById("mobileDrawer");
+        const toggle = document.querySelector(".menu-toggle");
+        if (!drawer.contains(e.target) && !toggle.contains(e.target) && drawer.classList.contains('open')) {
+            drawer.classList.remove('open');
+        }
+    });
 </script>
 </body>
 </html>
