@@ -386,6 +386,12 @@
         <span class="hint">2. Paste the result array below:</span>
         <textarea id="manualJsonInput" placeholder='[{"questionText": "...", "options": ["A", "B", "C", "D"], "correctAnswerIndex": 0}]' rows="12" style="font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.3);"></textarea>
         <button class="btn-lecture" onclick="deployManualQuiz()" id="injectBtn">🚀 Deploy Quiz to Cloud</button>
+    <div id="quizPreviewBox" style="margin-top: 20px; display: none;">
+    <h4 style="color: var(--accent); margin-bottom: 10px;">🧪 Live Math Preview:</h4>
+    <div id="mathLivePreview" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px dashed var(--accent); color: var(--text); min-height: 50px;">
+        Paste JSON to preview symbols...
+    </div>
+</div>
     </section>
     <button class="btn-lecture" onclick="addLecture()">Deploy Lecture to Cloud</button>
 </section>
@@ -907,6 +913,36 @@ async function deployManualQuiz() {
         btn.disabled = false; 
     }
 }
+document.getElementById("manualJsonInput").addEventListener("input", function() {
+    const previewBox = document.getElementById("quizPreviewBox");
+    const display = document.getElementById("mathLivePreview");
+    let rawValue = this.value.trim();
+
+    if (rawValue.length < 10) {
+        previewBox.style.display = "none";
+        return;
+    }
+
+    previewBox.style.display = "block";
+    try {
+        // Clean markdown backticks
+        let jsonStr = rawValue.replace(/```json|```/g, "").trim();
+        const data = JSON.parse(jsonStr);
+        
+        // Grab the first question text as a sample
+        let sampleText = data[0].questionText || "JSON parsed, but no questionText found.";
+        
+        // Use your Healer logic here
+        display.innerHTML = healLaTeX(sampleText);
+        
+        // Trigger MathJax to render the preview
+        if (window.MathJax && window.MathJax.typesetPromise) {
+            MathJax.typesetPromise([display]);
+        }
+    } catch (e) {
+        display.innerHTML = `<span style="color: #ff4d4d;">❌ Invalid JSON structure... awaiting completion.</span>`;
+    }
+});
 </script>
 </body>
 </html>
