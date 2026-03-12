@@ -864,20 +864,21 @@ async function deployManualQuiz() {
     const btn = document.getElementById("injectBtn");
 
     if (!selectedLecId || !selectedCourseId) return alert("❌ Error: Select a Course and a Lecture first!");
-    
+    if (!jsonInput) return alert("❌ Error: Paste the JSON array.");
+
     try {
-        // 1. Clean Markdown backticks
+        // 1. Strip Markdown Code Blocks
         jsonInput = jsonInput.replace(/```json|```/g, "").trim();
 
-        // 2. Validate JSON first. 
-        // If it parses successfully as is, don't touch the backslashes!
         let questionsArray;
+        
+        // 2. THE TOGGLE LOGIC: Try parsing raw, then try healing if it fails
         try {
             questionsArray = JSON.parse(jsonInput);
-        } catch (e) {
-            // If it fails, it might need backslash "healing"
-            const healed = jsonInput.replace(/\\/g, "\\\\")
-                                    .replace(/\\\\\\\\/g, "\\\\"); // Fix over-escaping
+        } catch (initialError) {
+            console.log("Initial parse failed, attempting LaTeX healing...");
+            // Only escape backslashes if the raw parse fails
+            const healed = jsonInput.replace(/\\/g, "\\\\");
             questionsArray = JSON.parse(healed);
         }
 
@@ -900,13 +901,14 @@ async function deployManualQuiz() {
         if (res.ok) { 
             alert("✅ Success: Quiz is live!"); 
             document.getElementById("manualJsonInput").value = "";
-            document.getElementById("quizPreviewBox").style.display = "none";
+            if(document.getElementById("quizPreviewBox")) document.getElementById("quizPreviewBox").style.display = "none";
         } else { 
             const errData = await res.json(); 
             alert("❌ Server Error: " + errData.message); 
         }
     } catch (err) { 
-        alert("⚠️ JSON Error: " + err.message); 
+        console.error("Final Error:", err);
+        alert("⚠️ JSON Parsing Failed: " + err.message + "\n\nTip: Ensure the code starts with [ and ends with ]."); 
     } finally { 
         btn.innerText = "🚀 Deploy Quiz to Cloud"; 
         btn.disabled = false; 
