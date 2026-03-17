@@ -14,6 +14,7 @@ const Quiz = require("../models/Quiz"); // 🔥 Correctly imported Quiz model
 
 // Middlewares
 const auth = require("../middleware/authMiddleware");
+const adminMiddleware = require('../middleware/adminMiddleware');
 const admin = require("../middleware/admin");
 const { generateMonthlyPDF } = require('../utils/pdfService');
 /* ================= COURSE MANAGEMENT ================= */

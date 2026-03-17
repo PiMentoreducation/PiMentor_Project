@@ -4,11 +4,7 @@ const Progress = require("../models/Progress");
 const User = require("../models/User");
 const auth = require("../middleware/authMiddleware");
 const authMiddleware = require('../middleware/authMiddleware'); 
-// Make sure the path '../middleware/authMiddleware' matches where your actual auth file is located
 const { generateMonthlyPDF } = require('../utils/pdfService');
-
-// ... other imports
-// Record Video Completion (85% Rule)
 router.post("/update-progress", auth, async (req, res) => {
     try {
         const { courseId, lectureId, isVideoCompleted } = req.body;
@@ -90,7 +86,6 @@ router.get("/course-details/:courseId", auth, async (req, res) => {
         res.status(500).json({ message: "Server error fetching detailed metrics" });
     }
 });
-// Add this to your progress routes
 router.get("/download-report/:courseId", authMiddleware, async (req, res) => {
     try {
         const { courseId } = req.params;
@@ -128,8 +123,6 @@ router.get("/download-report/:courseId", authMiddleware, async (req, res) => {
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=PiMentor_Report_${courseId}.pdf`);
 
-        // 5. Generate and Stream
-        // Using the generateMonthlyPDF function we created earlier
         const doc = await generateMonthlyPDF(
             { name: studentName }, 
             course.title, 
