@@ -3,7 +3,8 @@ const router = express.Router();
 const Progress = require("../models/Progress");
 const User = require("../models/User");
 const auth = require("../middleware/authMiddleware");
-
+const { generateMonthlyPDF } = require('../utils/pdfService');
+// ... other imports
 // Record Video Completion (85% Rule)
 router.post("/update-progress", auth, async (req, res) => {
     try {

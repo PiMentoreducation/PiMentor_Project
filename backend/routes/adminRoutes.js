@@ -15,7 +15,7 @@ const Quiz = require("../models/Quiz"); // 🔥 Correctly imported Quiz model
 // Middlewares
 const auth = require("../middleware/authMiddleware");
 const admin = require("../middleware/admin");
-
+const { generateMonthlyPDF } = require('../utils/pdfService');
 /* ================= COURSE MANAGEMENT ================= */
 
 // Fetch all courses for admin dropdowns/lists
@@ -272,5 +272,33 @@ router.get("/course/:courseId", async (req, res) => {
     }
 });
 
+router.post("/trigger-reports/:courseId", adminMiddleware, async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        const students = await Enrollment.find({ courseId }); 
+        const lectures = await Lecture.find({ courseId }).sort({ order: 1 });
+        const course = await Course.findOne({ courseId });
+
+        // Loop through all students
+        for (let student of students) {
+            const progress = await Progress.find({ courseId, studentEmail: student.email });
+            
+            // Prepare data and calculate score...
+            // (Use the formula logic we discussed earlier)
+            
+            // Instead of piping to 'res', we get the buffer for email attachment
+            const doc = new PDFDocument();
+            let buffers = [];
+            doc.on('data', buffers.push.bind(buffers));
+            doc.on('end', async () => {
+                let pdfBuffer = Buffer.concat(buffers);
+                await sendReportEmail(student.email, pdfBuffer, student.name);
+            });
+            
+            generateMonthlyPDF(student, course.title, reportData, finalScore, doc);
+        }
+        res.json({ message: "All reports dispatched!" });
+    } catch (err) { res.status(500).send(err.message); }
+});
 // Final export
 module.exports = router;
