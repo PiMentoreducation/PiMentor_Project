@@ -65,75 +65,66 @@ router.post("/submit-quiz", auth, async (req, res) => {
 // Add this to routes/progressRoutes.js
 
 // Fetch detailed progress for a specific course (used by Dashboard Mini-Window)
-router.get("/course-details/:courseId", auth, async (req, res) => {
-    try {
-        const userId = req.user.id; // Get the logged-in student's ID
-        const user = await User.findById(userId);
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        // Find all progress documents matching this student's email and the specific course
-        const detailedProgress = await Progress.find({ 
-            studentEmail: user.email, 
-            courseId: req.params.courseId 
-        });
-
-        res.json(detailedProgress);
-    } catch (err) {
-        console.error("DASHBOARD FETCH ERROR:", err);
-        res.status(500).json({ message: "Server error fetching detailed metrics" });
-    }
-});
 router.get("/download-report/:courseId", authMiddleware, async (req, res) => {
     try {
-        const { courseId } = req.params;
+        const courseId = decodeURIComponent(req.params.courseId);
         const studentEmail = req.user.email;
-        const studentName = req.user.name;
 
-        // 1. Fetch Lectures and Progress
-        const lectures = await Lecture.find({ courseId }).sort({ order: 1 });
-        const progress = await Progress.find({ courseId, studentEmail });
-        const course = await Course.findOne({ courseId });
+        // 1. Fetch Course, Lectures, and Student Progress
+        const [course, lectures, progressRecords] = await Promise.all([
+            Course.findOne({ courseId }),
+            Lecture.find({ courseId }).sort({ order: 1 }),
+            Progress.find({ courseId, studentEmail })
+        ]);
 
-        if (!course) return res.status(404).json({ message: "Course not found" });
+        if (!course || lectures.length === 0) {
+            return res.status(404).json({ message: "Course or lectures not found" });
+        }
 
-        // 2. Prepare Data for PDF
+        // 2. Map data exactly like 'View Progress'
+        let videosCompletedCount = 0;
+        let totalQuizScore = 0;
+        let quizzesTakenCount = 0;
+
         const reportData = lectures.map(lec => {
-            const prog = progress.find(p => p.lectureId.toString() === lec._id.toString());
+            const p = progressRecords.find(prog => prog.lectureId.toString() === lec._id.toString());
+            
+            const isWatched = p ? p.isVideoCompleted : false;
+            const score = p ? (p.highestQuizScore || 0) : 0;
+
+            if (isWatched) videosCompletedCount++;
+            if (p && p.highestQuizScore !== undefined && p.highestQuizScore !== -1) {
+                totalQuizScore += p.highestQuizScore;
+                quizzesTakenCount++;
+            }
+
             return {
                 title: lec.lectureTitle,
-                isVideoCompleted: prog ? prog.isVideoCompleted : false,
-                highestQuizScore: prog ? (prog.highestQuizScore || 0) : 0
+                isVideoCompleted: isWatched,
+                highestQuizScore: p && p.highestQuizScore !== -1 ? p.highestQuizScore : -1
             };
         });
 
-        // 3. Apply your Galactic Formula
-        const videosWatched = reportData.filter(r => r.isVideoCompleted).length;
-        const videoPerc = (videosWatched / lectures.length) * 100;
-        
-        const quizzesTaken = reportData.filter(r => r.highestQuizScore > 0).length;
-        const totalQuizMarks = reportData.reduce((acc, curr) => acc + (curr.highestQuizScore > 0 ? curr.highestQuizScore : 0), 0);
-        const quizPerc = quizzesTaken > 0 ? (totalQuizMarks / (quizzesTaken * 10)) * 100 : 0;
-        
+        // 3. Apply your Official Formula
+        const videoPerc = (videosCompletedCount / lectures.length) * 100;
+        const quizPerc = quizzesTakenCount > 0 ? (totalQuizScore / (quizzesTakenCount * 10)) * 100 : 0;
         const finalScore = ((videoPerc + quizPerc) / 2).toFixed(1);
 
-        // 4. Set Headers for PDF Download
+        // 4. Stream to PDF
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=PiMentor_Report_${courseId}.pdf`);
 
-        const doc = await generateMonthlyPDF(
-            { name: studentName }, 
-            course.title, 
-            reportData, 
+        generateMonthlyPDF(
+            { name: req.user.name },
+            course.title,
+            reportData,
             finalScore,
-            res // Pass the response object to stream directly
+            res
         );
 
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Error generating report");
+        console.error("Report Generation Error:", err);
+        res.status(500).send("Internal Server Error");
     }
 });
 module.exports = router;

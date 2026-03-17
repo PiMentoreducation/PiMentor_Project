@@ -41,14 +41,18 @@ const generateMonthlyPDF = (studentData, courseTitle, reportData, overallScore, 
     // Table Rows
     let y = tableTop + 25;
     reportData.forEach((item, index) => {
-        doc.fillColor('#333333');
-        if (index % 2 === 0) doc.rect(50, y - 5, 500, 20).fill('#f9f9f9');
-        doc.fillColor('#333333').text(item.title, 60, y);
-        doc.text(item.isVideoCompleted ? 'COMPLETED' : 'PENDING', 350, y);
-        doc.text(item.highestQuizScore >= 0 ? `${item.highestQuizScore}/10` : 'N/A', 480, y);
-        y += 20;
-    });
-
+    doc.fillColor('#333333');
+    if (index % 2 === 0) doc.rect(50, y - 5, 500, 20).fill('#f9f9f9');
+    
+    doc.fillColor('#333333').text(item.title, 60, y);
+    doc.text(item.isVideoCompleted ? 'WATCHED' : 'PENDING', 350, y);
+    
+    // Logic: If score is -1, it means not taken. Show '--' or 'N/A'
+    const scoreText = (item.highestQuizScore === -1) ? 'N/A' : `${item.highestQuizScore}/10`;
+    doc.text(scoreText, 480, y);
+    
+    y += 20;
+});
     // Final Aggregate
     doc.moveDown(2);
     doc.fontSize(16).fillColor('#7c4dff').font('Helvetica-Bold').text(`Overall Aggregate: ${overallScore}%`, { align: 'right' });
