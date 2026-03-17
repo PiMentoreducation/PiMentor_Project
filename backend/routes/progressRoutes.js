@@ -65,6 +65,27 @@ router.post("/submit-quiz", auth, async (req, res) => {
 // Add this to routes/progressRoutes.js
 
 // Fetch detailed progress for a specific course (used by Dashboard Mini-Window)
+router.get("/course-details/:courseId", auth, async (req, res) => {
+    try {
+        const userId = req.user.id; // Get the logged-in student's ID
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Find all progress documents matching this student's email and the specific course
+        const detailedProgress = await Progress.find({ 
+            studentEmail: user.email, 
+            courseId: req.params.courseId 
+        });
+
+        res.json(detailedProgress);
+    } catch (err) {
+        console.error("DASHBOARD FETCH ERROR:", err);
+        res.status(500).json({ message: "Server error fetching detailed metrics" });
+    }
+});
 router.get("/download-report/:courseId", authMiddleware, async (req, res) => {
     try {
         const courseId = decodeURIComponent(req.params.courseId);
