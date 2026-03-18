@@ -53,7 +53,11 @@
             font-size: 0.8rem; padding: 10px 20px; border-radius: 30px; transition: 0.3s; 
         }
         .nav-btn:hover, .nav-btn.active { background: var(--accent); color: white !important; }
-
+        .nav-btn reg{
+            text-decoration: none; color: var(--text); font-weight: 700; 
+            font-size: 0.8rem; padding: 10px 20px; border-radius: 30px; transition: 0.3s; 
+            color: Red;
+        }
         /* Mobile Controls */
         .menu-toggle {
             display: none; background: none; border: none; color: var(--text);
@@ -240,8 +244,8 @@
             <a href="/dashboard.html" class="nav-btn">DASHBOARD</a>
             <a href="#" onclick="logout()" class="nav-btn" style="color:#ff4d4d">LOGOUT</a>
         ` : `
-            <a href="/login.html" class="nav-btn">LOGIN</a><br>
-            <a href="/register.html" class="nav-btn">REGISTER</a>
+            <a href="/login.html" class="nav-btn">LOGIN &nbsp/ </a>
+            <a href="/register.html" class="nav-btn reg">REGISTER</a>
         `;
         
         const drawerLinks = token ? `
