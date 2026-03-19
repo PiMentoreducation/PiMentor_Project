@@ -234,6 +234,20 @@
             drawer.classList.remove('open');
         }
     });
+    document.addEventListener('DOMContentLoaded', () => {
+    // If the URL contains #history, automatically scroll to or show the doubts section
+    if (window.location.hash === '#history') {
+        const historySection = document.getElementById('myDoubtsSection'); 
+        // Replace 'myDoubtsSection' with the actual ID of your history container
+        
+        if (historySection) {
+            historySection.scrollIntoView({ behavior: 'smooth' });
+            
+            // If you use tabs, trigger the 'click' on the History tab
+            // document.getElementById('tab-history-btn').click();
+        }
+    }
+});
 </script>
 </body>
 </html>
