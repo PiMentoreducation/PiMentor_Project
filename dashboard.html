@@ -397,7 +397,6 @@
                 const isExpired = now > expiry;
                 const diffTime = expiry - now;
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                const thumbnail = meta.thumbnail || p.thumbnail || "N/A";
                 const meta = allMetadata.find(m => String(m.courseId).trim() === String(p.courseId).trim()) || {};
                 const currentPrice = meta.price || p.price || "N/A";
 
@@ -407,9 +406,11 @@
                             ${isExpired ? 'Access Expired' : 'Active'}
                         </span>
                         <h3 style="margin-bottom:12px;">${p.title || meta.title || 'Course'}</h3>
-                        <div style="margin: 12px 0; height: 180px; width: 100%; overflow: hidden; border-radius: 8px;">
-                        <img src="${p.thumbnail}" alt="${p.title}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
-                        </div>
+<div style="margin: 12px 0; height: 180px; width: 100%; overflow: hidden; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border);">
+    <img src="${meta.thumbnail || '/images/default-thumbnail.jpg'}" 
+         onerror="this.src='/images/default-thumbnail.jpg'" 
+         style="width: 100%; height: 100%; object-fit: cover; display: block;">
+</div>
                         <div style="margin: 15px 0; font-size: 0.9rem;">
                             <p style="color: ${isExpired ? 'var(--danger)' : (diffDays < 7 ? 'var(--warning)' : 'var(--success)')}; font-weight: 800;">
                                 ${isExpired ? 'Mission Ended' : diffDays + ' Days Remaining'}
@@ -439,32 +440,60 @@
         }
     }
 
-    async function loadDashboardDoubts() {
-        const container = document.getElementById("dashboardDoubtsContainer");
-        try {
-            const res = await fetch(`${BASE_URL}/api/purchase/my-dashboard-doubts`, { 
-                headers: { "Authorization": "Bearer " + token } 
-            });
-            
-            const doubts = await handleResponse(res);
-            if(!doubts) return;
-            
-            if(!doubts.length) { 
-                container.innerHTML = "<p style='opacity:0.6;'>No mentor interactions found in your orbit.</p>"; 
-                return; 
-            }
+   async function loadDashboardDoubts() {
+    const container = document.getElementById("dashboardDoubtsContainer");
+    try {
+        const res = await fetch(`${BASE_URL}/api/purchase/my-dashboard-doubts`, { 
+            headers: { "Authorization": "Bearer " + token } 
+        });
+        
+        const doubts = await handleResponse(res);
+        if(!doubts) return;
+        
+        if(!doubts.length) { 
+            container.innerHTML = "<p style='opacity:0.6;'>No mentor interactions found in your orbit.</p>"; 
+            return; 
+        }
 
-            container.innerHTML = doubts.map(d => `
-                <div style="background:rgba(255,255,255,0.04); border:1.5px solid var(--card-border); padding:20px; border-radius:18px; margin-bottom:15px;">
-                    <div style="font-size:0.8rem; color:var(--accent); font-weight:800; margin-bottom:8px; text-transform:uppercase;">${d.lectureTitle || 'General Support'}</div>
-                    <strong style="font-size:1rem;">Q: ${d.question}</strong>
-                    <div style="margin-top:12px; padding-top:12px; border-top:1.5px solid rgba(255,255,255,0.05); color: #cfcfcf;">
-                        ${d.answer ? `🎯 Mentor Response: ${d.answer}` : "⏳ A mentor is reviewing your query..."}
+        // 1. Reverse to show newest first, then take only the top 3
+        const latestDoubts = [...doubts].reverse().slice(0, 3);
+
+        // 2. Generate the HTML for the cards
+        let htmlContent = latestDoubts.map(d => `
+            <div style="background:rgba(255,255,255,0.04); border:1.5px solid var(--card-border); padding:20px; border-radius:18px; margin-bottom:15px; position: relative;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                    <div style="font-size:0.8rem; color:var(--accent); font-weight:800; text-transform:uppercase;">
+                        ${d.lectureTitle || 'General Support'}
                     </div>
-                </div>`).join('');
-        } catch (e) { container.innerHTML = "<p>Support inbox temporarily offline.</p>"; }
-    }
+                    <span style="font-size: 0.65rem; padding: 4px 8px; border-radius: 20px; background: ${d.answer ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255, 152, 0, 0.1)'}; color: ${d.answer ? '#4CAF50' : '#FF9800'}; border: 1px solid ${d.answer ? 'rgba(76, 175, 80, 0.2)' : 'rgba(255, 152, 0, 0.2)'};">
+                        ${d.answer ? 'RESOLVED' : 'PENDING'}
+                    </span>
+                </div>
+                
+                <strong style="font-size:1rem; display: block; margin-bottom: 5px;">Q: ${d.question}</strong>
+                
+                <div style="margin-top:12px; padding-top:12px; border-top:1.5px solid rgba(255,255,255,0.05); color: #cfcfcf; font-size: 0.95rem;">
+                    ${d.answer ? `🎯 <span style="color:var(--text)">Mentor Response:</span> ${d.answer}` : "⏳ <i style='opacity:0.7;'>A mentor is reviewing your query...</i>"}
+                </div>
+            </div>`).join('');
 
+        // 3. Add 'View All' link if there are more than 3 doubts total
+        if (doubts.length > 3) {
+            htmlContent += `
+                <div style="text-align:center; margin-top:10px;">
+                    <a href="support.html" style="color:var(--accent); text-decoration:none; font-weight:700; font-size:0.9rem; transition: 0.3s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                        View All Doubts (${doubts.length}) →
+                    </a>
+                </div>`;
+        }
+
+        container.innerHTML = htmlContent;
+
+    } catch (e) { 
+        console.error("Doubt Load Error:", e);
+        container.innerHTML = "<p style='opacity:0.5;'>Support inbox temporarily offline.</p>"; 
+    }
+}
 // --- UPDATED: MODAL LOGIC WITH HEADINGS ---
     async function openProgressModal(courseId, title) {
         const modal = document.getElementById('progressModal');
