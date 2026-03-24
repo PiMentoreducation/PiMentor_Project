@@ -76,18 +76,23 @@
         display: flex; flex-direction: column;
     }
     .course-thumb {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    border-radius: 16px;
-    margin-bottom: 15px;
-    border: 1px solid var(--card-border);
-}
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 16px;
+        margin-bottom: 15px;
+        border: 1px solid var(--card-border);
+    }
     .course-card:hover { transform: translateY(-10px); border-color: var(--accent); box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
     
     .course-card h3 { font-size: 1.4rem; margin-bottom: 10px; }
     .course-card .description { font-size: 0.9rem; opacity: 0.7; margin-bottom: 20px; flex-grow: 1; }
-    .course-card .price { font-size: 1.5rem; font-weight: 800; color: #2ecc71; margin-bottom: 20px; }
+    
+    /* UPDATED PRICING STYLES */
+    .price-wrapper { margin-bottom: 20px; }
+    .old-price { text-decoration: line-through; opacity: 0.5; font-size: 0.9rem; margin-right: 8px; }
+    .new-price { font-size: 1.6rem; font-weight: 800; color: #2ecc71; }
+    .discount-badge { color: var(--accent); font-weight: 800; font-size: 0.75rem; display: block; margin-top: 4px; }
 
     .btn-action { width: 100%; padding: 12px; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; margin-top: 10px; }
     .btn-buy { background: var(--accent); color: white; }
@@ -185,6 +190,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
       }
 
+      // Calculate discount for display
+      const originalPrice = Number(course.oldPrice || course.price + 500);
+      const discount = Math.round(((originalPrice - course.price) / originalPrice) * 100);
+
       const div = document.createElement("div");
       div.className = "course-card";
       let buttonText = "Buy Now", isDisabled = false, btnBg = "var(--accent)";
@@ -202,7 +211,11 @@ div.innerHTML = `
   </span>
   <h3>${course.title}</h3>
   <p class="description">${course.description || ''}</p>
-  <p class="price">₹${course.price}</p>
+  <div class="price-wrapper">
+    <span class="old-price">₹${originalPrice}</span>
+    <span class="new-price">₹${course.price}</span>
+    ${discount > 0 ? `<span class="discount-badge">SAVE ${discount}% TODAY</span>` : ''}
+  </div>
   <button class="btn-action btn-details" onclick="window.location.href='course-desc.html?id=${course.courseId}'">
     Course Details
   </button>
@@ -229,6 +242,15 @@ div.innerHTML = `
 });
 
 async function buyCourse(course) {
+  // --- WEBVIEW PLAYSTORE COMPLIANCE CHECK ---
+  // Detects if the page is opened in the Android/iOS App Webview
+  const isWebView = /pimentor-app|wv|WebView/i.test(navigator.userAgent);
+  
+  if (isWebView) {
+    alert("To comply with Play Store policies, courses cannot be purchased directly inside the app. Please visit our official website pimentor.github.io on your mobile browser or desktop to complete your enrollment.");
+    return;
+  }
+
   const token = localStorage.getItem("token");
   try {
     // 1. Create Order
