@@ -440,7 +440,7 @@
         }
     }
 
-   async function loadDashboardDoubts() {
+async function loadDashboardDoubts() {
     const container = document.getElementById("dashboardDoubtsContainer");
     try {
         const res = await fetch(`${BASE_URL}/api/purchase/my-dashboard-doubts`, { 
@@ -455,10 +455,16 @@
             return; 
         }
 
-        // 1. Reverse to show newest first, then take only the top 3
-        const latestDoubts = [...doubts].reverse().slice(0, 3);
+        // --- SORTING BY DATE (NEWEST AT TOP) ---
+        const latestDoubts = [...doubts]
+            .sort((a, b) => {
+                // Try sorting by createdAt date first
+                const dateA = new Date(a.createdAt || 0);
+                const dateB = new Date(b.createdAt || 0);
+                return dateB - dateA;
+            })
+            .slice(0, 3);
 
-        // 2. Generate the HTML for the cards
         let htmlContent = latestDoubts.map(d => `
             <div style="background:rgba(255,255,255,0.04); border:1.5px solid var(--card-border); padding:20px; border-radius:18px; margin-bottom:15px; position: relative;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
@@ -475,13 +481,15 @@
                 <div style="margin-top:12px; padding-top:12px; border-top:1.5px solid rgba(255,255,255,0.05); color: #cfcfcf; font-size: 0.95rem;">
                     ${d.answer ? `🎯 <span style="color:var(--text)">Mentor Response:</span> ${d.answer}` : "⏳ <i style='opacity:0.7;'>A mentor is reviewing your query...</i>"}
                 </div>
+                <div style="font-size: 0.7rem; opacity: 0.4; margin-top: 10px;">
+                    ${new Date(d.createdAt).toLocaleDateString()}
+                </div>
             </div>`).join('');
 
-        // 3. Add 'View All' link if there are more than 3 doubts total
         if (doubts.length > 3) {
             htmlContent += `
                 <div style="text-align:center; margin-top:10px;">
-                    <a href="support.html#history" style="color:var(--accent); text-decoration:none; font-weight:700; font-size:0.9rem; transition: 0.3s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                    <a href="support.html#history" style="color:var(--accent); text-decoration:none; font-weight:700; font-size:0.9rem;">
                         View All Doubts (${doubts.length}) →
                     </a>
                 </div>`;
