@@ -14,6 +14,8 @@
         --text: #ffffff;
         --card-border: rgba(255, 255, 255, 0.1);
         --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        --danger: #ff4d4d;
+        --success: #2ecc71;
     }
 
     [data-theme="light"] {
@@ -33,6 +35,7 @@
         opacity: 0.2; z-index: -1;
     }
 
+    /* --- NAVBAR --- */
     .navbar {
         position: fixed; top: 0; width: 100%; height: 80px; z-index: 1000;
         display: flex; align-items: center; padding: 0 5%;
@@ -50,6 +53,7 @@
     .hamburger { display: none; cursor: pointer; flex-direction: column; gap: 6px; }
     .hamburger span { width: 28px; height: 3px; background: var(--text); border-radius: 2px; }
 
+    /* --- SIDEBAR --- */
     .sidebar {
         position: fixed; top: 0; left: -320px; width: 300px; height: 100%;
         background: var(--glass); backdrop-filter: blur(25px);
@@ -65,38 +69,74 @@
         .brand { margin-left: auto; margin-right: 0; }
     }
 
+    /* --- COURSE GRID --- */
     .course-container { 
         max-width: 1200px; margin: 100px auto 40px; padding: 0 20px;
-        display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px;
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px;
     }
     
     .course-card { 
-        background: var(--glass); border: 1px solid var(--card-border); border-radius: 24px; 
-        padding: 30px; backdrop-filter: blur(10px); transition: var(--transition);
-        display: flex; flex-direction: column;
+        background: var(--glass); border: 1px solid var(--card-border); border-radius: 28px; 
+        padding: 25px; backdrop-filter: blur(15px); transition: var(--transition);
+        display: flex; flex-direction: column; position: relative;
     }
-    .course-thumb {
-        width: 100%;
-        height: 180px;
-        object-fit: cover;
-        border-radius: 16px;
-        margin-bottom: 15px;
-        border: 1px solid var(--card-border);
-    }
-    .course-card:hover { transform: translateY(-10px); border-color: var(--accent); box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
     
-    .course-card h3 { font-size: 1.4rem; margin-bottom: 10px; }
-    .course-card .description { font-size: 0.9rem; opacity: 0.7; margin-bottom: 20px; flex-grow: 1; }
-    
-    /* UPDATED PRICING STYLES */
-    .price-wrapper { margin-bottom: 20px; }
-    .old-price { text-decoration: line-through; opacity: 0.5; font-size: 0.9rem; margin-right: 8px; }
-    .new-price { font-size: 1.6rem; font-weight: 800; color: #2ecc71; }
-    .discount-badge { color: var(--accent); font-weight: 800; font-size: 0.75rem; display: block; margin-top: 4px; }
+    .course-card:hover { transform: translateY(-12px); border-color: var(--accent); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
 
-    .btn-action { width: 100%; padding: 12px; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-    .btn-buy { background: var(--accent); color: white; }
-    .btn-details { background: rgba(255,255,255,0.1); color: var(--text); border: 1px solid var(--card-border); }
+    .course-thumb {
+        width: 100%; height: 180px; object-fit: cover; border-radius: 20px;
+        margin-bottom: 15px; border: 1px solid var(--card-border);
+    }
+    
+    .course-card h3 { font-size: 1.4rem; margin-bottom: 8px; font-weight: 800; }
+    .course-card .description { font-size: 0.9rem; opacity: 0.7; margin-bottom: 20px; flex-grow: 1; line-height: 1.5; }
+    
+    /* HIGH-IMPACT PRICING */
+    .price-wrapper { 
+        margin-bottom: 20px; 
+        padding: 15px;
+        background: rgba(255,255,255,0.02);
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .old-price-label { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; opacity: 0.5; display: block; }
+    .old-price { 
+        text-decoration: line-through; 
+        color: var(--danger); 
+        font-size: 1.3rem; 
+        font-weight: 700; 
+        margin-right: 10px;
+    }
+    
+    .new-price-container { display: flex; align-items: baseline; gap: 10px; margin-top: 5px; }
+    .new-price { 
+        font-size: 2.4rem; 
+        font-weight: 800; 
+        color: var(--success); 
+        text-shadow: 0 0 15px rgba(46, 204, 113, 0.3);
+    }
+    
+    .discount-badge { 
+        background: var(--accent); 
+        color: white; 
+        font-weight: 900; 
+        font-size: 0.85rem; 
+        padding: 5px 12px; 
+        border-radius: 50px; 
+        box-shadow: 0 5px 15px var(--accent-glow);
+        animation: pulse-glow 2s infinite;
+    }
+
+    @keyframes pulse-glow {
+        0% { transform: scale(1); box-shadow: 0 5px 10px var(--accent-glow); }
+        50% { transform: scale(1.05); box-shadow: 0 5px 20px var(--accent); }
+        100% { transform: scale(1); box-shadow: 0 5px 10px var(--accent-glow); }
+    }
+
+    .btn-action { width: 100%; padding: 14px; border: none; border-radius: 15px; font-weight: 800; cursor: pointer; transition: 0.3s; margin-top: 10px; font-size: 1rem; }
+    .btn-buy { background: var(--accent); color: white; box-shadow: 0 8px 20px var(--accent-glow); }
+    .btn-details { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--card-border); }
 
   </style>
 </head>
@@ -173,7 +213,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     container.innerHTML = ""; 
 
     allCourses.forEach(course => {
-      // Precise filtering for purchased status
       const myPurchases = purchasedRecords.filter(p => 
           String(p.courseId).trim() === String(course.courseId).trim() &&
           String(p.userId) === String(currentUserId)
@@ -190,7 +229,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
       }
 
-      // Calculate discount for display
       const originalPrice = Number(course.oldPrice || course.price + 500);
       const discount = Math.round(((originalPrice - course.price) / originalPrice) * 100);
 
@@ -206,18 +244,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 div.innerHTML = `
   ${course.thumbnail ? `<img src="${course.thumbnail}" class="course-thumb" alt="${course.title}">` : ''}
-  <span style="font-size: 0.7rem; font-weight: 800; color: var(--accent); text-transform: uppercase;">
+  <span style="font-size: 0.75rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1px;">
     ${course.className || 'General'}
   </span>
   <h3>${course.title}</h3>
   <p class="description">${course.description || ''}</p>
+  
   <div class="price-wrapper">
+    <span class="old-price-label">Original Price</span>
     <span class="old-price">₹${originalPrice}</span>
-    <span class="new-price">₹${course.price}</span>
-    ${discount > 0 ? `<span class="discount-badge">SAVE ${discount}% TODAY</span>` : ''}
+    <div class="new-price-container">
+        <span class="new-price">₹${course.price}</span>
+        ${discount > 0 ? `<span class="discount-badge">${discount}% OFF</span>` : ''}
+    </div>
   </div>
+
   <button class="btn-action btn-details" onclick="window.location.href='course-desc.html?id=${course.courseId}'">
-    Course Details
+    View Curriculum
   </button>
   <button class="btn-action btn-buy" ${isDisabled ? "disabled" : ""} 
     id="btn-${course.courseId}" 
@@ -242,27 +285,23 @@ div.innerHTML = `
 });
 
 async function buyCourse(course) {
-  // --- WEBVIEW PLAYSTORE COMPLIANCE CHECK ---
-  // Detects if the page is opened in the Android/iOS App Webview
-  const isWebView = /pimentor-app|wv|WebView/i.test(navigator.userAgent);
+  const isWebView = /WebView|wv|pimentor-app/i.test(navigator.userAgent);
   
   if (isWebView) {
-    alert("To comply with Play Store policies, courses cannot be purchased directly inside the app. Please visit our official website pimentor.github.io on your mobile browser or desktop to complete your enrollment.");
+    alert("In-app digital purchases are currently unavailable. This app is designed for viewing your enrolled course content. Please log in to your account on our official website via a standard web browser to manage your enrollments.");
     return;
   }
 
   const token = localStorage.getItem("token");
   try {
-    // 1. Create Order
     const res = await fetch("https://pimentor-project.onrender.com/api/payment/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-      body: JSON.stringify({ courseId: course.courseId }) // Backend fetches price from DB
+      body: JSON.stringify({ courseId: course.courseId })
     });
     
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed to initiate order");
-    
     const order = data.order; 
 
     const options = {
@@ -273,14 +312,11 @@ async function buyCourse(course) {
       description: course.title,
       order_id: order.id,
       handler: async function (response) {
-        // 2. Verify Payment
         const verifyBody = {
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
-            course: {
-              courseId: course.courseId // Essential for backend lookup
-            }
+            course: { courseId: course.courseId }
         };
 
         const saveRes = await fetch("https://pimentor-project.onrender.com/api/payment/verify", {
@@ -289,19 +325,15 @@ async function buyCourse(course) {
           body: JSON.stringify(verifyBody)
         });
 
-        const verifyResult = await saveRes.json();
-
         if (saveRes.ok) { 
             alert("Payment Successful! Access updated."); 
             window.location.href = "dashboard.html"; 
         } else {
+            const verifyResult = await saveRes.json();
             alert("Error: " + (verifyResult.message || "Database update failed"));
         }
       },
-      theme: { color: "#7c4dff" },
-      modal: {
-          ondismiss: function() { console.log("Checkout closed"); }
-      }
+      theme: { color: "#7c4dff" }
     };
     const rzp = new Razorpay(options);
     rzp.open();
