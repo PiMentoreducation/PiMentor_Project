@@ -86,9 +86,23 @@
         .hero-title { text-align: center; margin-bottom: 60px; }
         .hero-title h1 { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; margin-bottom: 10px; }
         
-        .support-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .support-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; }
         .card { background: var(--glass); border: 1px solid var(--card-border); padding: 30px; border-radius: 30px; backdrop-filter: blur(15px); }
         
+        /* SCROLLABLE DOUBT CONTAINER */
+        #dashboardDoubtsContainer {
+            max-height: 450px; 
+            overflow-y: auto;
+            padding-right: 10px; 
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) transparent;
+        }
+
+        /* Custom Scrollbar for Chrome/Safari/Edge */
+        #dashboardDoubtsContainer::-webkit-scrollbar { width: 6px; }
+        #dashboardDoubtsContainer::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); border-radius: 10px; }
+        #dashboardDoubtsContainer::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
         /* QR & Community */
         .community-cta { 
             background: linear-gradient(135deg, var(--accent) 0%, #4b2cbe 100%); 
@@ -163,7 +177,7 @@
         <div class="card" id="myDoubtsSection">
             <h3 style="color: var(--accent); margin-bottom: 20px; font-size: 1.5rem;">🌌 Doubt History</h3>
             <div id="dashboardDoubtsContainer">
-                <p style="opacity: 0.6; font-size: 0.9rem;">Connecting to mentor records...</p>
+                <p style="opacity: 0.6; font-size: 0.9rem; text-align: center; padding: 20px;">Connecting to mentor records...</p>
             </div>
         </div>
 
@@ -176,6 +190,10 @@
             <div class="faq-item">
                 <div class="faq-question" onclick="toggleFaq(this)">Math symbols not loading? <span>+</span></div>
                 <div class="faq-answer">Wait for the page to fully load MathJax rendering. If symbols still look like code, refresh your browser or check your internet connection.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">Can I access offline? <span>+</span></div>
+                <div class="faq-answer">Currently, PiMentor requires an active connection for progress syncing and quiz validation.</div>
             </div>
         </div>
     </div>
@@ -191,7 +209,9 @@
 </div>
 
 <script>
-    
+    const BASE_URL = "https://pimentor-project.onrender.com";
+    const token = localStorage.getItem("token");
+
     // Unified Theme Logic
     function applyTheme(theme) {
         document.documentElement.setAttribute("data-theme", theme);
@@ -220,63 +240,57 @@
     function toggleDrawer() {
         document.getElementById("mobileDrawer").classList.toggle('open');
     }
-// Add this inside your <script> tag
-const BASE_URL = "https://pimentor-project.onrender.com"; // Ensure this matches your backend URL
-const token = localStorage.getItem("token");
 
-async function loadFullDoubtHistory() {
-    const container = document.getElementById("dashboardDoubtsContainer");
-    if (!token) {
-        container.innerHTML = "<p style='opacity:0.6;'>Please login to view your mentor interactions.</p>";
-        return;
-    }
-
-    try {
-        const res = await fetch(`${BASE_URL}/api/purchase/my-dashboard-doubts`, { 
-            headers: { "Authorization": "Bearer " + token } 
-        });
-        
-        // Use your existing handleResponse logic or simple res.json()
-        const doubts = await res.json();
-        
-        if(!doubts || doubts.length === 0) { 
-            container.innerHTML = "<p style='opacity:0.6;'>No mentor interactions found in your orbit.</p>"; 
-            return; 
+    // Load ALL doubts for the support page history
+    async function loadFullDoubtHistory() {
+        const container = document.getElementById("dashboardDoubtsContainer");
+        if (!token) {
+            container.innerHTML = "<p style='opacity:0.6; text-align:center; padding:20px;'>Please login to view your mentor interactions.</p>";
+            return;
         }
 
-        // Sort by Newest First (Showing ALL doubts on the support page)
-        const allDoubts = [...doubts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        try {
+            const res = await fetch(`${BASE_URL}/api/purchase/my-dashboard-doubts`, { 
+                headers: { "Authorization": "Bearer " + token } 
+            });
+            
+            const doubts = await res.json();
+            
+            if(!doubts || doubts.length === 0) { 
+                container.innerHTML = "<p style='opacity:0.6; text-align:center; padding:20px;'>No mentor interactions found in your orbit.</p>"; 
+                return; 
+            }
 
-        container.innerHTML = allDoubts.map(d => `
-            <div style="background:rgba(255,255,255,0.04); border:1px solid var(--card-border); padding:20px; border-radius:18px; margin-bottom:15px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <div style="font-size:0.8rem; color:var(--accent); font-weight:800; text-transform:uppercase;">
-                        ${d.lectureTitle || 'General Support'}
+            // Sort by Date (Newest first)
+            const allDoubts = [...doubts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            container.innerHTML = allDoubts.map(d => `
+                <div style="background:rgba(255,255,255,0.04); border:1px solid var(--card-border); padding:20px; border-radius:18px; margin-bottom:15px; transition: 0.3s;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center;">
+                        <div style="font-size:0.75rem; color:var(--accent); font-weight:800; text-transform:uppercase;">
+                            ${d.lectureTitle || 'General Support'}
+                        </div>
+                        <span style="font-size: 0.6rem; padding: 4px 8px; border-radius: 20px; background: ${d.answer ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255, 152, 0, 0.1)'}; color: ${d.answer ? '#4CAF50' : '#FF9800'}; border: 1px solid ${d.answer ? 'rgba(76, 175, 80, 0.2)' : 'rgba(255, 152, 0, 0.2)'};">
+                            ${d.answer ? 'RESOLVED' : 'PENDING'}
+                        </span>
                     </div>
-                    <span style="font-size: 0.65rem; padding: 4px 8px; border-radius: 20px; background: ${d.answer ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255, 152, 0, 0.1)'}; color: ${d.answer ? '#4CAF50' : '#FF9800'}; border: 1px solid ${d.answer ? 'rgba(76, 175, 80, 0.2)' : 'rgba(255, 152, 0, 0.2)'};">
-                        ${d.answer ? 'RESOLVED' : 'PENDING'}
-                    </span>
-                </div>
-                <strong style="font-size:1rem; display:block; margin-bottom:10px;">Q: ${d.question}</strong>
-                <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.05); color: #cfcfcf;">
-                    ${d.answer ? `🎯 Mentor Response: ${d.answer}` : "⏳ A mentor is reviewing your query..."}
-                </div>
-                <div style="font-size: 0.7rem; opacity: 0.4; margin-top: 10px;">
-                    ${new Date(d.createdAt).toLocaleDateString()}
-                </div>
-            </div>`).join('');
-    } catch (e) { 
-        container.innerHTML = "<p>Support inbox temporarily offline.</p>"; 
+                    <strong style="font-size:0.95rem; display:block; margin-bottom:10px;">Q: ${d.question}</strong>
+                    <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.05); color: #cfcfcf; font-size: 0.9rem;">
+                        ${d.answer ? `🎯 <b>Mentor Response:</b> ${d.answer}` : "⏳ <i>A mentor is reviewing your query...</i>"}
+                    </div>
+                    <div style="font-size: 0.65rem; opacity: 0.3; margin-top: 10px; text-align: right;">
+                        ${new Date(d.createdAt).toLocaleDateString()}
+                    </div>
+                </div>`).join('');
+        } catch (e) { 
+            container.innerHTML = "<p style='text-align:center; padding:20px;'>Support inbox temporarily offline.</p>"; 
+        }
     }
-}
 
-// Trigger the load when the page is ready
-window.addEventListener('DOMContentLoaded', loadFullDoubtHistory);
     // Navigation Sync
     function updateNav() {
         const desktop = document.getElementById("navContainer");
         const drawer = document.getElementById("drawerDynamic");
-        const token = localStorage.getItem("token");
         
         if (token) {
             const authHtml = `
@@ -304,9 +318,10 @@ window.addEventListener('DOMContentLoaded', loadFullDoubtHistory);
         el.querySelector('span').innerText = item.classList.contains('open') ? '-' : '+';
     }
 
-    // Hash handling for Dashboard Redirects
+    // Page Load Handlers
     window.addEventListener('load', () => {
         updateNav();
+        loadFullDoubtHistory();
         if (window.location.hash === '#history') {
             setTimeout(() => {
                 const historyEl = document.getElementById('myDoubtsSection');
