@@ -206,9 +206,6 @@
 </div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
-
-<script src="https://www.youtube.com/iframe_api"></script>
-
 <script>
     const urlParams = new URLSearchParams(window.location.search);
     const courseId = urlParams.get('courseId');
@@ -223,12 +220,27 @@
     let studentProgress = [];
     let currentQuizData = [];
 
-    // MathJax Configuration
+    // --- 1. FULLSCREEN ORIENTATION LOGIC (RESTORED) ---
+    // This communicates with your Android WebView App
+    document.addEventListener('fullscreenchange', () => {
+        if (typeof FullscreenChannel !== "undefined") {
+            if (document.fullscreenElement) {
+                FullscreenChannel.postMessage('enter_fullscreen');
+            } else {
+                FullscreenChannel.postMessage('exit_fullscreen');
+            }
+        }
+    });
+
+    // --- 2. MATHJAX CONFIG (SPACING FIX) ---
     window.MathJax = {
         tex: {
             inlineMath: [['$', '$'], ['\\(', '\\)']],
             displayMath: [['$$', '$$'], ['\\[', '\\]']],
             processEscapes: true
+        },
+        options: {
+            enableMenu: false
         }
     };
 
@@ -245,17 +257,15 @@
         applyTheme(current === "dark" ? "light" : "dark"); 
     }
 
-    // --- MAIN INITIALIZATION ---
+    // --- 3. DATA LOADING ---
     async function initPage() {
         if (!courseId || !chapter) {
             window.location.href = "dashboard.html";
             return;
         }
-
         document.getElementById("backBtn").href = `course-structure.html?id=${courseId}`;
         document.getElementById("chapterNameDisplay").innerText = "CHAPTER: " + decodeURIComponent(chapter);
-
-        // Run these in parallel so one doesn't block the other
+        
         loadLecturesAndProgress();
         fetchLeaderboard();
     }
@@ -270,10 +280,8 @@
                     headers: { "Authorization": "Bearer " + token }
                 })
             ]);
-
             const lectures = await lecRes.json();
             studentProgress = await progRes.json();
-            
             renderLectureList(lectures);
 
             if (lectures.length > 0) {
@@ -281,7 +289,7 @@
                 const lectureToPlay = (targetId && lectures.find(l => l._id === targetId)) || lectures[0];
                 playLecture(lectureToPlay);
             }
-        } catch (err) { console.error("Data Load Error:", err); }
+        } catch (err) { console.error(err); }
     }
 
     function renderLectureList(lectures) {
@@ -309,8 +317,6 @@
         document.getElementById("topicDisplay").innerText = "TOPIC: " + (lec.topicName || "General");
 
         const videoId = extractVideoId(lec.videoUrl);
-        
-        // Wait for YT API to be ready if it's not yet
         if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
             window.onYouTubeIframeAPIReady = () => loadVideo(videoId);
         } else {
@@ -327,7 +333,7 @@
         if (!ytPlayer) {
             ytPlayer = new YT.Player('mainIframe', {
                 height: '100%', width: '100%', videoId: videoId,
-                playerVars: { 'playsinline': 1, 'rel': 0, 'modestbranding': 1 },
+                playerVars: { 'playsinline': 0, 'rel': 0, 'modestbranding': 1, 'fs': 1 },
                 events: { 'onStateChange': (e) => { if(e.data === YT.PlayerState.PLAYING) startWatchdog(); } }
             });
         } else {
@@ -368,6 +374,84 @@
         } catch (e) { console.error(e); }
     }
 
+    // --- 4. QUIZ LOGIC (FIXED REVIEW & SPACING) ---
+    async function openQuiz() {
+        try {
+            const res = await fetch(`${BASE_URL}/api/purchase/quiz/fetch/${activeLectureId}`, {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            const data = await res.json();
+            if (!data?.questions?.length) return Swal.fire('Notice', 'No quiz available yet.', 'info');
+            
+            currentQuizData = data.questions;
+            renderQuizQuestions(currentQuizData);
+            document.getElementById("quizModal").style.display = "flex";
+            document.getElementById("quizContainer").style.display = "block";
+            document.getElementById("quizResult").style.display = "none";
+        } catch (e) { Swal.fire('Error', 'Quiz fetch failed.', 'error'); }
+    }
+
+    // Fixed spacing: We only wrap strings that contain math symbols, keeping regular text with normal spacing.
+    function smartMath(str) {
+        if (!str) return "";
+        let clean = str.replace(/\$/g, '');
+        // If it looks like pure LaTeX (contains \, ^, _, {), wrap it. 
+        // If it's normal text, return as is.
+        if (/[\\]|[_]|[\^]/.test(clean)) {
+            return `$${clean}$`;
+        }
+        return clean;
+    }
+
+    function renderQuizQuestions(questions) {
+        const area = document.getElementById("questionArea");
+        area.innerHTML = questions.map((q, i) => `
+            <div style="margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 20px;">
+                <p style="font-weight:bold; margin-bottom:15px; font-size: 1.05rem;">${i+1}. ${smartMath(q.questionText)}</p>
+                ${q.options.map((opt, oi) => `
+                    <label style="display:block; background:rgba(255,255,255,0.03); padding:12px; border-radius:10px; margin-bottom:8px; cursor:pointer; border: 1px solid rgba(255,255,255,0.05);">
+                        <input type="radio" name="q${i}" value="${oi}" style="margin-right:10px; accent-color: var(--accent);"> ${smartMath(opt)}
+                    </label>`).join('')}
+            </div>`).join('');
+        MathJax.typesetPromise([area]);
+    }
+
+    async function calculateScore() {
+        let score = 0;
+        let reviewHtml = '<h3 style="color:var(--accent); margin-bottom:20px; text-align:left;">Review Performance:</h3>';
+
+        currentQuizData.forEach((q, i) => {
+            const selectedOption = document.querySelector(`input[name="q${i}"]:checked`);
+            const selectedIndex = selectedOption ? parseInt(selectedOption.value) : null;
+            const isCorrect = selectedIndex === q.correctAnswerIndex;
+            
+            if (isCorrect) score++;
+
+            reviewHtml += `
+                <div style="margin-bottom: 15px; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; text-align: left; border-left: 4px solid ${isCorrect ? '#2ecc71' : '#ff4d4d'};">
+                    <p style="font-weight:700; margin-bottom:8px;">${i + 1}. ${smartMath(q.questionText)}</p>
+                    <p style="font-size:0.85rem; color: #2ecc71;">✅ Correct Answer: ${smartMath(q.options[q.correctAnswerIndex])}</p>
+                    ${!isCorrect ? `<p style="font-size:0.85rem; color: #ff4d4d;">❌ Your Choice: ${selectedIndex !== null ? smartMath(q.options[selectedIndex]) : 'Skipped'}</p>` : ''}
+                </div>`;
+        });
+
+        document.getElementById("quizContainer").style.display = "none";
+        document.getElementById("quizResult").style.display = "block";
+        document.getElementById("resultScore").innerText = `${score} / ${currentQuizData.length}`;
+        document.getElementById("quizReview").innerHTML = reviewHtml;
+
+        MathJax.typesetPromise([document.getElementById("quizReview")]);
+
+        try {
+            await fetch(`${BASE_URL}/api/progress/submit-quiz`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+                body: JSON.stringify({ courseId, lectureId: activeLectureId, score })
+            });
+            fetchLeaderboard();
+        } catch (e) { console.error(e); }
+    }
+
     async function fetchLeaderboard() {
         try {
             const res = await fetch(`${BASE_URL}/api/purchase/leaderboard/${courseId}`, {
@@ -384,56 +468,6 @@
             } else {
                 list.innerHTML = "<p style='font-size:0.8rem; opacity:0.5; text-align:center;'>Start learning to rank!</p>";
             }
-        } catch (e) { console.error("Leaderboard Error:", e); }
-    }
-
-    // --- QUIZ LOGIC ---
-    async function openQuiz() {
-        try {
-            const res = await fetch(`${BASE_URL}/api/purchase/quiz/fetch/${activeLectureId}`, {
-                headers: { "Authorization": "Bearer " + token }
-            });
-            const data = await res.json();
-            if (!data?.questions?.length) return Swal.fire('Notice', 'No quiz available yet.', 'info');
-            
-            currentQuizData = data.questions;
-            renderQuizQuestions(currentQuizData);
-            document.getElementById("quizModal").style.display = "flex";
-        } catch (e) { Swal.fire('Error', 'Quiz fetch failed.', 'error'); }
-    }
-
-    function renderQuizQuestions(questions) {
-        const area = document.getElementById("questionArea");
-        const wrap = (s) => `$${s.replace(/\$/g, '')}$`;
-        area.innerHTML = questions.map((q, i) => `
-            <div style="margin-bottom: 30px;">
-                <p style="font-weight:bold; margin-bottom:15px;">${i+1}. ${wrap(q.questionText)}</p>
-                ${q.options.map((opt, oi) => `
-                    <label style="display:block; background:rgba(255,255,255,0.05); padding:12px; border-radius:10px; margin-bottom:8px; cursor:pointer;">
-                        <input type="radio" name="q${i}" value="${oi}" style="margin-right:10px;"> ${wrap(opt)}
-                    </label>`).join('')}
-            </div>`).join('');
-        MathJax.typesetPromise([area]);
-    }
-
-    async function calculateScore() {
-        let score = 0;
-        currentQuizData.forEach((q, i) => {
-            const sel = document.querySelector(`input[name="q${i}"]:checked`);
-            if (sel && parseInt(sel.value) === q.correctAnswerIndex) score++;
-        });
-
-        document.getElementById("quizContainer").style.display = "none";
-        document.getElementById("quizResult").style.display = "block";
-        document.getElementById("resultScore").innerText = `${score} / ${currentQuizData.length}`;
-
-        try {
-            await fetch(`${BASE_URL}/api/progress/submit-quiz`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-                body: JSON.stringify({ courseId, lectureId: activeLectureId, score })
-            });
-            fetchLeaderboard();
         } catch (e) { console.error(e); }
     }
 
