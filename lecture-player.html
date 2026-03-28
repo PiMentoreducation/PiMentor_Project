@@ -425,17 +425,23 @@
             Swal.fire('Error', 'Error connecting to quiz database.', 'error');
         }
     }
+
     function renderQuizQuestions(questions) {
         const area = document.getElementById("questionArea");
         
-        // ✅ FIXED FUNCTION
         const healLaTeX = (str) => {
             if (!str) return "";
-            return str
+            let fixed = str
                 .replace(/ext\{/g, '\\text{')
                 .replace(/et\s*\(/g, '\\det(')
                 .replace(/race\s*\(/g, '\\text{trace}(')
-                .replace(/\\+/g, '\\'); // keep latex intact
+                .replace(/\\+/g, '\\') 
+                .replace(/\$/g, '');   
+
+            return fixed.split(' ').map(word => {
+                const isMath = /[\\]|[_]|[\^]|[=]/.test(word);
+                return isMath ? `$${word}$` : word;
+            }).join(' ');
         };
 
         area.innerHTML = questions.map((q, i) => {
@@ -459,14 +465,10 @@
                 </div>`;
         }).join('');
 
-        // ✅ FIXED MathJax rendering
         if (window.MathJax && window.MathJax.typesetPromise) {
             setTimeout(() => {
-                MathJax.typesetClear([area]);
-                MathJax.typesetPromise([area])
-                    .then(() => console.log("MathJax rendered"))
-                    .catch((err) => console.log('MathJax Error:', err));
-            }, 300);
+                MathJax.typesetPromise([area]).catch((err) => console.log('MathJax Error:', err));
+            }, 200);
         }
     }
 
@@ -474,10 +476,13 @@
         let score = 0;
         let reviewHtml = '<h3 style="color:var(--accent); margin-bottom:15px;">Review Answers:</h3>';
 
-        // ✅ FIXED formatter (no breaking)
         const formatForReview = (str) => {
             if (!str) return "";
-            return str.replace(/\\+/g, '\\');
+            let fixed = str.replace(/\\+/g, '\\').replace(/\$/g, '');
+            return fixed.split(' ').map(word => {
+                const isMath = /[\\]|[_]|[\^]|[=]/.test(word);
+                return isMath ? `$${word}$` : word;
+            }).join(' ');
         };
 
         currentQuizData.forEach((q, i) => {
@@ -517,14 +522,11 @@
         else if (percentage >= 70) feedback.innerText = "Great job! Almost perfect. 🌟";
         else feedback.innerText = "Good effort! Review the notes and try again. 📖";
 
-        // ✅ FIXED MathJax render for review
         if (window.MathJax && window.MathJax.typesetPromise) {
             setTimeout(() => {
-                const reviewEl = document.getElementById("quizReview");
-                MathJax.typesetClear([reviewEl]);
-                MathJax.typesetPromise([reviewEl])
+                MathJax.typesetPromise([document.getElementById("quizReview")])
                     .catch((err) => console.log('MathJax Review Error:', err));
-            }, 200);
+            }, 100);
         }
 
         try {
