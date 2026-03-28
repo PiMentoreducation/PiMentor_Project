@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap" rel="stylesheet">
     
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
@@ -425,23 +425,17 @@
             Swal.fire('Error', 'Error connecting to quiz database.', 'error');
         }
     }
-
     function renderQuizQuestions(questions) {
         const area = document.getElementById("questionArea");
         
+        // ✅ FIXED FUNCTION
         const healLaTeX = (str) => {
             if (!str) return "";
-            let fixed = str
+            return str
                 .replace(/ext\{/g, '\\text{')
                 .replace(/et\s*\(/g, '\\det(')
                 .replace(/race\s*\(/g, '\\text{trace}(')
-                .replace(/\\+/g, '\\') 
-                .replace(/\$/g, '');   
-
-            return fixed.split(' ').map(word => {
-                const isMath = /[\\]|[_]|[\^]|[=]/.test(word);
-                return isMath ? `$${word}$` : word;
-            }).join(' ');
+                .replace(/\\+/g, '\\'); // keep latex intact
         };
 
         area.innerHTML = questions.map((q, i) => {
@@ -464,12 +458,15 @@
                     </div>
                 </div>`;
         }).join('');
-        
 
+        // ✅ FIXED MathJax rendering
         if (window.MathJax && window.MathJax.typesetPromise) {
             setTimeout(() => {
-                MathJax.typesetPromise([area]).catch((err) => console.log('MathJax Error:', err));
-            }, 200);
+                MathJax.typesetClear([area]);
+                MathJax.typesetPromise([area])
+                    .then(() => console.log("MathJax rendered"))
+                    .catch((err) => console.log('MathJax Error:', err));
+            }, 300);
         }
     }
 
@@ -477,13 +474,10 @@
         let score = 0;
         let reviewHtml = '<h3 style="color:var(--accent); margin-bottom:15px;">Review Answers:</h3>';
 
+        // ✅ FIXED formatter (no breaking)
         const formatForReview = (str) => {
             if (!str) return "";
-            let fixed = str.replace(/\\+/g, '\\').replace(/\$/g, '');
-            return fixed.split(' ').map(word => {
-                const isMath = /[\\]|[_]|[\^]|[=]/.test(word);
-                return isMath ? `$${word}$` : word;
-            }).join(' ');
+            return str.replace(/\\+/g, '\\');
         };
 
         currentQuizData.forEach((q, i) => {
@@ -523,11 +517,14 @@
         else if (percentage >= 70) feedback.innerText = "Great job! Almost perfect. 🌟";
         else feedback.innerText = "Good effort! Review the notes and try again. 📖";
 
+        // ✅ FIXED MathJax render for review
         if (window.MathJax && window.MathJax.typesetPromise) {
             setTimeout(() => {
-                MathJax.typesetPromise([document.getElementById("quizReview")])
+                const reviewEl = document.getElementById("quizReview");
+                MathJax.typesetClear([reviewEl]);
+                MathJax.typesetPromise([reviewEl])
                     .catch((err) => console.log('MathJax Review Error:', err));
-            }, 100);
+            }, 200);
         }
 
         try {
