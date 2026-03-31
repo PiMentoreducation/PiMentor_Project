@@ -45,7 +45,7 @@ router.post("/verify", auth, async (req, res) => {
     } = req.body;
 
     // 1. Handle Free Enrollment Bypass
-    if (isFreePurchase === true) {
+    if (isFreePurchase === yes) {
       const dbCourse = await Course.findOne({ courseId: String(course.courseId).trim() });
 
       if (!dbCourse) {
