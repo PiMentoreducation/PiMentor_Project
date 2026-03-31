@@ -53,6 +53,32 @@
     .hamburger { display: none; cursor: pointer; flex-direction: column; gap: 6px; }
     .hamburger span { width: 28px; height: 3px; background: var(--text); border-radius: 2px; }
 
+    /* --- SEARCH & FILTER SECTION --- */
+    .filter-section {
+        max-width: 1200px; margin: 100px auto 0; padding: 0 20px;
+        display: flex; gap: 15px; flex-wrap: wrap;
+    }
+
+    .search-box {
+        flex: 2; min-width: 250px; position: relative;
+    }
+
+    .search-box input {
+        width: 100%; padding: 15px 20px; border-radius: 15px; border: 1px solid var(--card-border);
+        background: var(--glass); color: var(--text); outline: none; transition: 0.3s;
+    }
+
+    .search-box input:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+
+    .class-filter {
+        flex: 1; min-width: 150px;
+    }
+
+    .class-filter select {
+        width: 100%; padding: 15px; border-radius: 15px; border: 1px solid var(--card-border);
+        background: var(--glass); color: var(--text); outline: none; cursor: pointer;
+    }
+
     /* --- SIDEBAR --- */
     .sidebar {
         position: fixed; top: 0; left: -320px; width: 300px; height: 100%;
@@ -67,11 +93,12 @@
         .nav-links { display: none; }
         .hamburger { display: flex; order: -1; margin-right: auto; }
         .brand { margin-left: auto; margin-right: 0; }
+        .filter-section { margin-top: 90px; }
     }
 
     /* --- COURSE GRID --- */
     .course-container { 
-        max-width: 1200px; margin: 100px auto 40px; padding: 0 20px;
+        max-width: 1200px; margin: 20px auto 40px; padding: 0 20px;
         display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px;
     }
     
@@ -91,40 +118,19 @@
     .course-card h3 { font-size: 1.4rem; margin-bottom: 8px; font-weight: 800; }
     .course-card .description { font-size: 0.9rem; opacity: 0.7; margin-bottom: 20px; flex-grow: 1; line-height: 1.5; }
     
-    /* HIGH-IMPACT PRICING */
+    /* PRICING */
     .price-wrapper { 
-        margin-bottom: 20px; 
-        padding: 15px;
-        background: rgba(255,255,255,0.02);
-        border-radius: 18px;
-        border: 1px solid rgba(255,255,255,0.05);
+        margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.02);
+        border-radius: 18px; border: 1px solid rgba(255,255,255,0.05);
     }
     
     .old-price-label { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; opacity: 0.5; display: block; }
-    .old-price { 
-        text-decoration: line-through; 
-        color: var(--danger); 
-        font-size: 1.3rem; 
-        font-weight: 700; 
-        margin-right: 10px;
-    }
-    
-    .new-price-container { display: flex; align-items: baseline; gap: 10px; margin-top: 5px; }
-    .new-price { 
-        font-size: 2.4rem; 
-        font-weight: 800; 
-        color: var(--success); 
-        text-shadow: 0 0 15px rgba(46, 204, 113, 0.3);
-    }
+    .old-price { text-decoration: line-through; color: var(--danger); font-size: 1.3rem; font-weight: 700; margin-right: 10px; }
+    .new-price { font-size: 2.4rem; font-weight: 800; color: var(--success); text-shadow: 0 0 15px rgba(46, 204, 113, 0.3); }
     
     .discount-badge { 
-        background: var(--accent); 
-        color: white; 
-        font-weight: 900; 
-        font-size: 0.85rem; 
-        padding: 5px 12px; 
-        border-radius: 50px; 
-        box-shadow: 0 5px 15px var(--accent-glow);
+        background: var(--accent); color: white; font-weight: 900; font-size: 0.85rem; 
+        padding: 5px 12px; border-radius: 50px; box-shadow: 0 5px 15px var(--accent-glow);
         animation: pulse-glow 2s infinite;
     }
 
@@ -138,16 +144,10 @@
     .btn-buy { background: var(--accent); color: white; box-shadow: 0 8px 20px var(--accent-glow); }
     .btn-details { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--card-border); }
     
-    /* NEW FREE BUTTON STYLE */
     .btn-free { 
-        background: linear-gradient(90deg, #2ecc71, #27ae60); 
-        color: white; 
-        border: none; 
-        box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3);
-        margin-top: 15px;
+        background: linear-gradient(90deg, #2ecc71, #27ae60); color: white; 
+        box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3); margin-top: 15px;
     }
-    .btn-free:hover { filter: brightness(1.1); transform: scale(1.02); }
-
   </style>
 </head>
 <body>
@@ -182,6 +182,17 @@
     </nav>
 </aside>
 
+<div class="filter-section">
+    <div class="search-box">
+        <input type="text" id="courseSearch" placeholder="🔍 Search courses, topics, or descriptions...">
+    </div>
+    <div class="class-filter">
+        <select id="classDropdown">
+            <option value="all">All Classes</option>
+            </select>
+    </div>
+</div>
+
 <div class="course-container" id="courseContainer">
     <p id="statusMessage" style="grid-column: 1/-1; text-align: center; opacity: 0.6;">Scanning the learning galaxy...</p>
 </div>
@@ -189,16 +200,21 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
+let globalCourses = [];
+let globalPurchases = [];
+
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("token");
   const userData = JSON.parse(localStorage.getItem("user") || "{}");
   const currentUserId = userData.id || userData._id;
 
+  // Sidebar Logic
   const hamburger = document.getElementById('hamburger'), sidebar = document.getElementById('sidebar'), closeSidebar = document.getElementById('closeSidebar');
-  const themeToggleBtn = document.getElementById('themeToggleBtn');
   hamburger.onclick = () => sidebar.classList.add('open');
   closeSidebar.onclick = () => sidebar.classList.remove('open');
 
+  // Theme Logic
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
   const applyTheme = (theme) => {
     document.documentElement.setAttribute("data-theme", theme);
     if(themeToggleBtn) themeToggleBtn.innerText = (theme === 'dark' ? '☀️' : '🌙');
@@ -209,23 +225,70 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (!token || !currentUserId) { window.location.href = "login.html"; return; }
 
-  const container = document.getElementById("courseContainer");
-
   try {
     const [courseRes, purchaseRes] = await Promise.all([
       fetch("https://pimentor-project.onrender.com/api/purchase/all-courses", { headers: { "Authorization": "Bearer " + token } }),
       fetch("https://pimentor-project.onrender.com/api/purchase/my-courses", { headers: { "Authorization": "Bearer " + token } })
     ]);
 
-    const allCourses = await courseRes.json();
-    const purchasedRecords = await purchaseRes.json();
-    const nowMs = Date.now();
-    container.innerHTML = ""; 
+    globalCourses = await courseRes.json();
+    globalPurchases = await purchaseRes.json();
+    
+    populateClassDropdown(globalCourses);
+    renderCourses(globalCourses);
 
-    allCourses.forEach(course => {
-      const myPurchases = purchasedRecords.filter(p => 
-          String(p.courseId).trim() === String(course.courseId).trim() &&
-          String(p.userId) === String(currentUserId)
+    // Event Listeners for Search and Filter
+    document.getElementById('courseSearch').addEventListener('input', filterCourses);
+    document.getElementById('classDropdown').addEventListener('change', filterCourses);
+
+  } catch (err) { 
+      document.getElementById("courseContainer").innerHTML = "<p>Database Error. Please refresh.</p>"; 
+  }
+});
+
+function populateClassDropdown(courses) {
+    const dropdown = document.getElementById('classDropdown');
+    const classes = [...new Set(courses.map(c => c.className || 'General'))];
+    classes.forEach(cls => {
+        const opt = document.createElement('option');
+        opt.value = cls;
+        opt.innerText = cls;
+        dropdown.appendChild(opt);
+    });
+}
+
+function filterCourses() {
+    const searchTerm = document.getElementById('courseSearch').value.toLowerCase();
+    const selectedClass = document.getElementById('classDropdown').value;
+
+    const filtered = globalCourses.filter(course => {
+        const matchesSearch = 
+            course.title.toLowerCase().includes(searchTerm) || 
+            (course.description && course.description.toLowerCase().includes(searchTerm)) ||
+            (course.className && course.className.toLowerCase().includes(searchTerm));
+        
+        const matchesClass = selectedClass === 'all' || course.className === selectedClass;
+
+        return matchesSearch && matchesClass;
+    });
+
+    renderCourses(filtered);
+}
+
+function renderCourses(courses) {
+    const container = document.getElementById("courseContainer");
+    const currentUserId = JSON.parse(localStorage.getItem("user") || "{}").id;
+    const nowMs = Date.now();
+    container.innerHTML = "";
+
+    if (courses.length === 0) {
+        container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; opacity: 0.6; padding: 50px;">No courses found matching your criteria.</p>';
+        return;
+    }
+
+    courses.forEach(course => {
+      const myPurchases = globalPurchases.filter(p => 
+          String(p.courseId).trim() === String(course.courseId).trim()
       );
       
       let isStillActive = false;
@@ -252,7 +315,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           buttonText = "Renew Now"; isDisabled = false; btnBg = "#f39c12"; 
       }
 
-      // Check if course is flagged as free via Admin panel
       const isFreeEligible = course.free === "yes" && !isStillActive;
 
       div.innerHTML = `
@@ -290,21 +352,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!isDisabled) div.querySelector(".btn-buy").onclick = () => buyCourse(course);
       container.appendChild(div);
     });
+}
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const renewId = urlParams.get('renew');
-    if (renewId) {
-        const target = allCourses.find(c => String(c.courseId).trim() === String(renewId).trim());
-        if (target) setTimeout(() => buyCourse(target), 700);
-    }
-  } catch (err) { 
-      container.innerHTML = "<p>Database Error. Please refresh.</p>"; 
-  }
-});
-
-/**
- * Bypasses Razorpay and directly adds course to user's list
- */
 async function getFreeCourse(course) {
   const token = localStorage.getItem("token");
   if (!confirm(`Are you sure you want to enroll in "${course.title}" for free?`)) return;
@@ -313,29 +362,23 @@ async function getFreeCourse(course) {
     const res = await fetch("https://pimentor-project.onrender.com/api/payment/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-      body: JSON.stringify({ 
-        isFreePurchase: true, // Special flag for backend logic
-        course: { courseId: course.courseId } 
-      })
+      body: JSON.stringify({ isFreePurchase: true, course: { courseId: course.courseId } })
     });
 
-    const result = await res.json();
     if (res.ok) {
-      alert("Enrolled Successfully! The course is now in your dashboard.");
+      alert("Enrolled Successfully!");
       window.location.href = "dashboard.html";
     } else {
-      throw new Error(result.message || "Failed to enroll for free.");
+      const result = await res.json();
+      throw new Error(result.message || "Failed to enroll.");
     }
-  } catch (error) {
-    alert("Error: " + error.message);
-  }
+  } catch (error) { alert("Error: " + error.message); }
 }
 
 async function buyCourse(course) {
   const isWebView = /WebView|wv|pimentor-app/i.test(navigator.userAgent);
-  
   if (isWebView) {
-    alert("In-app digital purchases are currently unavailable. This app is designed for viewing your enrolled course content. Please log in to your account on our official website via a standard web browser to manage your enrollments.");
+    alert("Please log in to our website via a standard browser to manage enrollments.");
     return;
   }
 
@@ -348,7 +391,6 @@ async function buyCourse(course) {
     });
     
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Failed to initiate order");
     const order = data.order; 
 
     const options = {
@@ -359,34 +401,26 @@ async function buyCourse(course) {
       description: course.title,
       order_id: order.id,
       handler: async function (response) {
-        const verifyBody = {
+        const saveRes = await fetch("https://pimentor-project.onrender.com/api/payment/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+          body: JSON.stringify({
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
             course: { courseId: course.courseId }
-        };
-
-        const saveRes = await fetch("https://pimentor-project.onrender.com/api/payment/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-          body: JSON.stringify(verifyBody)
+          })
         });
-
         if (saveRes.ok) { 
-            alert("Payment Successful! Access updated."); 
+            alert("Payment Successful!"); 
             window.location.href = "dashboard.html"; 
-        } else {
-            const verifyResult = await saveRes.json();
-            alert("Error: " + (verifyResult.message || "Database update failed"));
         }
       },
       theme: { color: "#7c4dff" }
     };
     const rzp = new Razorpay(options);
     rzp.open();
-  } catch (error) { 
-      alert(error.message || "Purchase process failed."); 
-  }
+  } catch (error) { alert("Purchase failed."); }
 }
 </script>
 </body>
