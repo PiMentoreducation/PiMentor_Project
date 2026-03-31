@@ -137,6 +137,16 @@
     .btn-action { width: 100%; padding: 14px; border: none; border-radius: 15px; font-weight: 800; cursor: pointer; transition: 0.3s; margin-top: 10px; font-size: 1rem; }
     .btn-buy { background: var(--accent); color: white; box-shadow: 0 8px 20px var(--accent-glow); }
     .btn-details { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--card-border); }
+    
+    /* NEW FREE BUTTON STYLE */
+    .btn-free { 
+        background: linear-gradient(90deg, #2ecc71, #27ae60); 
+        color: white; 
+        border: none; 
+        box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3);
+        margin-top: 15px;
+    }
+    .btn-free:hover { filter: brightness(1.1); transform: scale(1.02); }
 
   </style>
 </head>
@@ -242,32 +252,40 @@ document.addEventListener("DOMContentLoaded", async () => {
           buttonText = "Renew Now"; isDisabled = false; btnBg = "#f39c12"; 
       }
 
-div.innerHTML = `
-  ${course.thumbnail ? `<img src="${course.thumbnail}" class="course-thumb" alt="${course.title}">` : ''}
-  <span style="font-size: 0.75rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1px;">
-    ${course.className || 'General'}
-  </span>
-  <h3>${course.title}</h3>
-  <p class="description">${course.description || ''}</p>
-  
-  <div class="price-wrapper">
-    <span class="old-price-label">Original Price</span>
-    <span class="old-price">₹${originalPrice}</span>
-    <div class="new-price-container">
-        <span class="new-price">₹${course.price}</span>
-        ${discount > 0 ? `<span class="discount-badge">${discount}% OFF</span>` : ''}
-    </div>
-  </div>
+      // Check if course is flagged as free via Admin panel
+      const isFreeEligible = course.free === "yes" && !isStillActive;
 
-  <button class="btn-action btn-details" onclick="window.location.href='course-desc.html?id=${course.courseId}'">
-    Course Details
-  </button>
-  <button class="btn-action btn-buy" ${isDisabled ? "disabled" : ""} 
-    id="btn-${course.courseId}" 
-    style="background: ${btnBg}; cursor: ${isDisabled ? 'not-allowed' : 'pointer'};">
-    ${buttonText}
-  </button>
-`;
+      div.innerHTML = `
+        ${course.thumbnail ? `<img src="${course.thumbnail}" class="course-thumb" alt="${course.title}">` : ''}
+        <span style="font-size: 0.75rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1px;">
+          ${course.className || 'General'}
+        </span>
+        <h3>${course.title}</h3>
+        <p class="description">${course.description || ''}</p>
+        
+        <div class="price-wrapper">
+          <span class="old-price-label">Original Price</span>
+          <span class="old-price">₹${originalPrice}</span>
+          <div class="new-price-container">
+              <span class="new-price">₹${course.price}</span>
+              ${discount > 0 ? `<span class="discount-badge">${discount}% OFF</span>` : ''}
+          </div>
+        </div>
+
+        <button class="btn-action btn-details" onclick="window.location.href='course-desc.html?id=${course.courseId}'">
+          Course Details
+        </button>
+        <button class="btn-action btn-buy" ${isDisabled ? "disabled" : ""} 
+          id="btn-${course.courseId}" 
+          style="background: ${btnBg}; cursor: ${isDisabled ? 'not-allowed' : 'pointer'};">
+          ${buttonText}
+        </button>
+        ${isFreeEligible ? `
+          <button class="btn-action btn-free" onclick='getFreeCourse(${JSON.stringify(course)})'>
+            GET IT FOR FREE TODAY
+          </button>
+        ` : ''}
+      `;
 
       if (!isDisabled) div.querySelector(".btn-buy").onclick = () => buyCourse(course);
       container.appendChild(div);
@@ -283,6 +301,35 @@ div.innerHTML = `
       container.innerHTML = "<p>Database Error. Please refresh.</p>"; 
   }
 });
+
+/**
+ * Bypasses Razorpay and directly adds course to user's list
+ */
+async function getFreeCourse(course) {
+  const token = localStorage.getItem("token");
+  if (!confirm(`Are you sure you want to enroll in "${course.title}" for free?`)) return;
+
+  try {
+    const res = await fetch("https://pimentor-project.onrender.com/api/payment/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+      body: JSON.stringify({ 
+        isFreePurchase: true, // Special flag for backend logic
+        course: { courseId: course.courseId } 
+      })
+    });
+
+    const result = await res.json();
+    if (res.ok) {
+      alert("Enrolled Successfully! The course is now in your dashboard.");
+      window.location.href = "dashboard.html";
+    } else {
+      throw new Error(result.message || "Failed to enroll for free.");
+    }
+  } catch (error) {
+    alert("Error: " + error.message);
+  }
+}
 
 async function buyCourse(course) {
   const isWebView = /WebView|wv|pimentor-app/i.test(navigator.userAgent);
