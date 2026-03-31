@@ -11,7 +11,7 @@ function injectNavbar() {
         </div>
 
         <div class="brand" onclick="window.location.href='index.html'">
-            <img src="/images/OUR_LOGO.png" class="logo-img" alt="pimentor">
+            <img src="/images/OUR_LOGO.jpeg" class="logo-img" alt="pimentor">
             <div class="logo-text">PiMentor</div>
         </div>
 

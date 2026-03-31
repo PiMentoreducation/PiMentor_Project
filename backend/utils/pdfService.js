@@ -12,7 +12,7 @@ const generateMonthlyPDF = (studentData, courseTitle, reportData, overallScore, 
     }
 
     // Header: Logo
-    const logoPath = path.join(__dirname, '../public/images/OUR_LOGO.png');
+    const logoPath = path.join(__dirname, '../public/images/OUR_LOGO.jpeg');
     if (fs.existsSync(logoPath)) {
         doc.image(logoPath, 50, 45, { width: 50 });
     }
