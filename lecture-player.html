@@ -13,23 +13,14 @@
                 displayMath: [['$$', '$$'], ['\\[', '\\]']],
                 processEscapes: true
             },
-            options: {
-                enableMenu: false
-            },
-            startup: {
-                ready: () => {
-                    MathJax.startup.defaultReady();
-                    console.log('MathJax is initialized and ready');
-                }
-            }
+            options: { enableMenu: false }
         };
     </script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        /* CSS stays exactly as you provided */
         :root {
             --space-bg: radial-gradient(circle at top, #0d1117 0%, #010409 100%);
             --accent: #7c4dff;
@@ -99,8 +90,7 @@
         .lecture-item { 
             padding: 14px; border-radius: 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05);
             font-size: 0.9rem; transition: 0.3s; display: flex; justify-content: space-between; margin-bottom: 8px;
-            background: rgba(255,255,255,0.02);
-            align-items: center;
+            background: rgba(255,255,255,0.02); align-items: center;
         }
         .lecture-item:hover { background: var(--accent); color: white; transform: translateX(5px); }
         .active-lecture { background: var(--accent) !important; color: white !important; font-weight: 700; box-shadow: 0 5px 15px var(--accent-glow); }
@@ -114,7 +104,6 @@
         }
         .btn-pdf { background: rgba(255, 77, 77, 0.15); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.3); }
         .btn-mcq { background: rgba(40, 167, 69, 0.15); color: #2ecc71; border: 1px solid rgba(40, 167, 69, 0.3); }
-        .btn-res:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 
         #doubtText {
             width: 100%; height: 80px; margin-top: 15px; border-radius: 12px; 
@@ -128,13 +117,12 @@
             flex-direction: column; backdrop-filter: blur(10px);
         }
         .modal-content { width: 90%; height: 85%; background: var(--space-bg); border-radius: 20px; overflow-y: auto; position: relative; padding: 30px; border: 1px solid var(--accent); }
-        [data-theme="light"] .modal-content { background: #fff; color: #333; }
-
+        
         .close-modal { 
             position: absolute; top: 20px; right: 30px; font-size: 35px; color: white; 
             cursor: pointer; z-index: 2002; background: var(--danger); 
             width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; 
-            border-radius: 50%; transition: 0.3s; box-shadow: 0 0 20px rgba(255, 77, 77, 0.5);
+            border-radius: 50%; transition: 0.3s;
         }
 
         @media (max-width: 900px) { 
@@ -212,7 +200,7 @@
         </div>
         <div id="quizResult" style="display:none; text-align:center;">
             <h1 id="resultScore" style="font-size: 3rem; margin-bottom: 10px; color: var(--accent);">0/0</h1>
-            <div id="quizReview" style="text-align: left; margin-top: 30px; border-top: 1px solid var(--card-border); padding-top: 20px;"></div>
+            <div id="quizReview" style="text-align: left; margin-top: 30px; border-top: 1px solid var(--card-border); padding-top: 20px; max-height: 400px; overflow-y: auto;"></div>
             <button onclick="closeQuizModal()" class="btn-res btn-pdf" style="margin-top: 20px;">Back to Lecture</button>
         </div>
     </div>
@@ -232,7 +220,7 @@
     let studentProgress = [];
     let currentQuizData = [];
 
-    // FullscreenOrientation Logic
+    // FullscreenOrientation logic for App
     document.addEventListener('fullscreenchange', () => {
         if (typeof FullscreenChannel !== "undefined") {
             if (document.fullscreenElement) FullscreenChannel.postMessage('enter_fullscreen');
@@ -240,32 +228,27 @@
         }
     });
 
-    function applyTheme(theme) {
-        document.documentElement.setAttribute("data-theme", theme);
-        const btn = document.getElementById("themeBtn");
-        if(btn) btn.innerText = theme === "dark" ? "☀️" : "🌙";
-        localStorage.setItem("pimentor-theme", theme);
-    }
-    applyTheme(localStorage.getItem('pimentor-theme') || 'dark');
-
-    function toggleTheme() { 
-        const current = document.documentElement.getAttribute("data-theme");
-        applyTheme(current === "dark" ? "light" : "dark"); 
-    }
-
-    // 2. Optimized LaTeX Formatting (Fixes Spacing & Rendering)
+    // 🚀 NEW HIGH-OCTANE LATEX HEALER
     function prepareMath(str) {
         if (!str) return "";
-        // Remove manual backslashes added for JSON escaping
-        let fixed = str.replace(/\\+/g, '\\').replace(/\$/g, '');
-        // Wrap everything in a single LaTeX container for consistent device rendering
-        return `\\( ${fixed} \\)`;
+        // 1. Fix backslash escaping and \text conversion
+        let fixed = str
+            .replace(/ext\{/g, '\\text{')
+            .replace(/\\+/g, '\\')
+            .replace(/\$/g, '');
+
+        // 2. The Spacing Fix: Split by words. Wrap ONLY words with math symbols.
+        // This keeps regular text spaces perfectly intact.
+        return fixed.split(' ').map(word => {
+            const hasMath = /[\\]|[_]|[\^]|[=]|[{]|[}]/.test(word);
+            return hasMath ? `\\(${word}\\)` : word;
+        }).join(' ');
     }
 
     async function initPlayer() {
         if (!courseId || !chapter) { window.location.href = "dashboard.html"; return; }
         document.getElementById("backBtn").href = `course-structure.html?id=${courseId}`;
-        document.getElementById("chapterNameDisplay").innerText = "CHAPTER: " + chapter;
+        document.getElementById("chapterNameDisplay").innerText = "CHAPTER: " + decodeURIComponent(chapter);
 
         try {
             const [lecRes, progRes] = await Promise.all([
@@ -276,11 +259,9 @@
                     headers: { "Authorization": "Bearer " + token }
                 })
             ]);
-
             const lectures = await lecRes.json();
             studentProgress = await progRes.json();
             renderLectureList(lectures);
-
             if (lectures.length > 0) {
                 const targetLecId = urlParams.get('lectureId');
                 const lectureToPlay = (targetLecId && lectures.find(l => l._id === targetLecId)) || lectures[0];
@@ -288,18 +269,6 @@
             }
             fetchLeaderboard();
         } catch (err) { console.error(err); }
-    }
-
-    function renderLectureList(lectures) {
-        const list = document.getElementById("lectureList");
-        list.innerHTML = lectures.map((l, index) => {
-            const isFinished = studentProgress.find(p => p.lectureId === l._id && p.isVideoCompleted);
-            return `
-                <div class="lecture-item" id="lec-${l._id}" onclick='playLecture(${JSON.stringify(l).replace(/'/g, "&apos;")})'>
-                    <span>${index + 1}. ${l.title}</span>
-                    <span id="mark-${l._id}" class="complete-mark">${isFinished ? '✅' : ''}</span>
-                </div>`;
-        }).join('');
     }
 
     function playLecture(lec) {
@@ -311,14 +280,13 @@
         document.getElementById("lectureTitle").innerText = lec.title;
         document.getElementById("topicDisplay").innerText = "TOPIC: " + (lec.topicName || "General");
 
-        let videoId = lec.videoUrl.split('v=')[1] || lec.videoUrl.split('/').pop();
-        if(videoId.includes('&')) videoId = videoId.split('&')[0];
-        document.getElementById("mainIframe").innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>`;
+        let vId = lec.videoUrl.split('v=')[1] || lec.videoUrl.split('/').pop();
+        if(vId.includes('&')) vId = vId.split('&')[0];
+        document.getElementById("mainIframe").innerHTML = `<iframe src="https://www.youtube.com/embed/${vId}?rel=0&modestbranding=1" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>`;
 
-        const pBtn = document.getElementById("pdfBtn");
-        if(lec.pdfNotes) { pBtn.style.display = "block"; pBtn.dataset.url = lec.pdfNotes; } 
-        else { pBtn.style.display = "none"; }
-        document.getElementById("mcqBtn").style.display = "block"; 
+        document.getElementById("pdfBtn").style.display = lec.pdfNotes ? "block" : "none";
+        document.getElementById("pdfBtn").dataset.url = lec.pdfNotes;
+        document.getElementById("mcqBtn").style.display = "block";
     }
 
     async function openQuiz() {
@@ -327,8 +295,7 @@
                 headers: { "Authorization": "Bearer " + token }
             });
             const data = await res.json();
-            if (!data || !data.questions || data.questions.length === 0) return Swal.fire('Info', 'No quiz yet.', 'info');
-            
+            if (!data?.questions?.length) return Swal.fire('Info', 'No quiz yet.', 'info');
             currentQuizData = data.questions;
             renderQuizQuestions(currentQuizData);
             document.getElementById("quizModal").style.display = "flex";
@@ -341,19 +308,18 @@
         const area = document.getElementById("questionArea");
         area.innerHTML = questions.map((q, i) => `
             <div style="margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 20px;">
-                <p style="font-weight:bold; margin-bottom:15px; font-size: 1.1rem;">
+                <p style="font-weight:bold; margin-bottom:15px; font-size: 1.1rem; line-height:1.6;">
                     ${i + 1}. ${prepareMath(q.questionText)}
                 </p>
                 <div style="display: flex; flex-direction: column; gap: 10px;">
                     ${q.options.map((opt, oi) => `
-                        <label style="display:block; background:rgba(255,255,255,0.03); padding:12px; border-radius:10px; cursor:pointer;">
+                        <label style="display:block; background:rgba(255,255,255,0.03); padding:12px; border-radius:10px; cursor:pointer; border: 1px solid rgba(255,255,255,0.05);">
                             <input type="radio" name="q${i}" value="${oi}" style="margin-right:10px;"> 
                             ${prepareMath(opt)}
                         </label>`).join('')}
                 </div>
             </div>`).join('');
 
-        // 3. FORCE RETYPESET (Crucial for Mobile/Webview)
         if (window.MathJax && MathJax.typesetPromise) {
             MathJax.typesetPromise([area]).catch(e => console.log(e));
         }
@@ -361,7 +327,8 @@
 
     async function calculateScore() {
         let score = 0;
-        let reviewHtml = "";
+        let reviewHtml = '<h3 style="color:var(--accent); margin-bottom:20px;">Quiz Review:</h3>';
+
         currentQuizData.forEach((q, i) => {
             const sel = document.querySelector(`input[name="q${i}"]:checked`);
             const selIdx = sel ? parseInt(sel.value) : null;
@@ -370,7 +337,7 @@
 
             reviewHtml += `
                 <div style="margin-bottom: 15px; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; border-left: 4px solid ${isCorrect ? '#2ecc71' : '#ff4d4d'};">
-                    <p style="font-weight:700; margin-bottom:5px;">${i+1}. ${prepareMath(q.questionText)}</p>
+                    <p style="font-weight:700; margin-bottom:5px; line-height:1.5;">${i+1}. ${prepareMath(q.questionText)}</p>
                     <p style="font-size:0.85rem; color:#2ecc71;">Correct: ${prepareMath(q.options[q.correctAnswerIndex])}</p>
                     ${!isCorrect ? `<p style="font-size:0.85rem; color:#ff4d4d;">Your Choice: ${selIdx !== null ? prepareMath(q.options[selIdx]) : 'Skipped'}</p>` : ''}
                 </div>`;
@@ -383,7 +350,6 @@
 
         MathJax.typesetPromise([document.getElementById("quizReview")]);
 
-        // Sync to progress (simplified call)
         fetch(`${BASE_URL}/api/progress/submit-quiz`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
@@ -404,6 +370,27 @@
                     </div>`).join('');
             }
         } catch (err) {}
+    }
+
+    function renderLectureList(lectures) {
+        document.getElementById("lectureList").innerHTML = lectures.map((l, i) => {
+            const isDone = studentProgress.find(p => p.lectureId === l._id && p.isVideoCompleted);
+            return `<div class="lecture-item" id="lec-${l._id}" onclick='playLecture(${JSON.stringify(l).replace(/'/g, "&apos;")})'>
+                <span>${i + 1}. ${l.title}</span><span class="complete-mark">${isDone ? '✅' : ''}</span>
+            </div>`;
+        }).join('');
+    }
+
+    function applyTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        const btn = document.getElementById("themeBtn");
+        if(btn) btn.innerText = theme === "dark" ? "☀️" : "🌙";
+        localStorage.setItem("pimentor-theme", theme);
+    }
+
+    function toggleTheme() { 
+        const current = document.documentElement.getAttribute("data-theme");
+        applyTheme(current === "dark" ? "light" : "dark"); 
     }
 
     function closeQuizModal() { document.getElementById("quizModal").style.display = "none"; }
