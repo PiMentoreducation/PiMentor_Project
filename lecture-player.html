@@ -214,14 +214,7 @@
     const chapter = urlParams.get('chapter');
     const token = localStorage.getItem("token");
     const BASE_URL = "https://pimentor-project.onrender.com";
-    // Inside playLecture function
-const pBtn = document.getElementById("pdfBtn");
-if(lec.pdfNotes) { 
-    pBtn.style.display = "block"; 
-    pBtn.dataset.url = lec.pdfNotes; // Store the URL here
-} else { 
-    pBtn.style.display = "none"; 
-}
+    
     let activeLectureId = null;
     let ytPlayer = null;
     let studentProgress = [];
