@@ -387,7 +387,7 @@
         if(btn) btn.innerText = theme === "dark" ? "☀️" : "🌙";
         localStorage.setItem("pimentor-theme", theme);
     }
-const savedTheme = localStorage.getItem('pimentor-theme') || 'dark';
+const savedTheme = localStorage.getItem('pimentor-theme') || 'light';
 applyTheme(savedTheme);
     function toggleTheme() { 
         const current = document.documentElement.getAttribute("data-theme");
