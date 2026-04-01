@@ -42,7 +42,7 @@
 
         .nav-links { display: flex; gap: 20px; align-items: center; margin-left: auto; }
         .nav-links a { text-decoration: none; color: inherit; font-weight: 600; font-size: 0.9rem; opacity: 0.8; transition: 0.3s; }
-        .btn-action { background: var(--accent); color: #fff !important; padding: 10px 24px; border-radius: 50px; font-weight: 800; text-decoration: none; box-shadow: 0 0 15px var(--accent-glow); }
+        .btn-action { background: var(--accent); color: #fff !important; padding: 10px 24px; border-radius: 50px; font-weight: 800; text-decoration: none; box-shadow: 0 0 15px var(--accent-glow); transition: 0.3s; }
 
         /* Mobile Hamburger & Sidebar */
         .hamburger { display: none; cursor: pointer; flex-direction: column; gap: 6px; z-index: 2002; }
@@ -136,7 +136,15 @@
 <section class="hero">
     <h1>Ignite the <br><span style="color:var(--accent)">Cosmos of Mind.</span></h1>
     <p style="font-size: 1.1rem; opacity: 0.8; max-width: 650px; margin-top:20px;">Master Science and Mathematics with PiMentor. The most advanced learning dimension.</p>
-    <a href="/register.html" class="btn-action" style="margin-top:40px; padding: 18px 50px; font-size: 1.1rem;">JOIN THE COMMUNITY</a>
+    
+    <a href="https://github.com/PiMentor/PiMentor/releases/download/v1.0/app-release.apk" 
+       id="downloadAppBtn" 
+       class="btn-action" 
+       style="margin-top:40px; padding: 18px 50px; font-size: 1.1rem; background: transparent; border: 2px solid var(--accent); display: none;">
+       DOWNLOAD APP
+    </a>
+
+    <a href="/register.html" class="btn-action" style="margin-top:20px; padding: 18px 50px; font-size: 1.1rem;">JOIN THE COMMUNITY</a>
 </section>
 
 <section class="section">
@@ -200,8 +208,18 @@
     document.getElementById('hamburger').onclick = () => document.getElementById('sidebar').classList.add('open');
     document.getElementById('closeSidebar').onclick = () => document.getElementById('sidebar').classList.remove('open');
 
-    /* --- AUTH & DATA SYNC --- */
+    /* --- AUTH, WEBVIEW DETECTION & DATA SYNC --- */
     document.addEventListener("DOMContentLoaded", () => {
+        // Webview detection for Download Button
+        const downloadBtn = document.getElementById("downloadAppBtn");
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isMobile = /android|iphone|kindle|ipad/i.test(ua);
+        const isWebview = /(wv|Version\/[\d\.]+).*Safari/i.test(ua) || /fbav|instagram|messenger/i.test(ua);
+
+        if (isMobile && !isWebview) {
+            downloadBtn.style.display = "inline-block";
+        }
+
         const token = localStorage.getItem("token");
         if (token) {
             document.getElementById("desktopAuth").innerHTML = `<a href="/dashboard.html" class="btn-action">Dashboard</a>`;
