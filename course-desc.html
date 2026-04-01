@@ -6,6 +6,8 @@
     <title>Course Details | PiMentor</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap" rel="stylesheet">
     
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
     <script>
         window.MathJax = {
             tex: {
@@ -252,6 +254,7 @@
 <script>
     const BASE_URL = "https://pimentor-project.onrender.com";
     const courseId = new URLSearchParams(window.location.search).get('id');
+    let currentCourseData = null; // Store fetched course details for payment
 
     function setupUI() {
         const token = localStorage.getItem("token");
@@ -280,6 +283,7 @@
 
             if (!courseRes.ok) throw new Error("Galaxy data missing.");
             const d = await courseRes.json();
+            currentCourseData = d; // Save to global variable
 
             // Enrollment Status Logic
             let isStillActive = false;
@@ -349,7 +353,6 @@
             document.getElementById("description").innerHTML = `<div>${d.description || 'Description coming soon.'}</div>`;
             renderFAQs();
 
-            // Trigger MathJax rendering after dynamic content is loaded
             if (window.MathJax && window.MathJax.typeset) {
                 window.MathJax.typeset();
             }
@@ -407,10 +410,59 @@
         if (!isActive) card.classList.add('active');
     }
 
-    function handleEnrollment() {
+    async function handleEnrollment() {
         const token = localStorage.getItem("token");
         if (!token) { window.location.href = "login.html"; return; }
-        window.location.href = `courses.html?renew=${courseId}`;
+        
+        // Direct Payment Integration
+        if (!currentCourseData) return alert("Course details not loaded yet.");
+
+        const isWebView = /WebView|wv|pimentor-app/i.test(navigator.userAgent);
+        if (isWebView) {
+            alert("Please use a standard browser to complete payments.");
+            return;
+        }
+
+        try {
+            const res = await fetch(`${BASE_URL}/api/payment/create-order`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+                body: JSON.stringify({ courseId: currentCourseData.courseId })
+            });
+            
+            const data = await res.json();
+            const order = data.order; 
+
+            const options = {
+                key: "rzp_live_ST3WplEy2H1SuY",
+                amount: order.amount, 
+                currency: "INR",
+                name: "PiMentor",
+                description: currentCourseData.title,
+                order_id: order.id,
+                handler: async function (response) {
+                    const saveRes = await fetch(`${BASE_URL}/api/payment/verify`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+                        body: JSON.stringify({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            course: { courseId: currentCourseData.courseId }
+                        })
+                    });
+                    if (saveRes.ok) { 
+                        alert("Payment Successful!"); 
+                        window.location.href = "dashboard.html"; 
+                    }
+                },
+                theme: { color: "#7c4dff" }
+            };
+            const rzp = new Razorpay(options);
+            rzp.open();
+        } catch (error) { 
+            alert("Payment initialization failed."); 
+        }
     }
 
     function toggleTheme() {
