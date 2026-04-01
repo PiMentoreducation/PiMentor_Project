@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Course Details | PiMentor</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
     <style>
         :root {
             --space-bg: radial-gradient(circle at top, #0d1117 0%, #010409 100%);
@@ -82,7 +94,7 @@
         .grid-list { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .list-item { display: flex; gap: 10px; font-size: 0.95rem; opacity: 0.9; }
 
-        /* --- SUCCESS STORIES (ONE BY ONE SCROLL) --- */
+        /* --- SUCCESS STORIES --- */
         .success-slider {
             display: flex; overflow-x: auto; gap: 20px; padding: 10px 5px 25px;
             scroll-snap-type: x mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
@@ -91,7 +103,7 @@
         .success-slider::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
 
         .success-card {
-            flex: 0 0 100%; /* Snap one card at a time */
+            flex: 0 0 100%;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--card-border); border-radius: 20px; padding: 25px;
             scroll-snap-align: start; text-align: center;
@@ -116,10 +128,16 @@
         .current-price { font-size: 2.8rem; font-weight: 800; color: #2ecc71; margin-bottom: 5px; }
         .discount-tag { color: var(--accent); font-weight: 800; margin-bottom: 20px; display: block; }
         
-        .buy-now-btn { width: 100%; padding: 20px; background: var(--accent); border: none; border-radius: 18px; color: white; font-weight: 800; font-size: 1.2rem; cursor: pointer; transition: 0.3s; margin-bottom: 20px; box-shadow: 0 10px 30px var(--accent-glow); }
+        .buy-now-btn { width: 100%; padding: 20px; background: var(--accent); border: none; border-radius: 18px; color: white; font-weight: 800; font-size: 1.2rem; cursor: pointer; transition: 0.3s; margin-bottom: 10px; box-shadow: 0 10px 30px var(--accent-glow); }
         .buy-now-btn:hover { transform: scale(1.02); filter: brightness(1.1); }
+        .buy-now-btn:disabled { background: #6c757d; cursor: not-allowed; box-shadow: none; }
 
-        /* MULTI-TEACHER CSS */
+        .btn-free { 
+            width: 100%; padding: 16px; border: none; border-radius: 15px; font-weight: 800; cursor: pointer; transition: 0.3s; 
+            background: linear-gradient(90deg, #2ecc71, #27ae60); color: white; 
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3); margin-top: 5px; font-size: 1rem;
+        }
+
         .instructor-card { display: flex; align-items: center; gap: 20px; text-align: left; margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 20px; }
         .instructor-img { width: 75px; height: 75px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
 
@@ -165,9 +183,9 @@
             <div class="video-wrapper"><iframe id="demo1" allowfullscreen></iframe></div>
             <div class="video-wrapper"><iframe id="demo2" allowfullscreen></iframe></div>
         </div>
-                <div class="content-section">
+        <div class="content-section">
             <h2 class="section-title">Course Description</h2>
-            <div class="grid-list" id="description"></div>
+            <div id="description"></div>
         </div>
         <div class="content-section">
             <h2 class="section-title">What You'll Master</h2>
@@ -213,9 +231,11 @@
             <div class="current-price" id="newPrice">₹--</div>
             <span class="discount-tag" id="discountTxt">SAVE --% TODAY</span>
             
-            <button class="buy-now-btn" onclick="handleEnrollment()">ENROLL NOW</button>
+            <div id="enrollmentActions">
+                <button class="buy-now-btn" id="enrollBtn" onclick="handleEnrollment()">ENROLL NOW</button>
+            </div>
             
-            <div style="text-align: left; font-size: 0.85rem; line-height: 2;">
+            <div style="text-align: left; font-size: 0.85rem; line-height: 2; margin-top: 15px;">
                 <p>🚀 100+ Lectures (Recorded + Live)</p>
                 <p>📄 Downloadable PDF Mindmaps</p>
                 <p>🎯 Daily Practice MCQ & DPPs</p>
@@ -223,8 +243,7 @@
                 <p>💻 Multi-device Support</p>
             </div>
 
-            <div id="teachersListContainer">
-                </div>
+            <div id="teachersListContainer"></div>
         </div>
         <a href="courses.html" style="display: block; text-align: center; margin-top: 20px; color: inherit; text-decoration: none; font-weight: 700; font-size: 0.9rem;">Explore Other Courses →</a>
     </div>
@@ -251,16 +270,49 @@
 
     async function loadData() {
         if (!courseId) return window.location.href = "courses.html";
+        const token = localStorage.getItem("token");
+
         try {
-            const res = await fetch(`${BASE_URL}/api/admin/course/${courseId}`);
-            if (!res.ok) throw new Error("Galaxy data missing.");
-            const d = await res.json();
+            const [courseRes, purchaseRes] = await Promise.all([
+                fetch(`${BASE_URL}/api/admin/course/${courseId}`),
+                token ? fetch(`${BASE_URL}/api/purchase/my-courses`, { headers: { "Authorization": "Bearer " + token } }) : Promise.resolve(null)
+            ]);
+
+            if (!courseRes.ok) throw new Error("Galaxy data missing.");
+            const d = await courseRes.json();
+
+            // Enrollment Status Logic
+            let isStillActive = false;
+            if (purchaseRes && purchaseRes.ok) {
+                const myPurchases = await purchaseRes.json();
+                const nowMs = Date.now();
+                myPurchases.forEach(p => {
+                    if (String(p.courseId).trim() === String(courseId).trim() && p.expiryDate && new Date(p.expiryDate).getTime() > nowMs) {
+                        isStillActive = true;
+                    }
+                });
+            }
 
             document.getElementById("title").innerText = d.title || "Course Details";
             document.getElementById("oldPrice").innerText = `₹${d.oldPrice || Number(d.price) + 500}`;
             document.getElementById("newPrice").innerText = `₹${d.price}`;
             document.getElementById("thumb").src = d.thumbnail || "/images/course-default.png";
             
+            // Buttons Logic
+            const actionContainer = document.getElementById("enrollmentActions");
+            const mainBtn = document.getElementById("enrollBtn");
+
+            if (isStillActive) {
+                mainBtn.innerText = "ALREADY ENROLLED";
+                mainBtn.disabled = true;
+            } else if (d.free === "yes") {
+                const freeBtn = document.createElement("button");
+                freeBtn.className = "btn-free";
+                freeBtn.innerText = "GET IT FOR FREE TODAY";
+                freeBtn.onclick = () => getFreeCourse(d);
+                actionContainer.appendChild(freeBtn);
+            }
+
             const formatYT = (url) => {
                 if (!url) return "";
                 let id = url.split('v=')[1] || url.split('/').pop();
@@ -275,7 +327,7 @@
                 document.getElementById("learningList").innerHTML = lp.map(x => `<div class="list-item">✨ ${x.trim()}</div>`).join('');
             }
 
-            // --- TEACHER LOOP LOGIC ---
+            // Teachers Logic
             const teachersContainer = document.getElementById("teachersListContainer");
             if (d.teachers && d.teachers.length > 0) {
                 teachersContainer.innerHTML = d.teachers.map(t => `
@@ -293,14 +345,41 @@
             const discount = Math.round(((Number(d.oldPrice || d.price + 500) - d.price) / Number(d.oldPrice || d.price + 500)) * 100);
             if(discount > 0) document.getElementById("discountTxt").innerText = `SAVE ${discount}% TODAY`;
 
-            document.getElementById("course_roadmap").innerHTML = `<p>${d.course_roadmap || 'Roadmap coming soon.'}</p>`;
-            document.getElementById("description").innerHTML = `<p>${d.description || 'Roadmap coming soon.'}</p>`;
+            document.getElementById("course_roadmap").innerHTML = `<div>${d.course_roadmap || 'Roadmap coming soon.'}</div>`;
+            document.getElementById("description").innerHTML = `<div>${d.description || 'Description coming soon.'}</div>`;
             renderFAQs();
+
+            // Trigger MathJax rendering after dynamic content is loaded
+            if (window.MathJax && window.MathJax.typeset) {
+                window.MathJax.typeset();
+            }
 
         } catch (err) { 
             console.error(err);
             document.getElementById("title").innerText = "Orbit Not Found";
         }
+    }
+
+    async function getFreeCourse(course) {
+        const token = localStorage.getItem("token");
+        if (!token) { window.location.href = "login.html"; return; }
+        if (!confirm(`Enroll in "${course.title}" for free?`)) return;
+
+        try {
+            const res = await fetch(`${BASE_URL}/api/payment/verify`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+                body: JSON.stringify({ isFreePurchase: true, course: { courseId: course.courseId } })
+            });
+
+            if (res.ok) {
+                alert("Enrolled Successfully!");
+                window.location.href = "dashboard.html";
+            } else {
+                const result = await res.json();
+                throw new Error(result.message || "Failed to enroll.");
+            }
+        } catch (error) { alert("Error: " + error.message); }
     }
 
     function renderFAQs() {
