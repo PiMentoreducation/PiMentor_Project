@@ -51,6 +51,7 @@ router.post("/course", auth, admin, async (req, res) => {
             demo2,
             learningPoints,
             teachers,
+            free: req.body.free,
             liveValidityDate: liveValidityDate ? new Date(liveValidityDate) : null,
             recordedDurationDays: parseInt(recordedDurationDays) || 365
         };
