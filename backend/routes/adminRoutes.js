@@ -33,7 +33,7 @@ router.get("/all-courses", auth, admin, async (req, res) => {
 router.post("/course", auth, admin, async (req, res) => {
     try {
         const { 
-            courseId, title, className, price, oldPrice, 
+            courseId, title, className, price, oldPrice, free,
             description, course_roadmap, thumbnail, demo1, demo2, learningPoints, 
             teachers, 
             liveValidityDate, recordedDurationDays 
