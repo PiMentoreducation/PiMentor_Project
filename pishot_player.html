@@ -163,8 +163,11 @@
         }
     }
 
-    function renderShorts(shorts) {
-        scroller.innerHTML = shorts.map((s, index) => {
+function renderShorts(shorts) {
+        // Reverse the array to show the last shorts first
+        const reversedShorts = [...shorts].reverse();
+        
+        scroller.innerHTML = reversedShorts.map((s, index) => {
             return `
                 <div class="video-card" id="card-${index}">
                     <div class="interaction-overlay"></div>
@@ -176,7 +179,7 @@
                 </div>
             `;
         }).join('');
-        initYTPlayers(shorts);
+        initYTPlayers(reversedShorts);
     }
 
     function initYTPlayers(shorts) {
