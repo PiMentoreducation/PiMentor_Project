@@ -402,14 +402,16 @@ router.get("/download-student-report", auth, admin, async (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename=PiMentor_Report_${student.name.replace(/\s+/g, '_')}.pdf`);
 
         // Passing arguments exactly as defined in your pdfService.js
-        generateMonthlyPDF(
-            { name: student.name }, // studentData
-            course.title + (chapterName ? ` - ${chapterName}` : ""), // courseTitle
-            reportData, // reportData
-            overallScore, // overallScore
-            res // res (for piping)
-        );
-
+    generateMonthlyPDF(
+        { 
+            name: student.name, 
+            email: student.email 
+        }, 
+            course.title + (chapterName ? ` - ${chapterName}` : ""), 
+            reportData, 
+            overallScore, 
+            res
+);
     } catch (err) {
         console.error("PDF GENERATION ERROR:", err);
         res.status(500).send("Internal Server Error generating report");
