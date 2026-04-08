@@ -166,21 +166,21 @@
     function renderShorts(shorts) {
         let displayShorts;
 
-        if (startOrder) {
-            // 1. Sort from oldest to newest
+        if (startOrder && startOrder !== "null" && startOrder !== "") {
+            // 1. Sort from oldest to newest to find the logical start
             const sorted = [...shorts].sort((a, b) => (a.order || 0) - (b.order || 0));
-            // 2. Find the index of the requested short
+            // 2. Find the index
             const startIndex = sorted.findIndex(s => String(s.order) === String(startOrder));
             
             if (startIndex !== -1) {
-                // 3. Start the list from the selected short so it appears first
+                // 3. Reorganize: Chosen one first
                 displayShorts = sorted.slice(startIndex);
             } else {
                 displayShorts = sorted;
             }
         } else {
-            // Default behavior: Newest to oldest (reverse order)
-            displayShorts = [...shorts].reverse();
+            // Default behavior: Newest to oldest
+            displayShorts = [...shorts].sort((a, b) => (b.order || 0) - (a.order || 0));
         }
         
         scroller.innerHTML = displayShorts.map((s, index) => {
@@ -200,23 +200,41 @@
     }
 
     function initYTPlayers(shorts) {
-        window.onYouTubeIframeAPIReady = () => {
-            shorts.forEach((s, index) => {
-                const vidId = s.ytUrl.split('/').pop().split('?')[0];
-                players[index] = new YT.Player(`player-${index}`, {
-                    videoId: vidId,
-                    playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 0, 'rel': 0, 'loop': 1, 'playlist': vidId, 'playsinline': 1, 'enablejsapi': 1 },
-                    events: {
-                        'onReady': (e) => { 
-                            e.target.mute(); 
-                            e.target.playVideo(); 
-                            if(index === 0) setupIntersectionObserver(); 
-                        }
-                    }
-                });
-            });
+        // Global definition for YT API
+        window.onYouTubeIframeAPIReady = function() {
+            createPlayers(shorts);
         };
-        if (typeof YT !== 'undefined' && YT.loaded) window.onYouTubeIframeAPIReady();
+        
+        // If YT is already loaded, fire immediately
+        if (window.YT && window.YT.Player) {
+            createPlayers(shorts);
+        }
+    }
+
+    function createPlayers(shorts) {
+        shorts.forEach((s, index) => {
+            const vidId = s.ytUrl.split('/').pop().split('?')[0];
+            players[index] = new YT.Player(`player-${index}`, {
+                videoId: vidId,
+                playerVars: { 
+                    'autoplay': 1, 
+                    'mute': 1, 
+                    'controls': 0, 
+                    'rel': 0, 
+                    'loop': 1, 
+                    'playlist': vidId, 
+                    'playsinline': 1, 
+                    'enablejsapi': 1 
+                },
+                events: {
+                    'onReady': (e) => { 
+                        e.target.mute(); 
+                        e.target.playVideo(); 
+                        if(index === 0) setupIntersectionObserver(); 
+                    }
+                }
+            });
+        });
     }
 
     function setupIntersectionObserver() {
