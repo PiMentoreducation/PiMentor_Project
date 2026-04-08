@@ -30,10 +30,9 @@
             overflow: hidden; 
             height: 100vh;
             width: 100vw;
-            position: fixed; /* Prevents bounce scrolling on iOS */
+            position: fixed; 
         }
 
-        /* --- MASTER SENSOR SPLASH --- */
         #unmute-splash {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -59,7 +58,6 @@
             100% { transform: scale(1); opacity: 0.8; }
         }
 
-        /* --- NAVBAR --- */
         .navbar {
             position: fixed; top: 0; width: 100%; height: 70px; z-index: 1000;
             display: flex; align-items: center; padding: 0 5%;
@@ -87,23 +85,22 @@
             #themeToggle { order: 3; margin-left: auto; }
         }
 
-        /* --- PLAYER ENGINE (SNAP-LOCK ENABLED) --- */
         #pishot-scroller {
             height: 100vh; 
             width: 100vw;
             overflow-y: scroll; 
-            scroll-snap-type: y mandatory; /* Forces 100% height snap */
-            scroll-behavior: smooth;
-            scrollbar-width: none; /* Hide scrollbar Firefox */
-            -ms-overflow-style: none; /* Hide scrollbar IE/Edge */
+            scroll-snap-type: y mandatory; 
+            scroll-behavior: auto; /* Changed to auto for immediate jumping */
+            scrollbar-width: none; 
+            -ms-overflow-style: none; 
         }
-        #pishot-scroller::-webkit-scrollbar { display: none; } /* Hide scrollbar Chrome/Safari */
+        #pishot-scroller::-webkit-scrollbar { display: none; } 
 
         .video-card {
             height: 100vh; 
             width: 100vw;
             scroll-snap-align: start; 
-            scroll-snap-stop: always; /* Prevents skipping multiple videos */
+            scroll-snap-stop: always; 
             position: relative;
             background: #000; 
             display: flex;
@@ -111,7 +108,6 @@
             justify-content: center;
         }
 
-        /* Shield to prevent YT interactions */
         .interaction-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -152,6 +148,7 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const category = urlParams.get('cat') || 'All';
+    const startOrder = urlParams.get('startOrder'); 
 
     async function fetchShorts() {
         try {
@@ -163,11 +160,21 @@
         }
     }
 
-function renderShorts(shorts) {
-        // Reverse the array to show the last shorts first
-        const reversedShorts = [...shorts].reverse();
+    function renderShorts(shorts) {
+        let displayShorts;
+        let targetIndex = -1;
+
+        if (startOrder && startOrder !== "null" && startOrder !== "") {
+            // Sort chronologically so scrolling up goes to previous and down goes to next
+            displayShorts = [...shorts].sort((a, b) => (a.order || 0) - (b.order || 0));
+            targetIndex = displayShorts.findIndex(s => String(s.order) === String(startOrder));
+        } else {
+            // Default: Newest first
+            displayShorts = [...shorts].sort((a, b) => (b.order || 0) - (a.order || 0));
+            targetIndex = 0;
+        }
         
-        scroller.innerHTML = reversedShorts.map((s, index) => {
+        scroller.innerHTML = displayShorts.map((s, index) => {
             return `
                 <div class="video-card" id="card-${index}">
                     <div class="interaction-overlay"></div>
@@ -179,27 +186,49 @@ function renderShorts(shorts) {
                 </div>
             `;
         }).join('');
-        initYTPlayers(reversedShorts);
+
+        initYTPlayers(displayShorts);
+
+        // Crucial: Scroll to the target video after a short delay to allow DOM to render
+        if (targetIndex !== -1) {
+            setTimeout(() => {
+                const targetCard = document.getElementById(`card-${targetIndex}`);
+                if (targetCard) {
+                    targetCard.scrollIntoView({ behavior: 'auto' });
+                    // Force a snap lock check
+                    scroller.style.scrollBehavior = 'smooth'; 
+                }
+            }, 300);
+        }
     }
 
     function initYTPlayers(shorts) {
-        window.onYouTubeIframeAPIReady = () => {
-            shorts.forEach((s, index) => {
-                const vidId = s.ytUrl.split('/').pop().split('?')[0];
-                players[index] = new YT.Player(`player-${index}`, {
-                    videoId: vidId,
-                    playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 0, 'rel': 0, 'loop': 1, 'playlist': vidId, 'playsinline': 1, 'enablejsapi': 1 },
-                    events: {
-                        'onReady': (e) => { 
-                            e.target.mute(); 
-                            e.target.playVideo(); 
-                            if(index === 0) setupIntersectionObserver(); 
-                        }
-                    }
-                });
-            });
+        window.onYouTubeIframeAPIReady = function() {
+            createPlayers(shorts);
         };
-        if (typeof YT !== 'undefined' && YT.loaded) window.onYouTubeIframeAPIReady();
+        if (window.YT && window.YT.Player) {
+            createPlayers(shorts);
+        }
+    }
+
+    function createPlayers(shorts) {
+        shorts.forEach((s, index) => {
+            const vidId = s.ytUrl.split('/').pop().split('?')[0];
+            players[index] = new YT.Player(`player-${index}`, {
+                videoId: vidId,
+                playerVars: { 
+                    'autoplay': 1, 'mute': 1, 'controls': 0, 'rel': 0, 'loop': 1, 
+                    'playlist': vidId, 'playsinline': 1, 'enablejsapi': 1 
+                },
+                events: {
+                    'onReady': (e) => { 
+                        e.target.mute(); 
+                        e.target.playVideo(); 
+                        if(index === 0) setupIntersectionObserver(); 
+                    }
+                }
+            });
+        });
     }
 
     function setupIntersectionObserver() {
@@ -209,7 +238,6 @@ function renderShorts(shorts) {
                 const player = players[index];
                 
                 if (entry.isIntersecting) {
-                    console.log("Playing:", index);
                     if(player && player.playVideo) {
                         if(isUserInteracted) {
                             player.unMute();
@@ -217,17 +245,15 @@ function renderShorts(shorts) {
                         }
                         player.playVideo();
                     }
-                    document.getElementById('mainNav').classList.add('hidden');
                 } else {
-                    // 🔥 PAUSE AND RESET video when it leaves 100% of the screen
                     if(player && player.pauseVideo) {
                         player.pauseVideo();
-                        player.seekTo(0); // Optional: Reset to start so it's ready for next visit
+                        player.seekTo(0); 
                     }
                 }
             });
         }, { 
-            threshold: 0.8 // 🔥 Strict: Only play if 80% of the video is visible
+            threshold: 0.8 
         });
         document.querySelectorAll('.video-card').forEach(card => observer.observe(card));
     }
@@ -236,7 +262,6 @@ function renderShorts(shorts) {
         if (isUserInteracted) return;
         isUserInteracted = true;
         
-        // Find visible video to unmute only that one first
         const visibleCard = [...document.querySelectorAll('.video-card')].find(card => {
             const rect = card.getBoundingClientRect();
             return rect.top >= -50 && rect.top <= 50;
@@ -258,16 +283,6 @@ function renderShorts(shorts) {
         }
         document.querySelectorAll('iframe').forEach(el => el.style.pointerEvents = 'auto');
     }
-
-    // Navbar Scroll Logic
-    let lastScroll = 0;
-    scroller.onscroll = () => {
-        let currentScroll = scroller.scrollTop;
-        const nav = document.getElementById('mainNav');
-        if (lastScroll - currentScroll > 50) nav.classList.remove('hidden');
-        else if (currentScroll - lastScroll > 50) nav.classList.add('hidden');
-        lastScroll = currentScroll;
-    };
 
     document.addEventListener("DOMContentLoaded", () => {
         fetchShorts();
