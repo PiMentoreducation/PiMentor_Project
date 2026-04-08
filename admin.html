@@ -908,29 +908,71 @@ Ensure all quotes inside the text are escaped or replaced with single quotes to 
         } catch (e) { console.error("Pishot category load fail"); }
     }
 
-    async function uploadPishot() {
-        const dropdownCat = document.getElementById('pishotCatSelect').value;
-        const customCat = document.getElementById('pishotCustomCat').value.trim();
-        const icon = document.getElementById('pishotCatIcon').value.trim();
-        const title = document.getElementById('pishotTitle').value.trim();
-        let rawUrl = document.getElementById('pishotUrl').value.trim();
-        const finalCategory = customCat || dropdownCat;
-        if(!finalCategory || !title || !rawUrl) return alert("Error: Category, Title, and URL are required.");
-        let videoId = "";
-        if (rawUrl.includes("shorts/")) videoId = rawUrl.split("shorts/")[1].split("?")[0];
-        else if (rawUrl.includes("v=")) videoId = rawUrl.split("v=")[1].split("&")[0];
-        else videoId = rawUrl.split("/").pop().split("?")[0];
-        const payload = { category: finalCategory, icon: icon || "🚀", title: title, ytUrl: `https://www.youtube.com/embed/${videoId}` };
-        try {
-            const res = await fetch(`${BASE_URL}/api/shorts/upload`, {
-                method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-                body: JSON.stringify(payload)
-            });
-            const result = await res.json(); alert(result.message);
-            document.getElementById('pishotCustomCat').value = ""; document.getElementById('pishotTitle').value = "";
-            document.getElementById('pishotUrl').value = ""; loadPishotCategories(); refreshPishotDeleteList();
-        } catch (e) { alert("Deployment failed."); }
+async function uploadPishot() {
+    const dropdownCat = document.getElementById('pishotCatSelect').value;
+    const customCat = document.getElementById('pishotCustomCat').value.trim();
+    const icon = document.getElementById('pishotCatIcon').value.trim();
+    const title = document.getElementById('pishotTitle').value.trim();
+    let rawUrl = document.getElementById('pishotUrl').value.trim();
+
+    const finalCategory = customCat || dropdownCat;
+
+    if(!finalCategory || !title || !rawUrl) return alert("Error: Category, Title, and URL are required.");
+
+    // --- NEW: AUTO-INCREMENT LOGIC ---
+    let nextOrder = 1;
+    try {
+        // Fetch current shorts for this specific category to determine the next order number
+        const listRes = await fetch(`${BASE_URL}/api/shorts/list?category=${encodeURIComponent(finalCategory)}`);
+        const existingShorts = await listRes.json();
+        
+        if (existingShorts && existingShorts.length > 0) {
+            // Find the highest order number currently in the DB and add 1
+            const maxOrder = Math.max(...existingShorts.map(s => s.order || 0));
+            nextOrder = maxOrder + 1;
+        }
+    } catch (err) {
+        console.warn("Could not determine order, defaulting to 1", err);
     }
+    // --------------------------------
+
+    let videoId = "";
+    if (rawUrl.includes("shorts/")) videoId = rawUrl.split("shorts/")[1].split("?")[0];
+    else if (rawUrl.includes("v=")) videoId = rawUrl.split("v=")[1].split("&")[0];
+    else videoId = rawUrl.split("/").pop().split("?")[0];
+
+    // Include the calculated order in the payload
+    const payload = { 
+        category: finalCategory, 
+        icon: icon || "🚀", 
+        title: title, 
+        ytUrl: `https://www.youtube.com/embed/${videoId}`,
+        order: nextOrder // Sent to DB
+    };
+
+    try {
+        const res = await fetch(`${BASE_URL}/api/shorts/upload`, {
+            method: "POST", 
+            headers: { 
+                "Content-Type": "application/json", 
+                "Authorization": "Bearer " + token 
+            },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json(); 
+        alert(result.message);
+
+        // Reset form
+        document.getElementById('pishotCustomCat').value = ""; 
+        document.getElementById('pishotTitle').value = "";
+        document.getElementById('pishotUrl').value = ""; 
+        
+        loadPishotCategories(); 
+        refreshPishotDeleteList();
+    } catch (e) { 
+        alert("Deployment failed."); 
+    }
+}
 
     async function refreshPishotDeleteList() {
         const filterCat = document.getElementById('pishotDeleteFilter').value;
