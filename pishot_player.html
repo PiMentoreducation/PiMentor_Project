@@ -152,6 +152,7 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const category = urlParams.get('cat') || 'All';
+    const startOrder = urlParams.get('startOrder'); // Capturing the specific order ID
 
     async function fetchShorts() {
         try {
@@ -163,11 +164,22 @@
         }
     }
 
-function renderShorts(shorts) {
-        // Reverse the array to show the last shorts first
-        const reversedShorts = [...shorts].reverse();
+    function renderShorts(shorts) {
+        let displayShorts;
+        let targetIndex = 0;
+
+        if (startOrder) {
+            // When jumping to a specific episode, we keep oldest-to-newest order
+            displayShorts = [...shorts].sort((a, b) => (a.order || 0) - (b.order || 0));
+            // Find where that specific episode is in the sorted array
+            const foundIndex = displayShorts.findIndex(s => String(s.order) === String(startOrder));
+            if (foundIndex !== -1) targetIndex = foundIndex;
+        } else {
+            // Default behavior: Newest to oldest
+            displayShorts = [...shorts].reverse();
+        }
         
-        scroller.innerHTML = reversedShorts.map((s, index) => {
+        scroller.innerHTML = displayShorts.map((s, index) => {
             return `
                 <div class="video-card" id="card-${index}">
                     <div class="interaction-overlay"></div>
@@ -179,7 +191,18 @@ function renderShorts(shorts) {
                 </div>
             `;
         }).join('');
-        initYTPlayers(reversedShorts);
+
+        initYTPlayers(displayShorts);
+
+        // If we have a target index, scroll to it immediately after rendering
+        if (targetIndex > 0) {
+            setTimeout(() => {
+                const targetCard = document.getElementById(`card-${targetIndex}`);
+                if (targetCard) {
+                    targetCard.scrollIntoView({ behavior: 'instant' });
+                }
+            }, 100);
+        }
     }
 
     function initYTPlayers(shorts) {
@@ -217,17 +240,18 @@ function renderShorts(shorts) {
                         }
                         player.playVideo();
                     }
-                    document.getElementById('mainNav').classList.add('hidden');
+                    // Handle Nav visibility (Note: fixed ID reference check)
+                    const nav = document.getElementById('mainNav');
+                    if(nav) nav.classList.add('hidden');
                 } else {
-                    // 🔥 PAUSE AND RESET video when it leaves 100% of the screen
                     if(player && player.pauseVideo) {
                         player.pauseVideo();
-                        player.seekTo(0); // Optional: Reset to start so it's ready for next visit
+                        player.seekTo(0); 
                     }
                 }
             });
         }, { 
-            threshold: 0.8 // 🔥 Strict: Only play if 80% of the video is visible
+            threshold: 0.8 
         });
         document.querySelectorAll('.video-card').forEach(card => observer.observe(card));
     }
@@ -236,7 +260,6 @@ function renderShorts(shorts) {
         if (isUserInteracted) return;
         isUserInteracted = true;
         
-        // Find visible video to unmute only that one first
         const visibleCard = [...document.querySelectorAll('.video-card')].find(card => {
             const rect = card.getBoundingClientRect();
             return rect.top >= -50 && rect.top <= 50;
@@ -259,13 +282,14 @@ function renderShorts(shorts) {
         document.querySelectorAll('iframe').forEach(el => el.style.pointerEvents = 'auto');
     }
 
-    // Navbar Scroll Logic
     let lastScroll = 0;
     scroller.onscroll = () => {
         let currentScroll = scroller.scrollTop;
         const nav = document.getElementById('mainNav');
-        if (lastScroll - currentScroll > 50) nav.classList.remove('hidden');
-        else if (currentScroll - lastScroll > 50) nav.classList.add('hidden');
+        if (nav) {
+            if (lastScroll - currentScroll > 50) nav.classList.remove('hidden');
+            else if (currentScroll - lastScroll > 50) nav.classList.add('hidden');
+        }
         lastScroll = currentScroll;
     };
 
