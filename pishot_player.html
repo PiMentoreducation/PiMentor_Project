@@ -33,7 +33,6 @@
             position: fixed; 
         }
 
-        /* --- MASTER SENSOR SPLASH --- */
         #unmute-splash {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -59,7 +58,6 @@
             100% { transform: scale(1); opacity: 0.8; }
         }
 
-        /* --- NAVBAR --- */
         .navbar {
             position: fixed; top: 0; width: 100%; height: 70px; z-index: 1000;
             display: flex; align-items: center; padding: 0 5%;
@@ -87,13 +85,12 @@
             #themeToggle { order: 3; margin-left: auto; }
         }
 
-        /* --- PLAYER ENGINE --- */
         #pishot-scroller {
             height: 100vh; 
             width: 100vw;
             overflow-y: scroll; 
             scroll-snap-type: y mandatory; 
-            scroll-behavior: smooth;
+            scroll-behavior: auto; /* Changed to auto for immediate jumping */
             scrollbar-width: none; 
             -ms-overflow-style: none; 
         }
@@ -165,22 +162,16 @@
 
     function renderShorts(shorts) {
         let displayShorts;
+        let targetIndex = -1;
 
         if (startOrder && startOrder !== "null" && startOrder !== "") {
-            // 1. Sort from oldest to newest to find the logical start
-            const sorted = [...shorts].sort((a, b) => (a.order || 0) - (b.order || 0));
-            // 2. Find the index
-            const startIndex = sorted.findIndex(s => String(s.order) === String(startOrder));
-            
-            if (startIndex !== -1) {
-                // 3. Reorganize: Chosen one first
-                displayShorts = sorted.slice(startIndex);
-            } else {
-                displayShorts = sorted;
-            }
+            // Sort chronologically so scrolling up goes to previous and down goes to next
+            displayShorts = [...shorts].sort((a, b) => (a.order || 0) - (b.order || 0));
+            targetIndex = displayShorts.findIndex(s => String(s.order) === String(startOrder));
         } else {
-            // Default behavior: Newest to oldest
+            // Default: Newest first
             displayShorts = [...shorts].sort((a, b) => (b.order || 0) - (a.order || 0));
+            targetIndex = 0;
         }
         
         scroller.innerHTML = displayShorts.map((s, index) => {
@@ -197,15 +188,24 @@
         }).join('');
 
         initYTPlayers(displayShorts);
+
+        // Crucial: Scroll to the target video after a short delay to allow DOM to render
+        if (targetIndex !== -1) {
+            setTimeout(() => {
+                const targetCard = document.getElementById(`card-${targetIndex}`);
+                if (targetCard) {
+                    targetCard.scrollIntoView({ behavior: 'auto' });
+                    // Force a snap lock check
+                    scroller.style.scrollBehavior = 'smooth'; 
+                }
+            }, 300);
+        }
     }
 
     function initYTPlayers(shorts) {
-        // Global definition for YT API
         window.onYouTubeIframeAPIReady = function() {
             createPlayers(shorts);
         };
-        
-        // If YT is already loaded, fire immediately
         if (window.YT && window.YT.Player) {
             createPlayers(shorts);
         }
@@ -217,14 +217,8 @@
             players[index] = new YT.Player(`player-${index}`, {
                 videoId: vidId,
                 playerVars: { 
-                    'autoplay': 1, 
-                    'mute': 1, 
-                    'controls': 0, 
-                    'rel': 0, 
-                    'loop': 1, 
-                    'playlist': vidId, 
-                    'playsinline': 1, 
-                    'enablejsapi': 1 
+                    'autoplay': 1, 'mute': 1, 'controls': 0, 'rel': 0, 'loop': 1, 
+                    'playlist': vidId, 'playsinline': 1, 'enablejsapi': 1 
                 },
                 events: {
                     'onReady': (e) => { 
