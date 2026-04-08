@@ -917,38 +917,37 @@ async function uploadPishot() {
 
     const finalCategory = customCat || dropdownCat;
 
-    if(!finalCategory || !title || !rawUrl) {
-        return alert("Error: Category, Title, and URL are required.");
-    }
+    if(!finalCategory || !title || !rawUrl) return alert("Error: Category, Title, and URL are required.");
 
-    // --- IMPROVED AUTO-INCREMENT LOGIC ---
+    // --- NEW: AUTO-INCREMENT LOGIC ---
     let nextOrder = 1;
     try {
+        // Fetch current shorts for this specific category to determine the next order number
         const listRes = await fetch(`${BASE_URL}/api/shorts/list?category=${encodeURIComponent(finalCategory)}`);
-        if (listRes.ok) {
-            const existingShorts = await listRes.json();
-            if (Array.isArray(existingShorts) && existingShorts.length > 0) {
-                // Map through the shorts and find the highest numeric order
-                const orders = existingShorts.map(s => parseInt(s.order) || 0);
-                nextOrder = Math.max(...orders) + 1;
-            }
+        const existingShorts = await listRes.json();
+        
+        if (existingShorts && existingShorts.length > 0) {
+            // Find the highest order number currently in the DB and add 1
+            const maxOrder = Math.max(...existingShorts.map(s => s.order || 0));
+            nextOrder = maxOrder + 1;
         }
     } catch (err) {
-        console.error("Scouting failed, defaulting to 1:", err);
-        // We continue with nextOrder = 1 if the fetch fails
+        console.warn("Could not determine order, defaulting to 1", err);
     }
+    // --------------------------------
 
     let videoId = "";
     if (rawUrl.includes("shorts/")) videoId = rawUrl.split("shorts/")[1].split("?")[0];
     else if (rawUrl.includes("v=")) videoId = rawUrl.split("v=")[1].split("&")[0];
     else videoId = rawUrl.split("/").pop().split("?")[0];
 
+    // Include the calculated order in the payload
     const payload = { 
         category: finalCategory, 
         icon: icon || "🚀", 
         title: title, 
         ytUrl: `https://www.youtube.com/embed/${videoId}`,
-        order: nextOrder 
+        order: nextOrder // Sent to DB
     };
 
     try {
@@ -960,19 +959,18 @@ async function uploadPishot() {
             },
             body: JSON.stringify(payload)
         });
-        
         const result = await res.json(); 
-        alert(`Success! Saved as Episode #${nextOrder}. ${result.message}`);
+        alert(result.message);
 
-        // Clear only non-category fields for faster bulk uploading
+        // Reset form
+        document.getElementById('pishotCustomCat').value = ""; 
         document.getElementById('pishotTitle').value = "";
         document.getElementById('pishotUrl').value = ""; 
         
         loadPishotCategories(); 
         refreshPishotDeleteList();
     } catch (e) { 
-        alert("Upload failed. Check console for details.");
-        console.error(e);
+        alert("Deployment failed."); 
     }
 }
 
