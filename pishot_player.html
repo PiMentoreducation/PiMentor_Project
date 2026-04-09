@@ -162,17 +162,16 @@
 
     function renderShorts(shorts) {
         let displayShorts;
-        let targetIndex = 0; // Default to first video
+        let targetIndex = -1;
 
         if (startOrder && startOrder !== "null" && startOrder !== "") {
-            // 1. For "Resume From", we sort Ascending (1, 2, 3...)
+            // Sort chronologically so scrolling up goes to previous and down goes to next
             displayShorts = [...shorts].sort((a, b) => (a.order || 0) - (b.order || 0));
-            // 2. Find the index of the specific order chosen
-            const foundIndex = displayShorts.findIndex(s => String(s.order) === String(startOrder));
-            if (foundIndex !== -1) targetIndex = foundIndex;
+            targetIndex = displayShorts.findIndex(s => String(s.order) === String(startOrder));
         } else {
-            // Default: Newest first (Descending)
+            // Default: Newest first
             displayShorts = [...shorts].sort((a, b) => (b.order || 0) - (a.order || 0));
+            targetIndex = 0;
         }
         
         scroller.innerHTML = displayShorts.map((s, index) => {
@@ -190,19 +189,16 @@
 
         initYTPlayers(displayShorts);
 
-        // 3. Perform the scroll precisely to the card index
+        // Crucial: Scroll to the target video after a short delay to allow DOM to render
         if (targetIndex !== -1) {
             setTimeout(() => {
                 const targetCard = document.getElementById(`card-${targetIndex}`);
                 if (targetCard) {
-                    // Jump immediately to avoid the "sliding" effect during load
-                    targetCard.scrollIntoView({ behavior: 'auto', block: 'start' });
-                    // Restore smooth behavior for user scrolling
-                    setTimeout(() => {
-                        scroller.style.scrollBehavior = 'smooth'; 
-                    }, 50);
+                    targetCard.scrollIntoView({ behavior: 'auto' });
+                    // Force a snap lock check
+                    scroller.style.scrollBehavior = 'smooth'; 
                 }
-            }, 400); // Slight delay to ensure DOM element 'card-X' is painted
+            }, 300);
         }
     }
 
@@ -268,10 +264,8 @@
         
         const visibleCard = [...document.querySelectorAll('.video-card')].find(card => {
             const rect = card.getBoundingClientRect();
-            // Check for card covering the center of the viewport
-            return rect.top >= -window.innerHeight/2 && rect.top <= window.innerHeight/2;
+            return rect.top >= -50 && rect.top <= 50;
         });
-        
         const index = visibleCard ? visibleCard.id.split('-')[1] : 0;
 
         players.forEach((p, i) => {
