@@ -254,17 +254,24 @@
                 const index = entry.target.id.split('-')[1];
                 const player = players[index];
 
-                if (entry.isIntersecting) {
-                    if (player) {
-                        if (isUserInteracted) {
-                            player.unMute();
-                            player.setVolume(100);
-                        }
-                        player.playVideo();
-                    }
-                } else {
-                    player?.pauseVideo();
-                }
+if (entry.isIntersecting) {
+    if (player && player.playVideo) {
+
+        // ✅ FORCE START FROM BEGINNING
+        player.seekTo(0, true);
+
+        if (isUserInteracted) {
+            player.unMute();
+            player.setVolume(100);
+        }
+
+        player.playVideo();
+    }
+}
+        if (player && player.pauseVideo) {
+    player.pauseVideo();
+    player.seekTo(0, true); // ✅ reset when leaving
+}
             });
         }, { threshold: 0.8 });
 
