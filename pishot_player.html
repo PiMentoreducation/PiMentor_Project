@@ -254,30 +254,35 @@
                 const index = entry.target.id.split('-')[1];
                 const player = players[index];
 
-if (entry.isIntersecting) {
-    if (player && player.playVideo) {
+function setupObserver() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const index = entry.target.id.split('-')[1];
+            const player = players[index];
 
-        // ✅ FORCE START FROM BEGINNING
-        player.seekTo(0, true);
+            if (!player) return;
 
-        if (isUserInteracted) {
-            player.unMute();
-            player.setVolume(100);
-        }
+            if (entry.isIntersecting) {
+                // ✅ WHEN VIDEO COMES INTO VIEW
+                player.seekTo(0, true); // force restart
 
-        player.playVideo();
-    }
+                if (isUserInteracted) {
+                    player.unMute();
+                    player.setVolume(100);
+                }
+
+                player.playVideo();
+
+            } else {
+                // ✅ WHEN VIDEO LEAVES VIEW
+                player.pauseVideo();
+                player.seekTo(0, true); // reset for next time
+            }
+        });
+    }, { threshold: 0.9 });
+
+    document.querySelectorAll('.video-card').forEach(card => observer.observe(card));
 }
-        if (player && player.pauseVideo) {
-    player.pauseVideo();
-    player.seekTo(0, true); // ✅ reset when leaving
-}
-            });
-        }, { threshold: 0.8 });
-
-        document.querySelectorAll('.video-card').forEach(card => observer.observe(card));
-    }
-
     function handleMasterTap() {
         if (isUserInteracted) return;
         isUserInteracted = true;
